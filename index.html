@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Mock Tracker</h1>
+  <button onclick="showGraph()">📈 View Graph</button>
+</div>
+
+<div class="container">
+
+  <!-- Add/Edit Test Card -->
+  <div class="card">
+    <h2 id="formTitle">Add Test</h2>
+    <input id="examName" type="text" placeholder="Enter Exam Name">
+    <input id="testName" type="text" placeholder="Enter Test Name">
+    <input id="testDate" type="date">
+
+    <div id="sections"></div>
+    <button onclick="addSection()">➕ Add Section</button>
+    <button onclick="saveTest()">💾 Save Test</button>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card">
+    <h2>Test Records</h2>
+    <div class="tableWrapper">
+      <table>
+        <thead></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Graph Page -->
+<div id="graphPage" class="graphPage">
+  <canvas id="graph"></canvas>
+  <button onclick="hideGraph()">⬅ Back</button>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
