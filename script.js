@@ -8,6 +8,7 @@ initializeForm();
 // ------------------- INITIALIZE FORM -------------------
 function initializeForm() {
   const sectionsDiv = document.getElementById("sections");
+  if (!sectionsDiv) return;
   sectionsDiv.innerHTML = "";
   // Add 3 default empty sections
   addSection();
@@ -16,14 +17,15 @@ function initializeForm() {
 }
 
 // ------------------- ADD SECTION -------------------
-function addSection(name = "", marks = "") {
+function addSection(name = "", marks = 0) {
   const div = document.createElement("div");
   div.className = "sectionRow";
   div.innerHTML = `
     <input placeholder="Section Name" value="${name}">
-    <input type="number" placeholder="Marks" value="${marks}">
+    <input type="number" placeholder="Marks" value="${marks || 0}">
   `;
-  document.getElementById("sections").appendChild(div);
+  const sectionsDiv = document.getElementById("sections");
+  if (sectionsDiv) sectionsDiv.appendChild(div);
 }
 
 // ------------------- SAVE TEST -------------------
@@ -66,9 +68,11 @@ function saveTest() {
 // ------------------- RENDER TABLES PER EXAM -------------------
 function renderTable() {
   const container = document.querySelector(".container");
+  if (!container) return;
+
   container.innerHTML = "";
 
-  // Add form card back
+  // Add form card
   const formCard = document.createElement("div");
   formCard.className = "card";
   formCard.innerHTML = `
@@ -109,7 +113,7 @@ function renderTable() {
     card.innerHTML = cardHTML;
     container.appendChild(card);
 
-    // Unique section names
+    // Collect unique section names for this exam
     const sectionSet = new Set();
     examTests.forEach(t => t.sections.forEach(s => sectionSet.add(s.name)));
     const sectionNames = Array.from(sectionSet);
@@ -129,7 +133,7 @@ function renderTable() {
     const totalAllTests = examTests.reduce((acc, t) => acc + t.total, 0);
     const avgAllTests = examTests.length ? totalAllTests / examTests.length : 0;
 
-    // Rows
+    // Table rows
     const tbody = card.querySelector("table tbody");
     examTests.forEach((t, i) => {
       let rowHTML = `<tr>
