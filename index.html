@@ -16,7 +16,8 @@
   <h2>📊 Mock Test Tracker</h2>
 
   <div class="topRight">
-    <select id="examFilter" onchange="renderTables()"></select>
+    <!-- when exam changes → refresh table + graph -->
+    <select id="examFilter" onchange="renderTables(); renderGraph();"></select>
     <button onclick="showGraph()">📈 Graph</button>
   </div>
 </header>
@@ -50,8 +51,9 @@
 <div id="tablesArea"></div>
 
 <!-- ================= GRAPH ================= -->
-<div id="graphPage">
+<div id="graphPage" style="display:none;">
   <h3>Performance Graph</h3>
+  <!-- canvas id must match JS -->
   <canvas id="graph"></canvas>
   <br>
   <button onclick="hideGraph()">⬅ Back</button>
