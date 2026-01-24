@@ -113,9 +113,10 @@ function renderTables(){
 
     const secNames=[...new Set(arr.flatMap(t=>t.sections.map(s=>s.name)))];
 
-    let head="<tr><th>Sr</th><th>Date</th><th>Test</th><th>Total</th>";
-    secNames.forEach(s=>head+=`<th>${s}</th>`);
-    head+="<th>Action</th></tr>";
+   let head="<tr><th>Sr</th><th>Date</th><th>Test</th>";
+secNames.forEach(s=>head+=`<th>${s}</th>`);
+head+="<th>Total</th><th>Action</th></tr>";
+
     table.innerHTML=head;
 
     arr.forEach((t,i)=>{
@@ -128,15 +129,17 @@ function renderTables(){
       if(t.total===worst) cls="worst";
 
       let row=`<tr class="${cls}">
-        <td>${i+1}</td>
-        <td>${fd}</td>
-        <td>${t.test}</td>
-        <td>${t.total}</td>`;
+  <td>${i+1}</td>
+  <td>${fd}</td>
+  <td>${t.test}</td>`;
 
-      secNames.forEach(s=>{
-        const f=t.sections.find(x=>x.name===s);
-        row+=`<td>${f?f.marks:"-"}</td>`;
-      });
+secNames.forEach(s=>{
+  const f=t.sections.find(x=>x.name===s);
+  row+=`<td>${f?f.marks:"-"}</td>`;
+});
+
+row+=`<td>${t.total}</td>`;
+
 
       row+=`<td>
         <button onclick="editTest('${exam}',${i})">✏</button>
