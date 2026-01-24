@@ -1,0 +1,110 @@
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f2f4f8;
+}
+
+header {
+  background: #1565c0;
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topRight {
+  display: flex;
+  gap: 10px;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+}
+
+input, select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#sections .sectionRow {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.btnRow {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.addBtn { background: #43a047; color: white; }
+.saveBtn { background: #1565c0; color: white; }
+
+#tablesArea {
+  padding: 0 20px 40px;
+}
+
+.tableCard {
+  background: white;
+  padding: 16px;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #e3f2fd;
+}
+
+.best {
+  background: #c8e6c9;
+}
+
+.worst {
+  background: #ffcdd2;
+}
+
+#graphPage {
+  display: none;
+  padding: 30px;
+  text-align: center;
+}
