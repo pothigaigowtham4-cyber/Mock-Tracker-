@@ -14,12 +14,12 @@ function initializeForm() {
 }
 
 /* ---------------- ADD SECTION ---------------- */
-function addSection(name = "", marks = "") {
+function addSection(name = "", marks = 0) {
   const div = document.createElement("div");
   div.className = "sectionRow";
   div.innerHTML = `
     <input placeholder="Section Name" value="${name}">
-    <input type="number" placeholder="Marks" value="${marks}">
+    <input type="number" placeholder="Marks" value="${marks || 0}">
   `;
   document.getElementById("sections").appendChild(div);
 }
