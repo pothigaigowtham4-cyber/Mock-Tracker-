@@ -208,6 +208,8 @@ function drawGraph() {
   const sortedTests = tests.sort((a,b)=>new Date(a.date)-new Date(b.date));
   const labels = sortedTests.map(t => t.date + " (" + t.exam + ")");
   const data = sortedTests.map(t => t.total);
+renderTable();
+initializeForm(); // always show sections on page load
 
   if(window.chart) window.chart.destroy();
   window.chart = new Chart(ctx, {
