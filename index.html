@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mock Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+  <h2>📊 Mock Test Tracker</h2>
+
+  <div class="topRight">
+    <select id="examFilter" onchange="renderTables()"></select>
+    <button onclick="showGraph()">📈 Graph</button>
+  </div>
+</header>
+
+<!-- ================= FORM ================= -->
+<div class="container">
+
+  <div class="card">
+
+    <h3>Add / Edit Test</h3>
+
+    <div class="formGrid">
+      <input id="examName" placeholder="Exam Name (CGL / NTPC)">
+      <input id="testName" placeholder="Test Name (Mock 1)">
+      <input id="testDate" type="date">
+    </div>
+
+    <h4>Sections</h4>
+    <div id="sections"></div>
+
+    <div class="btnRow">
+      <button class="addBtn" onclick="addSection()">+ Add Section</button>
+      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= TABLES ================= -->
+<div id="tablesArea"></div>
+
+<!-- ================= GRAPH ================= -->
+<div id="graphPage">
+  <h3>Performance Graph</h3>
+  <canvas id="graph"></canvas>
+  <br>
+  <button onclick="hideGraph()">⬅ Back</button>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
