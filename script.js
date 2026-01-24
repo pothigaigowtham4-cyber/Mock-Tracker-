@@ -3,6 +3,17 @@ let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
 renderTable();
+initializeForm();
+
+// ------------------- INITIALIZE FORM -------------------
+function initializeForm() {
+  const sectionsDiv = document.getElementById("sections");
+  sectionsDiv.innerHTML = "";
+  // Add 3 default empty sections
+  addSection();
+  addSection();
+  addSection();
+}
 
 // ------------------- ADD SECTION -------------------
 function addSection(name = "", marks = "") {
@@ -55,7 +66,23 @@ function saveTest() {
 // ------------------- RENDER TABLES PER EXAM -------------------
 function renderTable() {
   const container = document.querySelector(".container");
-  container.innerHTML = ""; // Clear container
+  container.innerHTML = "";
+
+  // Add form card back
+  const formCard = document.createElement("div");
+  formCard.className = "card";
+  formCard.innerHTML = `
+    <h2 id="formTitle">${editIndex === null ? "Add Test" : "Edit Test"}</h2>
+    <input id="examName" type="text" placeholder="Enter Exam Name">
+    <input id="testName" type="text" placeholder="Enter Test Name">
+    <input id="testDate" type="date">
+    <div id="sections"></div>
+    <button onclick="addSection()">➕ Add Section</button>
+    <button onclick="saveTest()">💾 Save Test</button>
+  `;
+  container.appendChild(formCard);
+
+  initializeForm();
 
   // Group tests by exam
   const exams = {};
@@ -82,7 +109,7 @@ function renderTable() {
     card.innerHTML = cardHTML;
     container.appendChild(card);
 
-    // Collect unique section names for this exam
+    // Unique section names
     const sectionSet = new Set();
     examTests.forEach(t => t.sections.forEach(s => sectionSet.add(s.name)));
     const sectionNames = Array.from(sectionSet);
@@ -98,7 +125,7 @@ function renderTable() {
     headerHTML += `<th>Actions</th></tr>`;
     thead.innerHTML = headerHTML;
 
-    // Average per test in this exam
+    // Average per exam
     const totalAllTests = examTests.reduce((acc, t) => acc + t.total, 0);
     const avgAllTests = examTests.length ? totalAllTests / examTests.length : 0;
 
@@ -127,7 +154,7 @@ function renderTable() {
 function editTestByExam(examName, index) {
   const examTests = tests.filter(t => t.exam === examName);
   const testToEdit = examTests[index];
-  editIndex = tests.indexOf(testToEdit); // original index in main array
+  editIndex = tests.indexOf(testToEdit);
 
   document.getElementById("examName").value = testToEdit.exam;
   document.getElementById("testName").value = testToEdit.test;
@@ -136,6 +163,8 @@ function editTestByExam(examName, index) {
   const secDiv = document.getElementById("sections");
   secDiv.innerHTML = "";
   testToEdit.sections.forEach(s => addSection(s.name, s.marks));
+
+  if (secDiv.children.length === 0) addSection();
 
   document.getElementById("formTitle").innerText = "Edit Test";
 }
@@ -154,12 +183,8 @@ function deleteTestByExam(examName, index) {
 
 // ------------------- CLEAR FORM -------------------
 function clearForm() {
-  document.getElementById("examName").value = "";
-  document.getElementById("testName").value = "";
-  document.getElementById("testDate").value = "";
-  document.getElementById("sections").innerHTML = "";
   editIndex = null;
-  document.getElementById("formTitle").innerText = "Add Test";
+  renderTable();
 }
 
 // ------------------- GRAPH -------------------
