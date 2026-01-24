@@ -136,8 +136,12 @@ function renderTable() {
     // Table rows
     const tbody = card.querySelector("table tbody");
     examTests.forEach((t, i) => {
+      // Format date as DD-MM-YYYY
+      const dt = new Date(t.date);
+      const formattedDate = `${String(dt.getDate()).padStart(2,'0')}-${String(dt.getMonth()+1).padStart(2,'0')}-${dt.getFullYear()}`;
+
       let rowHTML = `<tr>
-        <td>${t.date}</td>
+        <td>${formattedDate}</td>
         <td>${t.test}</td>
         <td>${t.total}</td>
         <td>${avgAllTests.toFixed(1)}</td>`;
@@ -208,8 +212,6 @@ function drawGraph() {
   const sortedTests = tests.sort((a,b)=>new Date(a.date)-new Date(b.date));
   const labels = sortedTests.map(t => t.date + " (" + t.exam + ")");
   const data = sortedTests.map(t => t.total);
-renderTable();
-initializeForm(); // always show sections on page load
 
   if(window.chart) window.chart.destroy();
   window.chart = new Chart(ctx, {
