@@ -96,12 +96,13 @@ th {
 }
 
 .best {
-  background: #c8e6c9;
+  background: #ffeb3b;   /* Bright Yellow */
 }
 
 .worst {
-  background: #ffcdd2;
+  background: #e57373;   /* Strong Red */
 }
+
 
 #graphPage {
   display: none;
