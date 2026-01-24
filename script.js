@@ -1,3 +1,4 @@
+// ------------------- GLOBALS -------------------
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
@@ -51,75 +52,102 @@ function saveTest() {
   renderTable();
 }
 
-// ------------------- RENDER TABLE -------------------
+// ------------------- RENDER TABLES PER EXAM -------------------
 function renderTable() {
-  tests.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const container = document.querySelector(".container");
+  container.innerHTML = ""; // Clear container
 
-  const tbody = document.getElementById("tableBody");
-  const thead = document.querySelector("table thead");
-  tbody.innerHTML = "";
-
-  // Collect unique section names
-  const sectionSet = new Set();
-  tests.forEach(t => t.sections.forEach(s => sectionSet.add(s.name)));
-  const sectionNames = Array.from(sectionSet);
-
-  // Table headers
-  let headerHTML = `<tr>
-      <th>Date</th>
-      <th>Exam</th>
-      <th>Test</th>
-      <th>Total</th>
-      <th>Avg</th>`;
-  sectionNames.forEach(name => headerHTML += `<th>${name}</th>`);
-  headerHTML += `<th>Actions</th></tr>`;
-  thead.innerHTML = headerHTML;
-
-  // Average per test = sum of total marks / number of tests
-  const totalAllTests = tests.reduce((acc, t) => acc + t.total, 0);
-  const avgAllTests = tests.length ? totalAllTests / tests.length : 0;
-
-  tests.forEach((t, i) => {
-    let rowHTML = `<tr>
-      <td>${t.date}</td>
-      <td>${t.exam}</td>
-      <td>${t.test}</td>
-      <td>${t.total}</td>
-      <td>${avgAllTests.toFixed(1)}</td>`;
-
-    sectionNames.forEach(secName => {
-      const sec = t.sections.find(s => s.name === secName);
-      rowHTML += `<td>${sec ? sec.marks : "-"}</td>`;
-    });
-
-    rowHTML += `<td>
-      <button onclick="editTest(${i})">✏</button>
-      <button onclick="deleteTest(${i})">🗑</button>
-    </td></tr>`;
-
-    tbody.innerHTML += rowHTML;
+  // Group tests by exam
+  const exams = {};
+  tests.forEach(t => {
+    if (!exams[t.exam]) exams[t.exam] = [];
+    exams[t.exam].push(t);
   });
+
+  for (const exam in exams) {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const examTests = exams[exam];
+
+    const cardHTML = `
+      <h2>${exam} Tests</h2>
+      <div class="tableWrapper">
+        <table>
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    `;
+    card.innerHTML = cardHTML;
+    container.appendChild(card);
+
+    // Collect unique section names for this exam
+    const sectionSet = new Set();
+    examTests.forEach(t => t.sections.forEach(s => sectionSet.add(s.name)));
+    const sectionNames = Array.from(sectionSet);
+
+    // Table headers
+    const thead = card.querySelector("table thead");
+    let headerHTML = `<tr>
+        <th>Date</th>
+        <th>Test</th>
+        <th>Total</th>
+        <th>Avg</th>`;
+    sectionNames.forEach(name => headerHTML += `<th>${name}</th>`);
+    headerHTML += `<th>Actions</th></tr>`;
+    thead.innerHTML = headerHTML;
+
+    // Average per test in this exam
+    const totalAllTests = examTests.reduce((acc, t) => acc + t.total, 0);
+    const avgAllTests = examTests.length ? totalAllTests / examTests.length : 0;
+
+    // Rows
+    const tbody = card.querySelector("table tbody");
+    examTests.forEach((t, i) => {
+      let rowHTML = `<tr>
+        <td>${t.date}</td>
+        <td>${t.test}</td>
+        <td>${t.total}</td>
+        <td>${avgAllTests.toFixed(1)}</td>`;
+      sectionNames.forEach(secName => {
+        const sec = t.sections.find(s => s.name === secName);
+        rowHTML += `<td>${sec ? sec.marks : "-"}</td>`;
+      });
+      rowHTML += `<td>
+        <button onclick="editTestByExam('${exam}', ${i})">✏</button>
+        <button onclick="deleteTestByExam('${exam}', ${i})">🗑</button>
+      </td></tr>`;
+      tbody.innerHTML += rowHTML;
+    });
+  }
 }
 
-// ------------------- EDIT / DELETE -------------------
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
+// ------------------- EDIT / DELETE PER EXAM -------------------
+function editTestByExam(examName, index) {
+  const examTests = tests.filter(t => t.exam === examName);
+  const testToEdit = examTests[index];
+  editIndex = tests.indexOf(testToEdit); // original index in main array
 
-  document.getElementById("examName").value = t.exam;
-  document.getElementById("testName").value = t.test;
-  document.getElementById("testDate").value = t.date;
+  document.getElementById("examName").value = testToEdit.exam;
+  document.getElementById("testName").value = testToEdit.test;
+  document.getElementById("testDate").value = testToEdit.date;
 
   const secDiv = document.getElementById("sections");
   secDiv.innerHTML = "";
-  t.sections.forEach(s => addSection(s.name, s.marks));
+  testToEdit.sections.forEach(s => addSection(s.name, s.marks));
 
   document.getElementById("formTitle").innerText = "Edit Test";
 }
 
-function deleteTest(i) {
+function deleteTestByExam(examName, index) {
+  const examTests = tests.filter(t => t.exam === examName);
+  const testToDelete = examTests[index];
+  const originalIndex = tests.indexOf(testToDelete);
+
   if (!confirm("Delete this test?")) return;
-  tests.splice(i, 1);
+
+  tests.splice(originalIndex, 1);
   localStorage.setItem("tests", JSON.stringify(tests));
   renderTable();
 }
@@ -149,7 +177,7 @@ function hideGraph() {
 function drawGraph() {
   const ctx = document.getElementById("graph");
   const sortedTests = tests.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const labels = sortedTests.map(t => t.date);
+  const labels = sortedTests.map(t => t.date + " (" + t.exam + ")");
   const data = sortedTests.map(t => t.total);
 
   if(window.chart) window.chart.destroy();
