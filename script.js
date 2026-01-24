@@ -1,22 +1,21 @@
-// ------------------- GLOBALS -------------------
+// ---------------- GLOBAL ----------------
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
-renderTable();
+renderAll();
 initializeForm();
 
-// ------------------- INITIALIZE FORM -------------------
+// ---------------- INIT FORM ----------------
 function initializeForm() {
   const sectionsDiv = document.getElementById("sections");
   if (!sectionsDiv) return;
   sectionsDiv.innerHTML = "";
-  // Add 3 default empty sections
   addSection();
   addSection();
   addSection();
 }
 
-// ------------------- ADD SECTION -------------------
+// ---------------- ADD SECTION ----------------
 function addSection(name = "", marks = 0) {
   const div = document.createElement("div");
   div.className = "sectionRow";
@@ -24,11 +23,10 @@ function addSection(name = "", marks = 0) {
     <input placeholder="Section Name" value="${name}">
     <input type="number" placeholder="Marks" value="${marks || 0}">
   `;
-  const sectionsDiv = document.getElementById("sections");
-  if (sectionsDiv) sectionsDiv.appendChild(div);
+  document.getElementById("sections").appendChild(div);
 }
 
-// ------------------- SAVE TEST -------------------
+// ---------------- SAVE TEST ----------------
 function saveTest() {
   const exam = document.getElementById("examName").value.trim();
   const test = document.getElementById("testName").value.trim();
@@ -45,8 +43,8 @@ function saveTest() {
     return;
   }
 
-  const sections = [];
   let total = 0;
+  const sections = [];
 
   sectionDivs.forEach(d => {
     const name = d.children[0].value.trim() || "Section";
@@ -57,51 +55,71 @@ function saveTest() {
 
   const data = { exam, test, date, total, sections };
 
-  if (editIndex === null) tests.push(data); // append at end (newest at bottom)
+  if (editIndex === null) tests.push(data);
   else tests[editIndex] = data;
 
   localStorage.setItem("tests", JSON.stringify(tests));
-  clearForm();
-  renderTable();
+  editIndex = null;
+
+  renderAll();
+  initializeForm();
 }
 
-// ------------------- RENDER TABLES PER EXAM -------------------
-function renderTable() {
-  const container = document.querySelector(".container");
-  if (!container) return;
+// ---------------- MAIN RENDER ----------------
+function renderAll() {
+  renderExamDropdown();
+  renderTables();
+}
 
-  container.innerHTML = "";
+// ---------------- DROPDOWN ----------------
+function renderExamDropdown() {
+  const select = document.getElementById("examFilter");
+  if (!select) return;
 
-  // Add form card
-  const formCard = document.createElement("div");
-  formCard.className = "card";
-  formCard.innerHTML = `
-    <h2 id="formTitle">${editIndex === null ? "Add Test" : "Edit Test"}</h2>
-    <input id="examName" type="text" placeholder="Enter Exam Name">
-    <input id="testName" type="text" placeholder="Enter Test Name">
-    <input id="testDate" type="date">
-    <div id="sections"></div>
-    <button onclick="addSection()">➕ Add Section</button>
-    <button onclick="saveTest()">💾 Save Test</button>
-  `;
-  container.appendChild(formCard);
+  const exams = [...new Set(tests.map(t => t.exam))];
 
-  initializeForm();
+  select.innerHTML = `<option value="ALL">All Exams</option>`;
+  exams.forEach(e => {
+    const opt = document.createElement("option");
+    opt.value = e;
+    opt.textContent = e;
+    select.appendChild(opt);
+  });
+}
 
-  // Group tests by exam
-  const exams = {};
+// ---------------- FILTER ----------------
+function filterExam() {
+  renderTables();
+}
+
+// ---------------- TABLE RENDER ----------------
+function renderTables() {
+  const area = document.getElementById("tablesArea");
+  if (!area) return;
+
+  area.innerHTML = "";
+
+  // sort by date
+  tests.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const filter = document.getElementById("examFilter")?.value || "ALL";
+
+  const grouped = {};
   tests.forEach(t => {
-    if (!exams[t.exam]) exams[t.exam] = [];
-    exams[t.exam].push(t);
+    if (!grouped[t.exam]) grouped[t.exam] = [];
+    grouped[t.exam].push(t);
   });
 
-  for (const exam in exams) {
+  for (const exam in grouped) {
+
+    if (filter !== "ALL" && filter !== exam) continue;
+
+    const examTests = grouped[exam];
+
     const card = document.createElement("div");
     card.className = "card";
 
-    const examTests = exams[exam];
-
-    const cardHTML = `
+    card.innerHTML = `
       <h2>${exam} Tests</h2>
       <div class="tableWrapper">
         <table>
@@ -110,94 +128,86 @@ function renderTable() {
         </table>
       </div>
     `;
-    card.innerHTML = cardHTML;
-    container.appendChild(card);
 
-    // Collect unique section names for this exam
+    area.appendChild(card);
+
     const sectionSet = new Set();
     examTests.forEach(t => t.sections.forEach(s => sectionSet.add(s.name)));
     const sectionNames = Array.from(sectionSet);
 
-    // Table headers
-    const thead = card.querySelector("table thead");
-    let headerHTML = `<tr>
-        <th>Sr.No</th>
-        <th>Date</th>
-        <th>Test</th>
-        <th>Total</th>
-        <th>Avg</th>`;
-    sectionNames.forEach(name => headerHTML += `<th>${name}</th>`);
-    headerHTML += `<th>Actions</th></tr>`;
-    thead.innerHTML = headerHTML;
+    const thead = card.querySelector("thead");
+    let h = `<tr>
+      <th>Sr</th>
+      <th>Date</th>
+      <th>Test</th>
+      <th>Total</th>
+      <th>Avg</th>`;
+    sectionNames.forEach(n => h += `<th>${n}</th>`);
+    h += `<th>Actions</th></tr>`;
+    thead.innerHTML = h;
 
-    // Average per exam
-    const totalAllTests = examTests.reduce((acc, t) => acc + t.total, 0);
-    const avgAllTests = examTests.length ? totalAllTests / examTests.length : 0;
+    const avg =
+      examTests.reduce((a, t) => a + t.total, 0) / examTests.length;
 
-    // Table rows - append bottom (oldest first, newest at bottom)
-    const tbody = card.querySelector("table tbody");
+    const tbody = card.querySelector("tbody");
+
     examTests.forEach((t, i) => {
-      // Format date as DD-MM-YYYY
-      const dt = new Date(t.date);
-      const formattedDate = `${String(dt.getDate()).padStart(2,'0')}-${String(dt.getMonth()+1).padStart(2,'0')}-${dt.getFullYear()}`;
+      const d = new Date(t.date);
+      const fd = `${String(d.getDate()).padStart(2, "0")}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}-${d.getFullYear()}`;
 
-      let rowHTML = `<tr>
-        <td>${i+1}</td>
-        <td>${formattedDate}</td>
+      let r = `<tr>
+        <td>${i + 1}</td>
+        <td>${fd}</td>
         <td>${t.test}</td>
         <td>${t.total}</td>
-        <td>${avgAllTests.toFixed(1)}</td>`;
-      sectionNames.forEach(secName => {
-        const sec = t.sections.find(s => s.name === secName);
-        rowHTML += `<td>${sec ? sec.marks : "-"}</td>`;
+        <td>${avg.toFixed(1)}</td>`;
+
+      sectionNames.forEach(s => {
+        const sec = t.sections.find(x => x.name === s);
+        r += `<td>${sec ? sec.marks : "-"}</td>`;
       });
-      rowHTML += `<td>
+
+      r += `<td>
         <button onclick="editTestByExam('${exam}', ${i})">✏</button>
         <button onclick="deleteTestByExam('${exam}', ${i})">🗑</button>
       </td></tr>`;
-      tbody.innerHTML += rowHTML;
+
+      tbody.innerHTML += r;
     });
   }
 }
 
-// ------------------- EDIT / DELETE PER EXAM -------------------
+// ---------------- EDIT ----------------
 function editTestByExam(examName, index) {
   const examTests = tests.filter(t => t.exam === examName);
-  const testToEdit = examTests[index];
-  editIndex = tests.indexOf(testToEdit);
+  const test = examTests[index];
+  editIndex = tests.indexOf(test);
 
-  document.getElementById("examName").value = testToEdit.exam;
-  document.getElementById("testName").value = testToEdit.test;
-  document.getElementById("testDate").value = testToEdit.date;
+  document.getElementById("examName").value = test.exam;
+  document.getElementById("testName").value = test.test;
+  document.getElementById("testDate").value = test.date;
 
   const secDiv = document.getElementById("sections");
   secDiv.innerHTML = "";
-  testToEdit.sections.forEach(s => addSection(s.name, s.marks));
-
-  if (secDiv.children.length === 0) addSection();
-
-  document.getElementById("formTitle").innerText = "Edit Test";
+  test.sections.forEach(s => addSection(s.name, s.marks));
 }
 
+// ---------------- DELETE ----------------
 function deleteTestByExam(examName, index) {
   const examTests = tests.filter(t => t.exam === examName);
-  const testToDelete = examTests[index];
-  const originalIndex = tests.indexOf(testToDelete);
+  const test = examTests[index];
+  const realIndex = tests.indexOf(test);
 
   if (!confirm("Delete this test?")) return;
 
-  tests.splice(originalIndex, 1);
+  tests.splice(realIndex, 1);
   localStorage.setItem("tests", JSON.stringify(tests));
-  renderTable();
+  renderAll();
 }
 
-// ------------------- CLEAR FORM -------------------
-function clearForm() {
-  editIndex = null;
-  renderTable();
-}
-
-// ------------------- GRAPH -------------------
+// ---------------- GRAPH ----------------
 function showGraph() {
   document.querySelector(".container").style.display = "none";
   document.getElementById("graphPage").style.display = "block";
@@ -211,22 +221,28 @@ function hideGraph() {
 
 function drawGraph() {
   const ctx = document.getElementById("graph");
-  const sortedTests = tests.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const labels = sortedTests.map(t => t.date + " (" + t.exam + ")");
-  const data = sortedTests.map(t => t.total);
 
-  if(window.chart) window.chart.destroy();
+  const sorted = [...tests].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const labels = sorted.map(t => `${t.date} (${t.exam})`);
+  const data = sorted.map(t => t.total);
+
+  if (window.chart) window.chart.destroy();
+
   window.chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: "Total Marks",
-        data: data,
+        data,
         borderColor: "#1976d2",
-        backgroundColor: "rgba(25,118,210,0.2)"
+        backgroundColor: "rgba(25,118,210,0.2)",
+        tension: 0.3
       }]
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }
