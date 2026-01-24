@@ -24,6 +24,7 @@ function addSection(name = "", marks = 0) {
   document.getElementById("sections").appendChild(div);
 }
 
+
 /* ---------------- SAVE TEST ---------------- */
 function saveTest() {
 
