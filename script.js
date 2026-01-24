@@ -70,12 +70,16 @@ function renderDropdown(){
   const sel = document.getElementById("examFilter");
   const exams = [...new Set(tests.map(t=>t.exam))];
 
+  const current = sel.value;
+
   sel.innerHTML = `<option value="ALL">All Exams</option>`;
   exams.forEach(e=>{
     const o=document.createElement("option");
     o.value=e; o.textContent=e;
     sel.appendChild(o);
   });
+
+  if(exams.includes(current)) sel.value = current;
 }
 
 /* ---------------- TABLE ---------------- */
@@ -113,9 +117,9 @@ function renderTables(){
 
     const secNames=[...new Set(arr.flatMap(t=>t.sections.map(s=>s.name)))];
 
-   let head="<tr><th>Sr</th><th>Date</th><th>Test</th>";
-secNames.forEach(s=>head+=`<th>${s}</th>`);
-head+="<th>Total</th><th>Action</th></tr>";
+    let head="<tr><th>Sr</th><th>Date</th><th>Test</th>";
+    secNames.forEach(s=>head+=`<th>${s}</th>`);
+    head+="<th>Total</th><th>Action</th></tr>";
 
     table.innerHTML=head;
 
@@ -129,17 +133,16 @@ head+="<th>Total</th><th>Action</th></tr>";
       if(t.total===worst) cls="worst";
 
       let row=`<tr class="${cls}">
-  <td>${i+1}</td>
-  <td>${fd}</td>
-  <td>${t.test}</td>`;
+        <td>${i+1}</td>
+        <td>${fd}</td>
+        <td>${t.test}</td>`;
 
-secNames.forEach(s=>{
-  const f=t.sections.find(x=>x.name===s);
-  row+=`<td>${f?f.marks:"-"}</td>`;
-});
+      secNames.forEach(s=>{
+        const f=t.sections.find(x=>x.name===s);
+        row+=`<td>${f?f.marks:"-"}</td>`;
+      });
 
-row+=`<td>${t.total}</td>`;
-
+      row+=`<td>${t.total}</td>`;
 
       row+=`<td>
         <button onclick="editTest('${exam}',${i})">✏</button>
@@ -191,18 +194,41 @@ function hideGraph(){
   document.getElementById("graphPage").style.display="none";
 }
 
+/* ✅ FIXED GRAPH — ONLY SELECTED EXAM */
 function drawGraph(){
-  const ctx=document.getElementById("graph");
 
-  const sorted=[...tests].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const exam = document.getElementById("examFilter").value;
+
+  let filtered = tests;
+
+  if(exam !== "ALL"){
+    filtered = tests.filter(t => t.exam === exam);
+  }
+
+  if(filtered.length === 0){
+    return;
+  }
+
+  const sorted=[...filtered].sort((a,b)=>new Date(a.date)-new Date(b.date));
+
   const labels=sorted.map(t=>t.test);
   const data=sorted.map(t=>t.total);
+
+  const ctx=document.getElementById("graph");
 
   if(window.chart) window.chart.destroy();
 
   window.chart=new Chart(ctx,{
     type:"line",
-    data:{labels,datasets:[{label:"Total Marks",data,fill:true}]},
+    data:{
+      labels,
+      datasets:[{
+        label: exam==="ALL" ? "All Exams" : exam + " Marks",
+        data,
+        fill:true,
+        tension:0.3
+      }]
+    },
     options:{responsive:true,scales:{y:{beginAtZero:true}}}
   });
 }
