@@ -57,7 +57,7 @@ function saveTest() {
 
   const data = { exam, test, date, total, sections };
 
-  if (editIndex === null) tests.push(data);
+  if (editIndex === null) tests.push(data); // append at end (newest at bottom)
   else tests[editIndex] = data;
 
   localStorage.setItem("tests", JSON.stringify(tests));
@@ -121,6 +121,7 @@ function renderTable() {
     // Table headers
     const thead = card.querySelector("table thead");
     let headerHTML = `<tr>
+        <th>Sr.No</th>
         <th>Date</th>
         <th>Test</th>
         <th>Total</th>
@@ -133,7 +134,7 @@ function renderTable() {
     const totalAllTests = examTests.reduce((acc, t) => acc + t.total, 0);
     const avgAllTests = examTests.length ? totalAllTests / examTests.length : 0;
 
-    // Table rows
+    // Table rows - append bottom (oldest first, newest at bottom)
     const tbody = card.querySelector("table tbody");
     examTests.forEach((t, i) => {
       // Format date as DD-MM-YYYY
@@ -141,6 +142,7 @@ function renderTable() {
       const formattedDate = `${String(dt.getDate()).padStart(2,'0')}-${String(dt.getMonth()+1).padStart(2,'0')}-${dt.getFullYear()}`;
 
       let rowHTML = `<tr>
+        <td>${i+1}</td>
         <td>${formattedDate}</td>
         <td>${t.test}</td>
         <td>${t.total}</td>
