@@ -8,10 +8,9 @@ function init(){
   renderAll();
 }
 
-/* ---------- SECTIONS ---------- */
+/* -------- SECTIONS -------- */
 function initSections(){
-  const s=document.getElementById("sections");
-  s.innerHTML="";
+  sections.innerHTML="";
   addSection(); addSection(); addSection();
 }
 
@@ -28,7 +27,7 @@ function addSection(name="", marks=0, c=0, w=0, u=0){
   sections.appendChild(d);
 }
 
-/* ---------- SAVE ---------- */
+/* -------- SAVE -------- */
 function saveTest(){
   const exam=examName.value.trim();
   const test=testName.value.trim();
@@ -46,13 +45,16 @@ function saveTest(){
     const c=Number(r.children[2].value)||0;
     const w=Number(r.children[3].value)||0;
     const u=Number(r.children[4].value)||0;
-    total+=marks; tc+=c; tw+=w; tu+=u;
+
+    total += marks;          // ✅ ONLY SUM OF SECTION MARKS
+    tc+=c; tw+=w; tu+=u;
+
     sectionsArr.push({name,marks,c,w,u});
   });
 
-  total -= tw*neg;
+  const negLoss = tw * neg;
 
-  const obj={exam,test,date,platform,neg,total,tc,tw,tu,sections:sectionsArr};
+  const obj={exam,test,date,platform,neg,total,negLoss,tc,tw,tu,sections:sectionsArr};
 
   if(editIndex==null) tests.push(obj);
   else tests[editIndex]=obj;
@@ -63,7 +65,7 @@ function saveTest(){
   renderAll();
 }
 
-/* ---------- DROPDOWN ---------- */
+/* -------- DROPDOWN -------- */
 function renderAll(){
   renderDropdown();
   renderTables();
@@ -71,15 +73,14 @@ function renderAll(){
 }
 
 function renderDropdown(){
-  const sel=examFilter;
   const exams=[...new Set(tests.map(t=>t.exam))];
-  const cur=sel.value;
-  sel.innerHTML=`<option value="ALL">All Exams</option>`;
-  exams.forEach(e=>sel.innerHTML+=`<option>${e}</option>`);
-  if(exams.includes(cur)) sel.value=cur;
+  const cur=examFilter.value;
+  examFilter.innerHTML=`<option value="ALL">All Exams</option>`;
+  exams.forEach(e=>examFilter.innerHTML+=`<option>${e}</option>`);
+  if(exams.includes(cur)) examFilter.value=cur;
 }
 
-/* ---------- TABLE ---------- */
+/* -------- TABLE -------- */
 function renderTables(){
   tablesArea.innerHTML="";
   const filter=examFilter.value;
@@ -124,14 +125,23 @@ function renderTables(){
         <button onclick="deleteTest('${exam}',${i})">🗑</button>
       </td></tr>`;
 
-      row+=`<tr class="detailRow" style="display:none">
+      // Weakest Section
+      const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
+
+      let detail=`<tr class="detailRow" style="display:none">
         <td colspan="${6+t.sections.length}">
-        <b>Correct:</b> ${t.tc} |
-        <b>Wrong:</b> ${t.tw} |
-        <b>Unattempted:</b> ${t.tu}
+        <b>Section-wise Details:</b><br>`;
+
+      t.sections.forEach(s=>{
+        detail+=`${s.name} → C:${s.c}, W:${s.w}, U:${s.u} | `;
+      });
+
+      detail+=`<br><b>Total:</b> C:${t.tc}, W:${t.tw}, U:${t.tu}
+        | <b>Negative Loss:</b> ${t.negLoss}
+        | <b>Weakest Section:</b> ${weak}
         </td></tr>`;
 
-      table.innerHTML+=row;
+      table.innerHTML+=row+detail;
     });
   }
 }
@@ -141,7 +151,7 @@ function toggleDetail(btn){
   r.style.display=r.style.display==="none"?"table-row":"none";
 }
 
-/* ---------- EDIT / DELETE ---------- */
+/* -------- EDIT / DELETE -------- */
 function editTest(exam,idx){
   const arr=tests.filter(t=>t.exam===exam);
   const t=arr[idx];
@@ -165,7 +175,7 @@ function deleteTest(exam,idx){
   renderAll();
 }
 
-/* ---------- GRAPH ---------- */
+/* -------- GRAPH -------- */
 function showGraph(){
   document.querySelector(".container").style.display="none";
   tablesArea.style.display="none";
