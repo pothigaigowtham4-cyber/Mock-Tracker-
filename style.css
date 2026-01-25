@@ -23,7 +23,7 @@ body {
 }
 
 .emblem{
-  height:120px; /* Enlarged emblem */
+  height:120px;
 }
 
 .flag{
@@ -37,7 +37,7 @@ body {
 }
 
 #quoteText {
-  transition: opacity 0.8s ease-in-out; /* Smooth transition for quotes */
+  transition: opacity 0.8s ease-in-out;
   opacity: 0;
   margin:0;
   font-size:15px;
@@ -88,20 +88,23 @@ input, select {
 
 #sections .sectionRow {
   display: grid;
-  grid-template-columns: 250px 80px 80px 80px 80px;
+  grid-template-columns: 300px 80px 80px 80px 80px;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-#sections .sectionRow input:first-child {
-  max-width: 250px;
-  maxlength: 25;
+#sections .sectionRow input.sectionName {
+  max-width: 300px;
 }
 
-/* ---------- NEW: labels above inputs ---------- */
+#sections .sectionRow input.sectionMarks {
+  width: 80px;
+}
+
+/* Labels above inputs */
 .sectionLabels {
   display: grid;
-  grid-template-columns: 250px 80px 80px 80px 80px;
+  grid-template-columns: 300px 80px 80px 80px 80px;
   gap: 8px;
   font-size: 12px;
   font-weight: bold;
