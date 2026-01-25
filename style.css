@@ -1,38 +1,53 @@
-* { box-sizing: border-box; font-family: Arial, sans-serif; }
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
 
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
+    linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
     url("bg.jpg") no-repeat center center fixed;
   background-size: cover;
 }
 
-header {
-  background: linear-gradient(90deg,#ff9933,white,#138808);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
+/* ---------- HEADER ---------- */
+
+.topHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 20px;
+  background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
 }
 
-.flag, .emblem { height: 60px; }
-
-header h2 {
-  margin: 0;
-  color: #1a237e;
-  letter-spacing: 2px;
+.emblem{
+  height:70px;
 }
 
-.topBar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 10px 20px;
+.flag{
+  height:50px;
 }
 
-.container { padding: 20px; }
+.quoteBox{
+  flex:1;
+  text-align:center;
+  padding:0 15px;
+}
+
+.quoteBox p{
+  margin:0;
+  font-size:15px;
+  font-weight:bold;
+  color:#1a237e;
+}
+
+/* ---------- MAIN ---------- */
+
+.container {
+  padding: 20px;
+}
 
 .card, .tableCard {
   background: rgba(255,255,255,0.97);
@@ -43,7 +58,7 @@ header h2 {
 
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(5,1fr);
+  grid-template-columns: repeat(3,1fr);
   gap: 10px;
 }
 
@@ -53,16 +68,18 @@ input, select {
   border: 1px solid #ccc;
 }
 
-.sectionHeader, .sectionRow {
+#sections .sectionRow {
   display: grid;
-  grid-template-columns: repeat(5,1fr);
+  grid-template-columns: 1fr 80px 80px 80px 80px;
   gap: 8px;
-  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
-.sectionHeader { font-weight: bold; }
-
-.btnRow { margin-top: 12px; display: flex; gap: 10px; }
+.btnRow {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
 
 button {
   padding: 8px 14px;
@@ -74,12 +91,21 @@ button {
 .addBtn { background: #43a047; color: white; }
 .saveBtn { background: #1565c0; color: white; }
 
-#tablesArea { padding: 0 20px 40px; }
+/* ---------- TABLE ---------- */
+
+#tablesArea {
+  padding: 0 20px 40px;
+}
+
+.tableCard {
+  margin-top: 20px;
+}
 
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 12px;
+  background: white;
 }
 
 th, td {
@@ -88,18 +114,24 @@ th, td {
   text-align: center;
 }
 
-th { background: #e3f2fd; }
-
-tr:hover { background: #f1f8ff; }
-
-.best { background: #ffeb3b; }
-.worst { background: #ef9a9a; }
-
-.detailRow td {
-  background: #f9fbe7;
-  text-align: left;
-  font-size: 14px;
+th {
+  background: #e3f2fd;
+  color: #0d47a1;
 }
+
+tr:hover {
+  background: #f1f8ff;
+}
+
+.best {
+  background: #ffeb3b;
+}
+
+.worst {
+  background: #e57373;
+}
+
+/* ---------- GRAPH ---------- */
 
 #graphPage {
   display: none;
