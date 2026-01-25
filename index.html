@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mock Marks Tracker</title>
+  <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" href="style.css">
@@ -12,41 +12,35 @@
 </head>
 <body>
 
-<header>
-  <img src="flag.jpg" class="flag">
-  <h2>MOCK MARKS TRACKER</h2>
+<header class="topHeader">
+
+  <!-- Emblem -->
   <img src="emblem.png" class="emblem">
+
+  <!-- Quotes -->
+  <div class="quoteBox">
+    <p id="quoteText"></p>
+  </div>
+
+  <!-- Flag -->
+  <img src="flag.jpg" class="flag">
+
 </header>
 
-<div class="topBar">
-  <select id="examFilter" onchange="renderAll()"></select>
-  <button onclick="showGraph()">📈 Graph</button>
-</div>
-
-<!-- FORM -->
+<!-- ================= FORM ================= -->
 <div class="container">
+
   <div class="card">
 
     <h3>Add / Edit Test</h3>
 
     <div class="formGrid">
-      <input id="examName" placeholder="Exam Name">
-      <input id="platformName" placeholder="Platform">
-      <input id="testName" placeholder="Test Name">
+      <input id="examName" placeholder="Exam Name (CGL / NTPC)">
+      <input id="testName" placeholder="Test Name (Mock 1)">
       <input id="testDate" type="date">
-      <input id="negativeMark" type="number" step="0.01" placeholder="Negative mark per wrong">
     </div>
 
     <h4>Sections</h4>
-
-    <div class="sectionHeader">
-      <span>Section</span>
-      <span>Marks</span>
-      <span>Correct</span>
-      <span>Wrong</span>
-      <span>Unattempted</span>
-    </div>
-
     <div id="sections"></div>
 
     <div class="btnRow">
@@ -55,18 +49,21 @@
     </div>
 
   </div>
+
 </div>
 
-<!-- TABLE -->
+<!-- ================= TABLES ================= -->
 <div id="tablesArea"></div>
 
-<!-- GRAPH -->
-<div id="graphPage">
+<!-- ================= GRAPH ================= -->
+<div id="graphPage" style="display:none;">
   <h3>Performance Graph</h3>
-  <canvas id="graph"></canvas><br>
+  <canvas id="graph"></canvas>
+  <br>
   <button onclick="hideGraph()">⬅ Back</button>
 </div>
 
 <script src="script.js"></script>
+
 </body>
 </html>
