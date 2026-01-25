@@ -1,107 +1,98 @@
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
-let chart = null;
 
 init();
 
 function init(){
   initSections();
-  renderDropdown();
-  renderTables();
+  renderAll();
 }
 
-/* -------- SECTIONS -------- */
+/* ---------- SECTIONS ---------- */
 function initSections(){
-  const s = document.getElementById("sections");
-  s.innerHTML = "";
+  const s=document.getElementById("sections");
+  s.innerHTML="";
   addSection(); addSection(); addSection();
 }
 
 function addSection(name="", marks=0, c=0, w=0, u=0){
-  const div = document.createElement("div");
-  div.className = "sectionRow";
-  div.innerHTML = `
+  const d=document.createElement("div");
+  d.className="sectionRow";
+  d.innerHTML=`
     <input value="${name}" placeholder="Section">
     <input type="number" value="${marks}">
     <input type="number" value="${c}">
     <input type="number" value="${w}">
     <input type="number" value="${u}">
   `;
-  document.getElementById("sections").appendChild(div);
+  sections.appendChild(d);
 }
 
-/* -------- SAVE -------- */
+/* ---------- SAVE ---------- */
 function saveTest(){
+  const exam=examName.value.trim();
+  const test=testName.value.trim();
+  const date=testDate.value;
+  const platform=platformName.value.trim();
+  const neg=Number(negativeMark.value)||0;
 
-  const exam = examName.value.trim();
-  const test = testName.value.trim();
-  const platform = platformName.value.trim();
-  const date = testDate.value;
-  const neg = Number(negMark.value) || 0;
+  if(!exam||!test||!date||!platform){ alert("Fill all details"); return; }
 
-  if(!exam || !test || !date){
-    alert("Fill all details");
-    return;
-  }
+  let sectionsArr=[], total=0, tc=0, tw=0, tu=0;
 
-  const rows = document.querySelectorAll(".sectionRow");
-  let sections = [];
-  let total = 0, tc=0, tw=0, tu=0;
-
-  rows.forEach(r=>{
-    const s = r.children[0].value || "Section";
-    const m = Number(r.children[1].value)||0;
-    const c = Number(r.children[2].value)||0;
-    const w = Number(r.children[3].value)||0;
-    const u = Number(r.children[4].value)||0;
-
-    total += m - (w * neg);
-    tc+=c; tw+=w; tu+=u;
-
-    sections.push({s,m,c,w,u});
+  document.querySelectorAll(".sectionRow").forEach(r=>{
+    const name=r.children[0].value||"Section";
+    const marks=Number(r.children[1].value)||0;
+    const c=Number(r.children[2].value)||0;
+    const w=Number(r.children[3].value)||0;
+    const u=Number(r.children[4].value)||0;
+    total+=marks; tc+=c; tw+=w; tu+=u;
+    sectionsArr.push({name,marks,c,w,u});
   });
 
-  const obj={exam,test,platform,date,neg,total,tc,tw,tu,sections};
+  total -= tw*neg;
 
-  if(editIndex===null) tests.push(obj);
+  const obj={exam,test,date,platform,neg,total,tc,tw,tu,sections:sectionsArr};
+
+  if(editIndex==null) tests.push(obj);
   else tests[editIndex]=obj;
 
   localStorage.setItem("tests",JSON.stringify(tests));
   editIndex=null;
   initSections();
-  renderDropdown();
-  renderTables();
+  renderAll();
 }
 
-/* -------- DROPDOWN -------- */
+/* ---------- DROPDOWN ---------- */
+function renderAll(){
+  renderDropdown();
+  renderTables();
+  drawGraph();
+}
+
 function renderDropdown(){
   const sel=examFilter;
   const exams=[...new Set(tests.map(t=>t.exam))];
   const cur=sel.value;
-
   sel.innerHTML=`<option value="ALL">All Exams</option>`;
-  exams.forEach(e=>sel.add(new Option(e,e)));
+  exams.forEach(e=>sel.innerHTML+=`<option>${e}</option>`);
   if(exams.includes(cur)) sel.value=cur;
 }
 
-/* -------- TABLE -------- */
+/* ---------- TABLE ---------- */
 function renderTables(){
-
-  const area=tablesArea;
-  area.innerHTML="";
+  tablesArea.innerHTML="";
   const filter=examFilter.value;
 
   const grouped={};
   tests.forEach(t=>{
+    if(filter!=="ALL" && t.exam!==filter) return;
     if(!grouped[t.exam]) grouped[t.exam]=[];
     grouped[t.exam].push(t);
   });
 
   for(const exam in grouped){
-
-    if(filter!=="ALL" && filter!==exam) continue;
-
-    const arr=[...grouped[exam]].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const arr=grouped[exam].sort((a,b)=>new Date(a.date)-new Date(b.date));
     const best=Math.max(...arr.map(t=>t.total));
     const worst=Math.min(...arr.map(t=>t.total));
     const avg=(arr.reduce((a,t)=>a+t.total,0)/arr.length).toFixed(1);
@@ -109,50 +100,48 @@ function renderTables(){
     const card=document.createElement("div");
     card.className="tableCard";
     card.innerHTML=`<h3>${exam} | Avg: ${avg}</h3>`;
-    area.appendChild(card);
+    tablesArea.appendChild(card);
 
-    const table=document.createElement("table");
-    card.appendChild(table);
+    const table=document.createElement("table"); card.appendChild(table);
 
-    let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th><th>Total</th><th>View</th><th>Edit</th><th>Del</th></tr>`;
+    let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th>`;
+    arr[0].sections.forEach(s=>head+=`<th>${s.name}</th>`);
+    head+=`<th>Total</th><th>Action</th></tr>`;
     table.innerHTML=head;
 
     arr.forEach((t,i)=>{
       const d=new Date(t.date);
       const fd=`${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${d.getFullYear()}`;
+      let cls=t.total===best?"best":t.total===worst?"worst":"";
 
-      let cls="";
-      if(t.total===best) cls="best";
-      if(t.total===worst) cls="worst";
+      let row=`<tr class="${cls}">
+        <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>`;
+      t.sections.forEach(s=>row+=`<td>${s.marks}</td>`);
+      row+=`<td>${t.total}</td>
+      <td>
+        <button onclick="toggleDetail(this)">View</button>
+        <button onclick="editTest('${exam}',${i})">✏</button>
+        <button onclick="deleteTest('${exam}',${i})">🗑</button>
+      </td></tr>`;
 
-      table.innerHTML+=`
-      <tr class="${cls}">
-        <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>
-        <td>${t.total.toFixed(2)}</td>
-        <td><button onclick="toggleDetails('${exam}',${i})">👁</button></td>
-        <td><button onclick="editTest('${exam}',${i})">✏</button></td>
-        <td><button onclick="deleteTest('${exam}',${i})">🗑</button></td>
-      </tr>
-      <tr id="det-${exam}-${i}" class="detailsRow" style="display:none">
-        <td colspan="8">
-          ${t.sections.map(s=>`
-            <b>${s.s}</b> → Marks:${s.m} | C:${s.c} W:${s.w} U:${s.u}
-          `).join("<br>")}
-          <hr>
-          Total → C:${t.tc} W:${t.tw} U:${t.tu}
-        </td>
-      </tr>`;
+      row+=`<tr class="detailRow" style="display:none">
+        <td colspan="${6+t.sections.length}">
+        <b>Correct:</b> ${t.tc} |
+        <b>Wrong:</b> ${t.tw} |
+        <b>Unattempted:</b> ${t.tu}
+        </td></tr>`;
+
+      table.innerHTML+=row;
     });
   }
 }
 
-/* -------- DETAILS -------- */
-function toggleDetails(exam,idx){
-  const el=document.getElementById(`det-${exam}-${idx}`);
-  el.style.display = el.style.display==="none" ? "table-row" : "none";
+function toggleDetail(btn){
+  const r=btn.closest("tr").nextElementSibling;
+  r.style.display=r.style.display==="none"?"table-row":"none";
 }
 
-/* -------- EDIT -------- */
+/* ---------- EDIT / DELETE ---------- */
 function editTest(exam,idx){
   const arr=tests.filter(t=>t.exam===exam);
   const t=arr[idx];
@@ -160,30 +149,28 @@ function editTest(exam,idx){
 
   examName.value=t.exam;
   testName.value=t.test;
-  platformName.value=t.platform;
   testDate.value=t.date;
-  negMark.value=t.neg;
+  platformName.value=t.platform;
+  negativeMark.value=t.neg;
 
   sections.innerHTML="";
-  t.sections.forEach(s=>addSection(s.s,s.m,s.c,s.w,s.u));
+  t.sections.forEach(s=>addSection(s.name,s.marks,s.c,s.w,s.u));
 }
 
-/* -------- DELETE -------- */
 function deleteTest(exam,idx){
   if(!confirm("Delete test?")) return;
   const arr=tests.filter(t=>t.exam===exam);
-  const real=tests.indexOf(arr[idx]);
-  tests.splice(real,1);
+  tests.splice(tests.indexOf(arr[idx]),1);
   localStorage.setItem("tests",JSON.stringify(tests));
-  renderDropdown(); renderTables();
+  renderAll();
 }
 
-/* -------- GRAPH -------- */
+/* ---------- GRAPH ---------- */
 function showGraph(){
   document.querySelector(".container").style.display="none";
   tablesArea.style.display="none";
   graphPage.style.display="block";
-  renderGraph();
+  drawGraph();
 }
 
 function hideGraph(){
@@ -192,22 +179,20 @@ function hideGraph(){
   graphPage.style.display="none";
 }
 
-function renderGraph(){
-
+function drawGraph(){
   const exam=examFilter.value;
-  let data=tests;
-  if(exam!=="ALL") data=tests.filter(t=>t.exam===exam);
+  let dataArr=tests.filter(t=>exam==="ALL"||t.exam===exam);
+  if(dataArr.length===0) return;
 
-  if(chart) chart.destroy();
+  dataArr=dataArr.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const labels=dataArr.map(t=>t.test);
+  const data=dataArr.map(t=>t.total);
 
-  const sorted=[...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(window.chart) window.chart.destroy();
 
-  chart=new Chart(graph,{
+  window.chart=new Chart(graph,{
     type:"line",
-    data:{
-      labels:sorted.map(t=>t.test),
-      datasets:[{label:"Total Marks",data:sorted.map(t=>t.total),fill:true,tension:0.3}]
-    },
-    options:{scales:{y:{beginAtZero:true}}}
+    data:{labels,datasets:[{label:"Total Marks",data,fill:true,tension:0.3}]},
+    options:{responsive:true,scales:{y:{beginAtZero:true}}}
   });
 }
