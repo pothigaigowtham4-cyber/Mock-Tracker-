@@ -31,10 +31,11 @@ function addSection(n="",m=0,c=0,w=0,u=0){
 function saveTest(){
   const exam=examName.value.trim();
   const test=testName.value.trim();
+  const platform=platformName.value.trim();
   const date=testDate.value;
   const neg=+negMark.value||0;
 
-  if(!exam||!test||!date){alert("Fill all details");return;}
+  if(!exam||!test||!platform||!date){alert("Fill all details");return;}
 
   let sectionsArr=[],total=0,C=0,W=0,U=0;
 
@@ -50,7 +51,7 @@ function saveTest(){
 
   const negLoss = W * neg;
 
-  const obj={exam,test,date,total,C,W,U,neg,negLoss,sections:sectionsArr};
+  const obj={exam,test,platform,date,total,C,W,U,neg,negLoss,sections:sectionsArr};
 
   if(editIndex==null)tests.push(obj);
   else tests[editIndex]=obj;
@@ -121,7 +122,7 @@ function renderTables(){
 
     const secNames=[...new Set(arr.flatMap(t=>t.sections.map(s=>s.name)))];
 
-    let head=`<tr><th>#</th><th>Date</th><th>Test</th>`;
+    let head=`<tr><th>#</th><th>Date</th><th>Test</th><th>Platform</th>`;
     secNames.forEach(s=>head+=`<th>${s}</th>`);
     head+=`<th>Total</th><th>Action</th></tr>`;
     table.innerHTML=head;
@@ -135,7 +136,7 @@ function renderTables(){
       if(t.total===worst) cls="worst";
 
       let row=`<tr class="${cls}">
-      <td>${i+1}</td><td>${fd}</td><td>${t.test}</td>`;
+      <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>`;
 
       secNames.forEach(s=>{
         const f=t.sections.find(x=>x.name===s);
@@ -167,6 +168,8 @@ function viewDetail(btn,exam,idx){
 
   let html=`<tr class="detailRow"><td colspan="100">`;
 
+  html+=`<b>Platform:</b> ${t.platform}<br><br>`;
+
   t.sections.forEach(s=>{
     html+=`<b>${s.name}</b> → Marks:${s.marks}, C:${s.c}, W:${s.w}, U:${s.u}<br>`;
   });
@@ -186,6 +189,7 @@ function editTest(exam,idx){
 
   examName.value=t.exam;
   testName.value=t.test;
+  platformName.value=t.platform;
   testDate.value=t.date;
   negMark.value=t.neg;
 
