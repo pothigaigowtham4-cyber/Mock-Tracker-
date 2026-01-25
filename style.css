@@ -1,111 +1,68 @@
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+
+body{margin:0;background:#f2f4f8}
+
+header{
+  background:#1565c0;color:#fff;
+  padding:12px 16px;display:flex;
+  justify-content:space-between;align-items:center
 }
 
-body {
-  margin: 0;
-  background: #f2f4f8;
+.topRight{display:flex;gap:10px}
+
+.container{padding:20px}
+
+.card{
+  background:#fff;padding:20px;border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1)
 }
 
-header {
-  background: #1565c0;
-  color: white;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.formGrid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px
 }
 
-.topRight {
-  display: flex;
-  gap: 10px;
+input,select{
+  padding:8px;border-radius:6px;border:1px solid #ccc
 }
 
-.container {
-  padding: 20px;
+.sectionRow{
+  display:grid;
+  grid-template-columns:1fr 70px 70px 90px;
+  gap:8px;margin-bottom:8px
 }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.btnRow{margin-top:12px;display:flex;gap:10px}
+
+button{
+  padding:8px 14px;border:none;border-radius:6px;cursor:pointer
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 10px;
+.addBtn{background:#43a047;color:#fff}
+.saveBtn{background:#1565c0;color:#fff}
+
+#tablesArea{padding:0 20px 40px}
+
+.tableCard{
+  background:#fff;padding:16px;margin-top:20px;border-radius:10px
 }
 
-input, select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #ccc;padding:8px;text-align:center}
+th{background:#e3f2fd}
+
+.best{background:#ffeb3b}
+.worst{background:#e57373}
+
+.modal{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.4);display:none;
+  justify-content:center;align-items:center
 }
 
-#sections .sectionRow {
-  display: grid;
-  grid-template-columns: 1fr 120px;
-  gap: 10px;
-  margin-bottom: 8px;
+.modalCard{
+  background:#fff;padding:20px;border-radius:10px;
+  width:90%;max-width:400px
 }
 
-.btnRow {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.addBtn { background: #43a047; color: white; }
-.saveBtn { background: #1565c0; color: white; }
-
-#tablesArea {
-  padding: 0 20px 40px;
-}
-
-.tableCard {
-  background: white;
-  padding: 16px;
-  margin-top: 20px;
-  border-radius: 10px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background: #e3f2fd;
-}
-
-.best {
-  background: #ffeb3b;   /* Bright Yellow */
-}
-
-.worst {
-  background: #e57373;   /* Strong Red */
-}
-
-
-#graphPage {
-  display: none;
-  padding: 30px;
-  text-align: center;
-}
+#graphPage{display:none;padding:30px;text-align:center}
