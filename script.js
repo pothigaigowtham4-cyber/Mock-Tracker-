@@ -23,10 +23,22 @@ function rotateQuotes(){
 }
 
 setInterval(rotateQuotes, 60000); // every 1 minute
-
 window.addEventListener("load", rotateQuotes);
 
 
+/* ---------------- ELEMENTS ---------------- */
+const sections = document.getElementById("sections");
+const examFilter = document.getElementById("examFilter");
+const examName = document.getElementById("examName");
+const testName = document.getElementById("testName");
+const testDate = document.getElementById("testDate");
+const platformName = document.getElementById("platformName");
+const negativeMark = document.getElementById("negativeMark");
+const tablesArea = document.getElementById("tablesArea");
+const graphPage = document.getElementById("graphPage");
+
+
+/* ---------------- DATA ---------------- */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
@@ -75,7 +87,7 @@ function saveTest(){
     const w=Number(r.children[3].value)||0;
     const u=Number(r.children[4].value)||0;
 
-    total += marks;          // ✅ ONLY SUM OF SECTION MARKS
+    total += marks;
     tc+=c; tw+=w; tu+=u;
 
     sectionsArr.push({name,marks,c,w,u});
@@ -94,7 +106,8 @@ function saveTest(){
   renderAll();
 }
 
-/* -------- DROPDOWN -------- */
+
+/* -------- DROPDOWN & TABLE -------- */
 function renderAll(){
   renderDropdown();
   renderTables();
@@ -109,7 +122,6 @@ function renderDropdown(){
   if(exams.includes(cur)) examFilter.value=cur;
 }
 
-/* -------- TABLE -------- */
 function renderTables(){
   tablesArea.innerHTML="";
   const filter=examFilter.value;
@@ -154,7 +166,6 @@ function renderTables(){
         <button onclick="deleteTest('${exam}',${i})">🗑</button>
       </td></tr>`;
 
-      // Weakest Section
       const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
 
       let detail=`<tr class="detailRow" style="display:none">
@@ -180,6 +191,7 @@ function toggleDetail(btn){
   r.style.display=r.style.display==="none"?"table-row":"none";
 }
 
+
 /* -------- EDIT / DELETE -------- */
 function editTest(exam,idx){
   const arr=tests.filter(t=>t.exam===exam);
@@ -203,6 +215,7 @@ function deleteTest(exam,idx){
   localStorage.setItem("tests",JSON.stringify(tests));
   renderAll();
 }
+
 
 /* -------- GRAPH -------- */
 function showGraph(){
