@@ -1,65 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mock Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Mock Test Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <header>
-  <h2>📊 Mock Test Tracker</h2>
-
+  <h2>📘 Mock Tracker</h2>
   <div class="topRight">
-    <!-- when exam changes → refresh table + graph -->
-    <select id="examFilter" onchange="renderTables(); renderGraph();"></select>
+    <select id="examFilter" onchange="renderAll()">
+      <option value="ALL">All Exams</option>
+    </select>
     <button onclick="showGraph()">📈 Graph</button>
   </div>
 </header>
 
-<!-- ================= FORM ================= -->
 <div class="container">
 
-  <div class="card">
+<div class="card">
+<h3>Add / Edit Test</h3>
 
-    <h3>Add / Edit Test</h3>
+<div class="formGrid">
+  <input id="examName" placeholder="Exam (CGL, CHSL...)">
+  <input id="testName" placeholder="Test Name">
+  <input id="testDate" type="date">
+</div>
 
-    <div class="formGrid">
-      <input id="examName" placeholder="Exam Name (CGL / NTPC)">
-      <input id="testName" placeholder="Test Name (Mock 1)">
-      <input id="testDate" type="date">
-    </div>
+<h4>Sections</h4>
+<div id="sections"></div>
 
-    <h4>Sections</h4>
-    <div id="sections"></div>
-
-    <div class="btnRow">
-      <button class="addBtn" onclick="addSection()">+ Add Section</button>
-      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
-    </div>
-
-  </div>
+<div class="btnRow">
+  <button class="addBtn" onclick="addSection()">+ Add Section</button>
+  <button class="saveBtn" onclick="saveTest()">Save Test</button>
+</div>
+</div>
 
 </div>
 
-<!-- ================= TABLES ================= -->
 <div id="tablesArea"></div>
 
-<!-- ================= GRAPH ================= -->
-<div id="graphPage" style="display:none;">
-  <h3>Performance Graph</h3>
-  <!-- canvas id must match JS -->
-  <canvas id="graph"></canvas>
-  <br>
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal">
+  <div class="modalCard">
+    <h3 id="detailTitle"></h3>
+    <div id="detailBody"></div>
+    <button onclick="closeDetail()">Close</button>
+  </div>
+</div>
+
+<!-- GRAPH PAGE -->
+<div id="graphPage">
+  <h2>Progress Graph</h2>
+  <canvas id="graph"></canvas><br>
   <button onclick="hideGraph()">⬅ Back</button>
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
