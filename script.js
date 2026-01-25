@@ -56,6 +56,14 @@ function init(){
 /* -------- SECTIONS -------- */
 function initSections(){
   sections.innerHTML="";
+
+  // Add a single label row on top
+  const labelRow = document.createElement("div");
+  labelRow.className="sectionLabels";
+  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span>`;
+  sections.appendChild(labelRow);
+
+  // Add 3 default section input rows
   addSection(); addSection(); addSection();
 }
 
@@ -63,13 +71,6 @@ function addSection(name="", marks=0, c=0, w=0, u=0){
   const d=document.createElement("div");
   d.className="sectionRow";
   d.innerHTML=`
-    <div class="sectionLabels">
-      <span>Section</span>
-      <span>Marks</span>
-      <span>Correct</span>
-      <span>Wrong</span>
-      <span>Unattempted</span>
-    </div>
     <input class="sectionName" value="${name}" placeholder="Section">
     <input type="number" class="sectionMarks" value="${marks}">
     <input type="number" value="${c}">
@@ -94,9 +95,9 @@ function saveTest(){
   document.querySelectorAll(".sectionRow").forEach(r=>{
     const name=r.querySelector(".sectionName").value||"Section";
     const marks=Number(r.querySelector(".sectionMarks").value)||0;
-    const c=Number(r.children[3].value)||0;
-    const w=Number(r.children[4].value)||0;
-    const u=Number(r.children[5].value)||0;
+    const c=Number(r.children[2].value)||0;
+    const w=Number(r.children[3].value)||0;
+    const u=Number(r.children[4].value)||0;
 
     total += marks;
     tc+=c; tw+=w; tu+=u;
@@ -214,6 +215,12 @@ function editTest(exam,idx){
   negativeMark.value=t.neg;
 
   sections.innerHTML="";
+  // re-add label row
+  const labelRow = document.createElement("div");
+  labelRow.className="sectionLabels";
+  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span>`;
+  sections.appendChild(labelRow);
+
   t.sections.forEach(s=>addSection(s.name,s.marks,s.c,s.w,s.u));
 }
 
