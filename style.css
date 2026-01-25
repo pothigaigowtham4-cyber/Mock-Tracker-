@@ -4,7 +4,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
+    linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)),
     url("bg.jpg") no-repeat center center fixed;
   background-size: cover;
 }
@@ -17,9 +17,7 @@ header {
   padding: 10px 20px;
 }
 
-.flag, .emblem {
-  height: 60px;
-}
+.flag, .emblem { height: 60px; }
 
 header h2 {
   margin: 0;
@@ -100,6 +98,7 @@ tr:hover { background: #f1f8ff; }
 .detailRow td {
   background: #f9fbe7;
   text-align: left;
+  font-size: 14px;
 }
 
 #graphPage {
