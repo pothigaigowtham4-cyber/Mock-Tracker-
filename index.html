@@ -13,9 +13,7 @@
 <header>
   <h2>📘 Mock Tracker</h2>
   <div class="topRight">
-    <select id="examFilter" onchange="renderAll()">
-      <option value="ALL">All Exams</option>
-    </select>
+    <select id="examFilter" onchange="renderAll()"></select>
     <button onclick="showGraph()">📈 Graph</button>
   </div>
 </header>
@@ -31,12 +29,12 @@
   <input id="testDate" type="date">
 </div>
 
-<h4>Sections</h4>
+<h4>Sections (C = Correct, W = Wrong, U = Unattempted)</h4>
 <div id="sections"></div>
 
 <div class="btnRow">
   <button class="addBtn" onclick="addSection()">+ Add Section</button>
-  <button class="saveBtn" onclick="saveTest()">Save Test</button>
+  <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
 </div>
 </div>
 
@@ -44,14 +42,8 @@
 
 <div id="tablesArea"></div>
 
-<!-- DETAIL MODAL -->
-<div id="detailModal" class="modal">
-  <div class="modalCard">
-    <h3 id="detailTitle"></h3>
-    <div id="detailBody"></div>
-    <button onclick="closeDetail()">Close</button>
-  </div>
-</div>
+<!-- DETAILS BELOW TABLE -->
+<div id="detailBox" class="detailBox" style="display:none;"></div>
 
 <!-- GRAPH PAGE -->
 <div id="graphPage">
