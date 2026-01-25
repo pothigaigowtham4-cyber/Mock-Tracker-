@@ -1,3 +1,32 @@
+/* ---------------- QUOTES ROTATION ---------------- */
+
+const quotes = [
+"Don’t stop when you’re tired; stop when you are finally done. The discipline you find today builds the freedom you enjoy tomorrow.",
+"A mountain of books is just a series of single pages waiting to be turned. Focus on the progress of the hour, not the pressure of the exam.",
+"Be the person your future self will look back on and thank for not quitting. The work is temporary, but the result stays forever.",
+"Motivation gets you to the desk, but habit is what keeps the pen moving. Small sessions of deep focus beat long hours of distracted scrolling.",
+"You aren't just studying a subject; you are upgrading your own mind. Invest in your brain now—it’s the only asset that never loses its value.",
+"Suffer the boredom of study now, or suffer the sting of regret later.",
+"While you are resting, someone else is working to take your spot. Don't study to beat others; study so that no one can ignore your talent.",
+"Study when you are inspired, but study harder when you are not. Consistency means letting your schedule, not your mood, run your day.",
+"Don't look at the peak of the mountain; just look at your next step. Winning the day is the only way to eventually win the entire year.",
+"Greatness isn't a grand act; it is simply a series of small wins stacked together. True mastery is found in the quiet work you do when nobody is watching."
+];
+
+let qIndex = 0;
+
+function rotateQuotes(){
+  const q = document.getElementById("quoteText");
+  if(!q) return;
+  q.textContent = quotes[qIndex];
+  qIndex = (qIndex + 1) % quotes.length;
+}
+
+setInterval(rotateQuotes, 60000); // every 1 minute
+
+window.addEventListener("load", rotateQuotes);
+
+
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
