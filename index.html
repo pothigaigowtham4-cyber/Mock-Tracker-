@@ -38,6 +38,8 @@
       <input id="examName" placeholder="Exam Name (CGL / NTPC)">
       <input id="testName" placeholder="Test Name (Mock 1)">
       <input id="testDate" type="date">
+      <input id="platformName" placeholder="Platform Name">
+      <input id="negativeMark" type="number" placeholder="Negative Mark">
     </div>
 
     <h4>Sections</h4>
@@ -47,6 +49,14 @@
       <button class="addBtn" onclick="addSection()">+ Add Section</button>
       <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
     </div>
+
+    <h4>Filter Tests</h4>
+    <select id="examFilter" onchange="renderAll()">
+      <option value="ALL">All Exams</option>
+    </select>
+    
+    <br><br>
+    <button onclick="showGraph()">Show Graph 📊</button>
 
   </div>
 
