@@ -88,14 +88,25 @@ input, select {
 
 #sections .sectionRow {
   display: grid;
-  grid-template-columns: 250px 80px 80px 80px 80px; /* Section input shorter */
+  grid-template-columns: 250px 80px 80px 80px 80px;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 #sections .sectionRow input:first-child {
   max-width: 250px;
   maxlength: 25;
+}
+
+/* ---------- NEW: labels above inputs ---------- */
+.sectionLabels {
+  display: grid;
+  grid-template-columns: 250px 80px 80px 80px 80px;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  color: #1565c0;
 }
 
 .btnRow {
