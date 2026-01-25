@@ -13,13 +13,9 @@
 <body>
 
 <header>
-
   <img src="flag.jpg" class="flag">
-
   <h2>MOCK MARKS TRACKER</h2>
-
   <img src="emblem.jpg" class="emblem">
-
 </header>
 
 <div class="topBar">
@@ -27,16 +23,15 @@
   <button onclick="showGraph()">📈 Graph</button>
 </div>
 
-<!-- ================= FORM ================= -->
+<!-- FORM -->
 <div class="container">
-
   <div class="card">
 
     <h3>Add / Edit Test</h3>
 
     <div class="formGrid">
-      <input id="examName" placeholder="Exam Name (CGL / NTPC)">
-      <input id="platformName" placeholder="Platform (Testbook etc)">
+      <input id="examName" placeholder="Exam Name">
+      <input id="platformName" placeholder="Platform">
       <input id="testName" placeholder="Test Name">
       <input id="testDate" type="date">
       <input id="negativeMark" type="number" step="0.01" placeholder="Negative mark per wrong">
@@ -60,13 +55,12 @@
     </div>
 
   </div>
-
 </div>
 
-<!-- ================= TABLE ================= -->
+<!-- TABLE -->
 <div id="tablesArea"></div>
 
-<!-- ================= GRAPH ================= -->
+<!-- GRAPH -->
 <div id="graphPage">
   <h3>Performance Graph</h3>
   <canvas id="graph"></canvas><br>
@@ -74,6 +68,5 @@
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
