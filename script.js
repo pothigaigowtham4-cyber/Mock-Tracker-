@@ -32,6 +32,7 @@ function saveTest(){
   const exam=examName.value.trim();
   const test=testName.value.trim();
   const date=testDate.value;
+  const neg=+negMark.value||0;
 
   if(!exam||!test||!date){alert("Fill all details");return;}
 
@@ -47,7 +48,9 @@ function saveTest(){
     sectionsArr.push({name,marks,c,w,u});
   });
 
-  const obj={exam,test,date,total,C,W,U,sections:sectionsArr};
+  const negLoss = W * neg;
+
+  const obj={exam,test,date,total,C,W,U,neg,negLoss,sections:sectionsArr};
 
   if(editIndex==null)tests.push(obj);
   else tests[editIndex]=obj;
@@ -92,16 +95,12 @@ function renderTables(){
     const worst=Math.min(...arr.map(t=>t.total));
     const avg=(arr.reduce((a,t)=>a+t.total,0)/arr.length).toFixed(1);
 
-    let TC=0,TW=0,TU=0;
     const secAvg={};
-
     arr.forEach(t=>{
-      TC+=t.C; TW+=t.W; TU+=t.U;
       t.sections.forEach(s=>{
         secAvg[s.name]=(secAvg[s.name]||0)+s.marks;
       });
     });
-
     const weak=Object.entries(secAvg).sort((a,b)=>a[1]-b[1])[0][0];
 
     const card=document.createElement("div");
@@ -113,7 +112,6 @@ function renderTables(){
       <span>Avg: ${avg}</span>
       <span>Best: ${best}</span>
       <span>Worst: ${worst}</span>
-      <span>Total C/W/U: ${TC}/${TW}/${TU}</span>
       <span>Weak Section: ${weak}</span>
     </div>`;
     tablesArea.appendChild(card);
@@ -168,9 +166,14 @@ function viewDetail(btn,exam,idx){
   const t=arr[idx];
 
   let html=`<tr class="detailRow"><td colspan="100">`;
+
   t.sections.forEach(s=>{
     html+=`<b>${s.name}</b> → Marks:${s.marks}, C:${s.c}, W:${s.w}, U:${s.u}<br>`;
   });
+
+  html+=`<br><b>Total:</b> C:${t.C}, W:${t.W}, U:${t.U}<br>`;
+  html+=`<b>Negative Marking:</b> ${t.W} × ${t.neg} = <b>${t.negLoss}</b> marks lost`;
+
   html+=`</td></tr>`;
   tr.insertAdjacentHTML("afterend",html);
 }
@@ -184,6 +187,7 @@ function editTest(exam,idx){
   examName.value=t.exam;
   testName.value=t.test;
   testDate.value=t.date;
+  negMark.value=t.neg;
 
   sections.innerHTML="";
   t.sections.forEach(s=>addSection(s.name,s.marks,s.c,s.w,s.u));
@@ -222,8 +226,10 @@ function drawGraph(){
 
   window.chart=new Chart(graph,{
     type:"line",
-    data:{labels:arr.map(t=>t.test),
-      datasets:[{label:exam+" Marks",data:arr.map(t=>t.total),fill:true,tension:.3}]},
+    data:{
+      labels:arr.map(t=>t.test),
+      datasets:[{label:exam+" Marks",data:arr.map(t=>t.total),fill:true,tension:.3}]
+    },
     options:{scales:{y:{beginAtZero:true}}}
   });
 }
