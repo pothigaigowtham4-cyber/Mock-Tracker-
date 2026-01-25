@@ -63,6 +63,13 @@ function addSection(name="", marks=0, c=0, w=0, u=0){
   const d=document.createElement("div");
   d.className="sectionRow";
   d.innerHTML=`
+    <div class="sectionLabels">
+      <span>Section</span>
+      <span>Marks</span>
+      <span>Correct</span>
+      <span>Wrong</span>
+      <span>Unattempted</span>
+    </div>
     <input value="${name}" placeholder="Section" maxlength="25">
     <input type="number" value="${marks}">
     <input type="number" value="${c}">
@@ -85,11 +92,11 @@ function saveTest(){
   let sectionsArr=[], total=0, tc=0, tw=0, tu=0;
 
   document.querySelectorAll(".sectionRow").forEach(r=>{
-    const name=r.children[0].value||"Section";
-    const marks=Number(r.children[1].value)||0;
-    const c=Number(r.children[2].value)||0;
-    const w=Number(r.children[3].value)||0;
-    const u=Number(r.children[4].value)||0;
+    const name=r.children[1].value||"Section";
+    const marks=Number(r.children[2].value)||0;
+    const c=Number(r.children[3].value)||0;
+    const w=Number(r.children[4].value)||0;
+    const u=Number(r.children[5].value)||0;
 
     total += marks;
     tc+=c; tw+=w; tu+=u;
