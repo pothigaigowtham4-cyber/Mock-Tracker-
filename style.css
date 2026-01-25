@@ -44,7 +44,7 @@ background:#fff;padding:16px;margin-top:20px;border-radius:10px
 }
 
 .summary{
-display:flex;gap:20px;margin-bottom:10px;font-weight:bold
+display:flex;gap:20px;margin-bottom:10px;font-weight:bold;flex-wrap:wrap
 }
 
 table{width:100%;border-collapse:collapse;margin-top:10px}
