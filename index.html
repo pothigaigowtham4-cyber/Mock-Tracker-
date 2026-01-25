@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mock Test Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,7 +11,7 @@
 <body>
 
 <header>
-  <h2>📘 Mock Tracker</h2>
+  <h2>📊 Mock Test Tracker</h2>
   <div class="topRight">
     <select id="examFilter" onchange="renderAll()"></select>
     <button onclick="showGraph()">📈 Graph</button>
@@ -24,12 +24,21 @@
 <h3>Add / Edit Test</h3>
 
 <div class="formGrid">
-  <input id="examName" placeholder="Exam (CGL, CHSL...)">
+  <input id="examName" placeholder="Exam (CGL / CHSL)">
   <input id="testName" placeholder="Test Name">
   <input id="testDate" type="date">
 </div>
 
-<h4>Sections (C = Correct, W = Wrong, U = Unattempted)</h4>
+<h4>Sections</h4>
+
+<div class="sectionHeader">
+  <span>Section</span>
+  <span>Marks</span>
+  <span>C</span>
+  <span>W</span>
+  <span>U</span>
+</div>
+
 <div id="sections"></div>
 
 <div class="btnRow">
@@ -42,12 +51,9 @@
 
 <div id="tablesArea"></div>
 
-<!-- DETAILS BELOW TABLE -->
-<div id="detailBox" class="detailBox" style="display:none;"></div>
-
-<!-- GRAPH PAGE -->
+<!-- GRAPH -->
 <div id="graphPage">
-  <h2>Progress Graph</h2>
+  <h3>Progress Graph</h3>
   <canvas id="graph"></canvas><br>
   <button onclick="hideGraph()">⬅ Back</button>
 </div>
