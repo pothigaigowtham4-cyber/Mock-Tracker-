@@ -86,30 +86,35 @@ input, select {
   border: 1px solid #ccc;
 }
 
-#sections .sectionRow {
-  display: grid;
-  grid-template-columns: 300px 80px 80px 80px 80px;
-  gap: 8px;
-  margin-bottom: 12px;
+/* ---------- SECTIONS ---------- */
+
+#sections {
+  margin-top: 10px;
 }
 
-#sections .sectionRow input.sectionName {
-  max-width: 300px;
-}
-
-#sections .sectionRow input.sectionMarks {
-  width: 80px;
-}
-
-/* Labels above inputs */
 .sectionLabels {
   display: grid;
   grid-template-columns: 300px 80px 80px 80px 80px;
   gap: 8px;
   font-size: 12px;
   font-weight: bold;
-  margin-bottom: 2px;
   color: #1565c0;
+  margin-bottom: 4px;
+}
+
+.sectionRow {
+  display: grid;
+  grid-template-columns: 300px 80px 80px 80px 80px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sectionRow input.sectionName {
+  width: 300px;
+}
+
+.sectionRow input.sectionMarks {
+  width: 80px;
 }
 
 .btnRow {
