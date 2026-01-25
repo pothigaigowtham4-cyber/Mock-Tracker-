@@ -8,10 +8,9 @@ function init(){
   renderAll();
 }
 
-/* -------- SECTIONS -------- */
+/* -------- SECTIONS INPUT -------- */
 function initSections(){
-  const s = document.getElementById("sections");
-  s.innerHTML="";
+  sections.innerHTML="";
   addSection(); addSection(); addSection();
 }
 
@@ -27,7 +26,7 @@ function addSection(name="",c=0,w=0,u=0){
   sections.appendChild(d);
 }
 
-/* -------- SAVE -------- */
+/* -------- SAVE TEST -------- */
 function saveTest(){
   const exam=examName.value.trim();
   const test=testName.value.trim();
@@ -53,22 +52,25 @@ function saveTest(){
   else tests[editIndex]=obj;
 
   localStorage.setItem("tests",JSON.stringify(tests));
-  editIndex=null; initSections(); renderAll();
+  editIndex=null;
+  initSections();
+  renderAll();
 }
 
-/* -------- DROPDOWN + TABLE -------- */
+/* -------- DROPDOWN -------- */
 function renderAll(){
   renderDropdown();
   renderTables();
+  detailBox.style.display="none";
 }
 
 function renderDropdown(){
-  const sel=examFilter;
   const exams=[...new Set(tests.map(t=>t.exam))];
-  sel.innerHTML=`<option value="ALL">All Exams</option>`;
-  exams.forEach(e=>sel.innerHTML+=`<option>${e}</option>`);
+  examFilter.innerHTML=`<option value="ALL">All Exams</option>`;
+  exams.forEach(e=>examFilter.innerHTML+=`<option>${e}</option>`);
 }
 
+/* -------- TABLE WITH SECTION MARKS -------- */
 function renderTables(){
   tablesArea.innerHTML="";
   const filter=examFilter.value;
@@ -82,8 +84,8 @@ function renderTables(){
 
   for(const exam in grouped){
     const arr=grouped[exam].sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const best=Math.max(...arr.map(t=>t.total));
-    const worst=Math.min(...arr.map(t=>t.total));
+
+    const secNames=[...new Set(arr.flatMap(t=>t.sections.map(s=>s.name)))];
 
     const card=document.createElement("div");
     card.className="tableCard";
@@ -92,44 +94,88 @@ function renderTables(){
 
     const table=document.createElement("table");
     card.appendChild(table);
-    table.innerHTML=`<tr><th>#</th><th>Date</th><th>Test</th><th>Total</th><th>View</th></tr>`;
+
+    let head=`<tr><th>#</th><th>Date</th><th>Test</th>`;
+    secNames.forEach(s=>head+=`<th>${s}</th>`);
+    head+=`<th>Total</th><th>Action</th></tr>`;
+    table.innerHTML=head;
 
     arr.forEach((t,i)=>{
-      const cls=t.total==best?"best":t.total==worst?"worst":"";
-      table.innerHTML+=`
-      <tr class="${cls}">
+      let row=`<tr>
         <td>${i+1}</td>
         <td>${t.date}</td>
-        <td>${t.test}</td>
-        <td>${t.total}</td>
-        <td><button onclick="viewDetail('${exam}',${i})">👁</button></td>
-      </tr>`;
+        <td>${t.test}</td>`;
+
+      secNames.forEach(s=>{
+        const f=t.sections.find(x=>x.name===s);
+        row+=`<td>${f?f.marks:"-"}</td>`;
+      });
+
+      row+=`<td>${t.total}</td>
+      <td>
+        <button onclick="viewDetail('${exam}',${i})">👁</button>
+        <button onclick="editTest('${exam}',${i})">✏</button>
+        <button onclick="deleteTest('${exam}',${i})">🗑</button>
+      </td></tr>`;
+
+      table.innerHTML+=row;
     });
   }
 }
 
-/* -------- DETAIL VIEW -------- */
+/* -------- VIEW DETAILS BELOW TABLE -------- */
 function viewDetail(exam,idx){
   const arr=tests.filter(t=>t.exam===exam);
   const t=arr[idx];
 
-  detailTitle.innerText=t.test+" ("+t.date+")";
+  let html=`<h3>${t.test} — ${t.date}</h3>`;
+  html+=`<b>Total:</b> ${t.total}<hr>`;
 
-  let html=`<b>Total:</b> ${t.total}<hr>`;
   t.sections.forEach(s=>{
-    html+=`<b>${s.name}</b> — Marks:${s.marks} | C:${s.c} W:${s.w} U:${s.u}<br>`;
+    html+=`
+      <b>${s.name}</b> →
+      Correct: ${s.c},
+      Wrong: ${s.w},
+      Unattempted: ${s.u},
+      Marks: ${s.marks}
+      <br>`;
   });
 
-  detailBody.innerHTML=html;
-  detailModal.style.display="flex";
+  detailBox.innerHTML=html;
+  detailBox.style.display="block";
+  detailBox.scrollIntoView({behavior:"smooth"});
 }
 
-function closeDetail(){detailModal.style.display="none";}
+/* -------- EDIT -------- */
+function editTest(exam,idx){
+  const arr=tests.filter(t=>t.exam===exam);
+  const t=arr[idx];
+  editIndex=tests.indexOf(t);
+
+  examName.value=t.exam;
+  testName.value=t.test;
+  testDate.value=t.date;
+
+  sections.innerHTML="";
+  t.sections.forEach(s=>addSection(s.name,s.c,s.w,s.u));
+  window.scrollTo(0,0);
+}
+
+/* -------- DELETE -------- */
+function deleteTest(exam,idx){
+  if(!confirm("Delete this test?"))return;
+  const arr=tests.filter(t=>t.exam===exam);
+  const real=tests.indexOf(arr[idx]);
+  tests.splice(real,1);
+  localStorage.setItem("tests",JSON.stringify(tests));
+  renderAll();
+}
 
 /* -------- GRAPH -------- */
 function showGraph(){
   document.querySelector(".container").style.display="none";
   tablesArea.style.display="none";
+  detailBox.style.display="none";
   graphPage.style.display="block";
   drawGraph();
 }
