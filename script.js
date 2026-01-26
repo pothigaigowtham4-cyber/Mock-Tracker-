@@ -168,12 +168,26 @@ function renderDropdown(){
   if(exams.includes(cur)) examFilter.value=cur;
 }
 
-/* -------- AUTO FEEDBACK -------- */
+/* -------- AUTO FEEDBACK (IMPROVED) -------- */
 function autoFeedback(t){
-  if(t.accuracy < 60 && t.tc+t.tw > 60) return "Too many wrong attempts. Slow down & choose better.";
-  if(t.accuracy > 85 && t.tc+t.tw < 40) return "High accuracy but low attempts. Try attempting more.";
-  if(t.accuracy < 65) return "Focus on accuracy before increasing attempts.";
-  return "Good balance. Maintain this strategy.";
+  const attempts = t.tc + t.tw;
+
+  if(t.accuracy < 55 && attempts > 60)
+    return "❗ Very risky attempts. Reduce guesses and improve basics.";
+
+  if(t.accuracy < 65)
+    return "⚠ Accuracy low. Focus on concept clarity before increasing attempts.";
+
+  if(t.accuracy > 85 && attempts < 40)
+    return "🟡 Very safe but under-attempting. Try solving more easy questions.";
+
+  if(t.accuracy >= 75 && attempts >= 60)
+    return "🟢 Strong performance. Maintain strategy and push speed.";
+
+  if(t.negLoss > (t.total * 0.15))
+    return "❗ Negative marks are hurting. Avoid doubtful questions.";
+
+  return "🟢 Balanced attempt & accuracy. Continue with same approach.";
 }
 
 function renderTables(){
@@ -309,9 +323,7 @@ function drawGraph(){
     dataArr.map(t=>t.sections[i]?.marks || 0)
   );
 
-  const datasets=[
-    {label:"Total Marks",data:totals,fill:true,tension:0.3}
-  ];
+  const datasets=[{label:"Total Marks",data:totals,fill:true,tension:0.3}];
 
   if(target){
     datasets.push({label:"Target",data:targetLine,borderDash:[5,5]});
@@ -351,17 +363,50 @@ function exportPDF(){
   win.document.close(); win.print();
 }
 
+/* ---- EXCEL: SEPARATE SHEET PER EXAM ---- */
 function exportExcel(){
   if(tests.length===0){ alert("No data"); return; }
 
-  let csv="Exam,Date,Test,Platform,Total,Accuracy\n";
+  let sheets = {};
   tests.forEach(t=>{
-    csv+=`${t.exam},${t.date},${t.test},${t.platform},${t.total},${t.accuracy}\n`;
+    if(!sheets[t.exam]) sheets[t.exam] = [];
+    sheets[t.exam].push(t);
   });
 
-  const blob=new Blob([csv],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="mock_data.csv";
+  let xml = `<?xml version="1.0"?>
+  <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:x="urn:schemas-microsoft-com:office:excel"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`;
+
+  for(const exam in sheets){
+    xml += `<Worksheet ss:Name="${exam}"><Table>`;
+    xml += `<Row>
+      <Cell><Data ss:Type="String">Date</Data></Cell>
+      <Cell><Data ss:Type="String">Test</Data></Cell>
+      <Cell><Data ss:Type="String">Platform</Data></Cell>
+      <Cell><Data ss:Type="Number">Total</Data></Cell>
+      <Cell><Data ss:Type="Number">Accuracy</Data></Cell>
+    </Row>`;
+
+    sheets[exam].forEach(t=>{
+      xml += `<Row>
+        <Cell><Data ss:Type="String">${t.date}</Data></Cell>
+        <Cell><Data ss:Type="String">${t.test}</Data></Cell>
+        <Cell><Data ss:Type="String">${t.platform}</Data></Cell>
+        <Cell><Data ss:Type="Number">${t.total}</Data></Cell>
+        <Cell><Data ss:Type="Number">${t.accuracy}</Data></Cell>
+      </Row>`;
+    });
+
+    xml += `</Table></Worksheet>`;
+  }
+
+  xml += `</Workbook>`;
+
+  const blob = new Blob([xml], {type: "application/vnd.ms-excel"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Mock_Analysis.xls";
   a.click();
 }
