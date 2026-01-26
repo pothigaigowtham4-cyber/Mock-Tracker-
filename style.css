@@ -180,3 +180,37 @@ tr:hover {
   padding: 30px;
   text-align: center;
 }
+
+/* ===== COLORFUL DATA ENTRY UI ===== */
+
+.card {
+  background: linear-gradient(135deg,#ffffff,#e3f2fd);
+}
+
+.formGroup input, #sections input {
+  background: #fdfefe;
+  border: 1px solid #90caf9;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 5px rgba(21,101,192,0.4);
+}
+
+.sectionRow {
+  background: rgba(255,255,255,0.7);
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.sectionRow button {
+  background: #ef5350;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
