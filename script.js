@@ -51,19 +51,18 @@ init();
 function init(){
   initSections();
   renderAll();
+  addExportButton();
 }
 
 /* -------- SECTIONS -------- */
 function initSections(){
   sections.innerHTML="";
 
-  // Add a single label row on top
   const labelRow = document.createElement("div");
   labelRow.className="sectionLabels";
-  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span>`;
+  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>`;
   sections.appendChild(labelRow);
 
-  // Add 3 default section input rows
   addSection(); addSection(); addSection();
 }
 
@@ -76,8 +75,18 @@ function addSection(name="", marks=0, c=0, w=0, u=0){
     <input type="number" value="${c}">
     <input type="number" value="${w}">
     <input type="number" value="${u}">
+    <button onclick="deleteSection(this)">🗑</button>
   `;
   sections.appendChild(d);
+}
+
+function deleteSection(btn){
+  const rows = document.querySelectorAll(".sectionRow");
+  if(rows.length <= 1){
+    alert("At least one section is required.");
+    return;
+  }
+  btn.parentElement.remove();
 }
 
 /* -------- SAVE -------- */
@@ -215,10 +224,9 @@ function editTest(exam,idx){
   negativeMark.value=t.neg;
 
   sections.innerHTML="";
-  // re-add label row
   const labelRow = document.createElement("div");
   labelRow.className="sectionLabels";
-  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span>`;
+  labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>`;
   sections.appendChild(labelRow);
 
   t.sections.forEach(s=>addSection(s.name,s.marks,s.c,s.w,s.u));
@@ -262,4 +270,41 @@ function drawGraph(){
     data:{labels,datasets:[{label:"Total Marks",data,fill:true,tension:0.3}]},
     options:{responsive:true,scales:{y:{beginAtZero:true}}}
   });
+}
+
+/* -------- EXPORT PDF -------- */
+function addExportButton(){
+  const btn = document.createElement("button");
+  btn.textContent = "Export PDF 📄";
+  btn.onclick = exportPDF;
+  document.querySelector(".card").appendChild(document.createElement("br"));
+  document.querySelector(".card").appendChild(btn);
+}
+
+function exportPDF(){
+  if(tablesArea.innerHTML.trim()===""){
+    alert("No data to export.");
+    return;
+  }
+
+  const win = window.open("", "", "width=900,height=650");
+  win.document.write(`
+    <html>
+    <head>
+      <title>Mock Test Report</title>
+      <style>
+        body{font-family:Arial;padding:20px;}
+        table{width:100%;border-collapse:collapse;margin-bottom:25px;}
+        th,td{border:1px solid #333;padding:6px;text-align:center;}
+        h3{text-align:center;}
+      </style>
+    </head>
+    <body>
+      ${tablesArea.innerHTML}
+    </body>
+    </html>
+  `);
+  win.document.close();
+  win.focus();
+  win.print();
 }
