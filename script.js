@@ -168,10 +168,27 @@ function renderDropdown(){
   if(exams.includes(cur)) examFilter.value=cur;
 }
 
-/* -------- AUTO FEEDBACK (IMPROVED) -------- */
+/* -------- AUTO FEEDBACK (TARGET AWARE) -------- */
 function autoFeedback(t){
   const attempts = t.tc + t.tw;
+  const target = targets[t.exam];
 
+  if(target){
+    const diff = t.total - target;
+
+    if(diff >= 10)
+      return "🔥 Above target by " + diff + " marks. Excellent consistency, keep pushing.";
+
+    if(diff >= 0)
+      return "✅ Target achieved. Focus on improving accuracy for safer margin.";
+
+    if(diff > -10)
+      return "🟡 Close to target. Improve weakest section to cross target.";
+
+    return "❗ Far below target. Revisit concepts and revise mistakes deeply.";
+  }
+
+  /* fallback if no target set */
   if(t.accuracy < 55 && attempts > 60)
     return "❗ Very risky attempts. Reduce guesses and improve basics.";
 
