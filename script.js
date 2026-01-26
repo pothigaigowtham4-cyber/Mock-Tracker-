@@ -46,12 +46,13 @@ window.addEventListener("load", rotateQuotes);
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 
+let TARGET_SCORE = 135; // 🎯 target line
+
 init();
 
 function init(){
   initSections();
   renderAll();
-  addExportButton();
 }
 
 /* -------- SECTIONS -------- */
@@ -116,7 +117,9 @@ function saveTest(){
 
   const negLoss = tw * neg;
 
-  const obj={exam,test,date,platform,neg,total,negLoss,tc,tw,tu,sections:sectionsArr};
+  const accuracy = tc + tw > 0 ? ((tc/(tc+tw))*100).toFixed(1) : 0;
+
+  const obj={exam,test,date,platform,neg,total,negLoss,tc,tw,tu,accuracy,sections:sectionsArr};
 
   if(editIndex==null) tests.push(obj);
   else tests[editIndex]=obj;
@@ -168,7 +171,7 @@ function renderTables(){
 
     let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th>`;
     arr[0].sections.forEach(s=>head+=`<th>${s.name}</th>`);
-    head+=`<th>Total</th><th>Action</th></tr>`;
+    head+=`<th>Total</th><th>Acc%</th><th>Action</th></tr>`;
     table.innerHTML=head;
 
     arr.forEach((t,i)=>{
@@ -179,7 +182,7 @@ function renderTables(){
       let row=`<tr class="${cls}">
         <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>`;
       t.sections.forEach(s=>row+=`<td>${s.marks}</td>`);
-      row+=`<td>${t.total}</td>
+      row+=`<td>${t.total}</td><td>${t.accuracy}%</td>
       <td>
         <button onclick="toggleDetail(this)">View</button>
         <button onclick="editTest('${exam}',${i})">✏</button>
@@ -189,16 +192,18 @@ function renderTables(){
       const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
 
       let detail=`<tr class="detailRow" style="display:none">
-        <td colspan="${6+t.sections.length}">
+        <td colspan="${7+t.sections.length}">
         <b>Section-wise Details:</b><br>`;
 
       t.sections.forEach(s=>{
-        detail+=`${s.name} → C:${s.c}, W:${s.w}, U:${s.u} | `;
+        const acc = s.c+s.w>0 ? ((s.c/(s.c+s.w))*100).toFixed(1) : 0;
+        detail+=`${s.name} → C:${s.c}, W:${s.w}, U:${s.u}, Acc:${acc}% | `;
       });
 
       detail+=`<br><b>Total:</b> C:${t.tc}, W:${t.tw}, U:${t.tu}
         | <b>Negative Loss:</b> ${t.negLoss}
         | <b>Weakest Section:</b> ${weak}
+        | <b>Feedback:</b> ${autoFeedback(t)}
         </td></tr>`;
 
       table.innerHTML+=row+detail;
@@ -209,6 +214,14 @@ function renderTables(){
 function toggleDetail(btn){
   const r=btn.closest("tr").nextElementSibling;
   r.style.display=r.style.display==="none"?"table-row":"none";
+}
+
+/* -------- AUTO FEEDBACK -------- */
+function autoFeedback(t){
+  if(t.accuracy < 60 && t.tc+t.tw > 60) return "Too many wrong attempts. Slow down & choose better.";
+  if(t.accuracy > 85 && t.tc+t.tw < 40) return "High accuracy but low attempts. Try attempting more.";
+  if(t.accuracy < 65) return "Focus on accuracy before increasing attempts.";
+  return "Good balance. Maintain this strategy.";
 }
 
 /* -------- EDIT / DELETE -------- */
@@ -261,50 +274,29 @@ function drawGraph(){
 
   dataArr=dataArr.sort((a,b)=>new Date(a.date)-new Date(b.date));
   const labels=dataArr.map(t=>t.test);
-  const data=dataArr.map(t=>t.total);
+  const totals=dataArr.map(t=>t.total);
+  const targetLine=dataArr.map(()=>TARGET_SCORE);
 
   if(window.chart) window.chart.destroy();
 
+  // section-wise averages
+  const secNames=dataArr[0].sections.map(s=>s.name);
+  const secData = secNames.map((_,i)=>
+    dataArr.map(t=>t.sections[i]?.marks || 0)
+  );
+
+  const datasets=[
+    {label:"Total Marks",data:totals,fill:true,tension:0.3},
+    {label:"Target",data:targetLine,borderDash:[5,5]}
+  ];
+
+  secData.forEach((d,i)=>{
+    datasets.push({label:secNames[i],data:d,fill:false,tension:0.3});
+  });
+
   window.chart=new Chart(graph,{
     type:"line",
-    data:{labels,datasets:[{label:"Total Marks",data,fill:true,tension:0.3}]},
+    data:{labels,datasets},
     options:{responsive:true,scales:{y:{beginAtZero:true}}}
   });
-}
-
-/* -------- EXPORT PDF -------- */
-function addExportButton(){
-  const btn = document.createElement("button");
-  btn.textContent = "Export PDF 📄";
-  btn.onclick = exportPDF;
-  document.querySelector(".card").appendChild(document.createElement("br"));
-  document.querySelector(".card").appendChild(btn);
-}
-
-function exportPDF(){
-  if(tablesArea.innerHTML.trim()===""){
-    alert("No data to export.");
-    return;
-  }
-
-  const win = window.open("", "", "width=900,height=650");
-  win.document.write(`
-    <html>
-    <head>
-      <title>Mock Test Report</title>
-      <style>
-        body{font-family:Arial;padding:20px;}
-        table{width:100%;border-collapse:collapse;margin-bottom:25px;}
-        th,td{border:1px solid #333;padding:6px;text-align:center;}
-        h3{text-align:center;}
-      </style>
-    </head>
-    <body>
-      ${tablesArea.innerHTML}
-    </body>
-    </html>
-  `);
-  win.document.close();
-  win.focus();
-  win.print();
 }
