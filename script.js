@@ -50,6 +50,33 @@ let targets = JSON.parse(localStorage.getItem("targets")) || {}; // 🎯 per exa
 
 init();
 
+/* ===== FIXED SECTION ORDER FOR TABLE & GRAPH ===== */
+const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
+
+function normalize(name){
+  return name.trim().toUpperCase();
+}
+
+function sortSections(secArr){
+  const map = {};
+  secArr.forEach(s => map[normalize(s.name)] = s);
+
+  const ordered = [];
+
+  FIXED_ORDER.forEach(n=>{
+    if(map[n]) ordered.push(map[n]);
+  });
+
+  secArr.forEach(s=>{
+    if(!FIXED_ORDER.includes(normalize(s.name))){
+      ordered.push(s);
+    }
+  });
+
+  return ordered;
+}
+/* ================================================ */
+
 function init(){
   initSections();
   renderAll();
@@ -188,7 +215,6 @@ function autoFeedback(t){
     return "❗ Far below target. Revisit concepts and revise mistakes deeply.";
   }
 
-  /* fallback if no target set */
   if(t.accuracy < 55 && attempts > 60)
     return "❗ Very risky attempts. Reduce guesses and improve basics.";
 
@@ -231,8 +257,10 @@ function renderTables(){
 
     const table=document.createElement("table"); card.appendChild(table);
 
+    const orderedSections = sortSections(arr[0].sections);
+
     let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th>`;
-    arr[0].sections.forEach(s=>head+=`<th>${s.name}</th>`);
+    orderedSections.forEach(s=>head+=`<th>${s.name}</th>`);
     head+=`<th>Total</th><th>Acc%</th><th>Action</th></tr>`;
     table.innerHTML=head;
 
@@ -241,9 +269,17 @@ function renderTables(){
       const fd=`${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${d.getFullYear()}`;
       let cls=t.total===best?"best":t.total===worst?"worst":"";
 
+      const secMap={};
+      t.sections.forEach(s=>secMap[normalize(s.name)]=s);
+
       let row=`<tr class="${cls}">
         <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>`;
-      t.sections.forEach(s=>row+=`<td>${s.marks}</td>`);
+
+      orderedSections.forEach(s=>{
+        const x=secMap[normalize(s.name)];
+        row+=`<td>${x?x.marks:0}</td>`;
+      });
+
       row+=`<td>${t.total}</td><td>${t.accuracy}%</td>
       <td>
         <button onclick="toggleDetail(this)">View</button>
@@ -254,12 +290,13 @@ function renderTables(){
       const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
 
       let detail=`<tr class="detailRow" style="display:none">
-        <td colspan="${7+t.sections.length}">
+        <td colspan="${7+orderedSections.length}">
         <b>Section-wise Details:</b><br>`;
 
-      t.sections.forEach(s=>{
-        const acc = s.c+s.w>0 ? ((s.c/(s.c+s.w))*100).toFixed(1) : 0;
-        detail+=`${s.name} → C:${s.c}, W:${s.w}, U:${s.u}, Acc:${acc}% | `;
+      orderedSections.forEach(s=>{
+        const x=secMap[normalize(s.name)] || {c:0,w:0,u:0};
+        const acc = x.c+x.w>0 ? ((x.c/(x.c+x.w))*100).toFixed(1) : 0;
+        detail+=`${s.name} → C:${x.c}, W:${x.w}, U:${x.u}, Acc:${acc}% | `;
       });
 
       detail+=`<br><b>Total:</b> C:${t.tc}, W:${t.tw}, U:${t.tu}
@@ -335,9 +372,13 @@ function drawGraph(){
 
   if(window.chart) window.chart.destroy();
 
-  const secNames=dataArr[0].sections.map(s=>s.name);
-  const secData = secNames.map((_,i)=>
-    dataArr.map(t=>t.sections[i]?.marks || 0)
+  const secNames = sortSections(dataArr[0].sections).map(s=>s.name);
+
+  const secData = secNames.map(n=>
+    dataArr.map(t=>{
+      const s=t.sections.find(x=>normalize(x.name)===normalize(n));
+      return s?s.marks:0;
+    })
   );
 
   const datasets=[{label:"Total Marks",data:totals,fill:true,tension:0.3}];
