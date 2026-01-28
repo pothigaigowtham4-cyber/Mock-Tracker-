@@ -50,32 +50,11 @@ let targets = JSON.parse(localStorage.getItem("targets")) || {}; // 🎯 per exa
 
 init();
 
-/* ===== FIXED SECTION ORDER FOR TABLE & GRAPH ===== */
+/* ===== ONLY NEW PART: FIXED TABLE SECTION ORDER ===== */
 const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
 
-function normalize(name){
-  return name.trim().toUpperCase();
-}
-
-function sortSections(secArr){
-  const map = {};
-  secArr.forEach(s => map[normalize(s.name)] = s);
-
-  const ordered = [];
-
-  FIXED_ORDER.forEach(n=>{
-    if(map[n]) ordered.push(map[n]);
-  });
-
-  secArr.forEach(s=>{
-    if(!FIXED_ORDER.includes(normalize(s.name))){
-      ordered.push(s);
-    }
-  });
-
-  return ordered;
-}
-/* ================================================ */
+function norm(s){ return s.trim().toUpperCase(); }
+/* =================================================== */
 
 function init(){
   initSections();
@@ -195,40 +174,24 @@ function renderDropdown(){
   if(exams.includes(cur)) examFilter.value=cur;
 }
 
-/* -------- AUTO FEEDBACK (TARGET AWARE) -------- */
+/* -------- AUTO FEEDBACK -------- */
 function autoFeedback(t){
   const attempts = t.tc + t.tw;
   const target = targets[t.exam];
 
   if(target){
     const diff = t.total - target;
-
-    if(diff >= 10)
-      return "🔥 Above target by " + diff + " marks. Excellent consistency, keep pushing.";
-
-    if(diff >= 0)
-      return "✅ Target achieved. Focus on improving accuracy for safer margin.";
-
-    if(diff > -10)
-      return "🟡 Close to target. Improve weakest section to cross target.";
-
+    if(diff >= 10) return "🔥 Above target by " + diff + " marks. Excellent consistency, keep pushing.";
+    if(diff >= 0) return "✅ Target achieved. Focus on improving accuracy for safer margin.";
+    if(diff > -10) return "🟡 Close to target. Improve weakest section to cross target.";
     return "❗ Far below target. Revisit concepts and revise mistakes deeply.";
   }
 
-  if(t.accuracy < 55 && attempts > 60)
-    return "❗ Very risky attempts. Reduce guesses and improve basics.";
-
-  if(t.accuracy < 65)
-    return "⚠ Accuracy low. Focus on concept clarity before increasing attempts.";
-
-  if(t.accuracy > 85 && attempts < 40)
-    return "🟡 Very safe but under-attempting. Try solving more easy questions.";
-
-  if(t.accuracy >= 75 && attempts >= 60)
-    return "🟢 Strong performance. Maintain strategy and push speed.";
-
-  if(t.negLoss > (t.total * 0.15))
-    return "❗ Negative marks are hurting. Avoid doubtful questions.";
+  if(t.accuracy < 55 && attempts > 60) return "❗ Very risky attempts. Reduce guesses and improve basics.";
+  if(t.accuracy < 65) return "⚠ Accuracy low. Focus on concept clarity before increasing attempts.";
+  if(t.accuracy > 85 && attempts < 40) return "🟡 Very safe but under-attempting. Try solving more easy questions.";
+  if(t.accuracy >= 75 && attempts >= 60) return "🟢 Strong performance. Maintain strategy and push speed.";
+  if(t.negLoss > (t.total * 0.15)) return "❗ Negative marks are hurting. Avoid doubtful questions.";
 
   return "🟢 Balanced attempt & accuracy. Continue with same approach.";
 }
@@ -255,12 +218,23 @@ function renderTables(){
     card.innerHTML=`<h3>${exam} | Avg: ${avg}</h3>`;
     tablesArea.appendChild(card);
 
-    const table=document.createElement("table"); card.appendChild(table);
+    const table=document.createElement("table"); 
+    card.appendChild(table);
 
-    const orderedSections = sortSections(arr[0].sections);
+    /* ----- ONLY CHANGE: HEADER FIXED ORDER ----- */
+    const baseSections = arr[0].sections;
+    const orderedNames = [];
+
+    FIXED_ORDER.forEach(n=>{
+      if(baseSections.find(s=>norm(s.name)===n)) orderedNames.push(n);
+    });
+    baseSections.forEach(s=>{
+      if(!orderedNames.includes(norm(s.name))) orderedNames.push(norm(s.name));
+    });
+    /* ------------------------------------------- */
 
     let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th>`;
-    orderedSections.forEach(s=>head+=`<th>${s.name}</th>`);
+    orderedNames.forEach(n=>head+=`<th>${n}</th>`);
     head+=`<th>Total</th><th>Acc%</th><th>Action</th></tr>`;
     table.innerHTML=head;
 
@@ -269,15 +243,14 @@ function renderTables(){
       const fd=`${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${d.getFullYear()}`;
       let cls=t.total===best?"best":t.total===worst?"worst":"";
 
-      const secMap={};
-      t.sections.forEach(s=>secMap[normalize(s.name)]=s);
+      const map={};
+      t.sections.forEach(s=>map[norm(s.name)] = s);
 
       let row=`<tr class="${cls}">
         <td>${i+1}</td><td>${fd}</td><td>${t.test}</td><td>${t.platform}</td>`;
 
-      orderedSections.forEach(s=>{
-        const x=secMap[normalize(s.name)];
-        row+=`<td>${x?x.marks:0}</td>`;
+      orderedNames.forEach(n=>{
+        row+=`<td>${map[n]?map[n].marks:0}</td>`;
       });
 
       row+=`<td>${t.total}</td><td>${t.accuracy}%</td>
@@ -290,13 +263,13 @@ function renderTables(){
       const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
 
       let detail=`<tr class="detailRow" style="display:none">
-        <td colspan="${7+orderedSections.length}">
+        <td colspan="${7+orderedNames.length}">
         <b>Section-wise Details:</b><br>`;
 
-      orderedSections.forEach(s=>{
-        const x=secMap[normalize(s.name)] || {c:0,w:0,u:0};
+      orderedNames.forEach(n=>{
+        const x = map[n] || {c:0,w:0,u:0};
         const acc = x.c+x.w>0 ? ((x.c/(x.c+x.w))*100).toFixed(1) : 0;
-        detail+=`${s.name} → C:${x.c}, W:${x.w}, U:${x.u}, Acc:${acc}% | `;
+        detail+=`${n} → C:${x.c}, W:${x.w}, U:${x.u}, Acc:${acc}% | `;
       });
 
       detail+=`<br><b>Total:</b> C:${t.tc}, W:${t.tw}, U:${t.tu}
@@ -372,11 +345,21 @@ function drawGraph(){
 
   if(window.chart) window.chart.destroy();
 
-  const secNames = sortSections(dataArr[0].sections).map(s=>s.name);
+  /* ----- ONLY CHANGE: GRAPH SECTION ORDER ----- */
+  const baseSections = dataArr[0].sections;
+  const orderedNames = [];
 
-  const secData = secNames.map(n=>
+  FIXED_ORDER.forEach(n=>{
+    if(baseSections.find(s=>norm(s.name)===n)) orderedNames.push(n);
+  });
+  baseSections.forEach(s=>{
+    if(!orderedNames.includes(norm(s.name))) orderedNames.push(norm(s.name));
+  });
+  /* ------------------------------------------- */
+
+  const secData = orderedNames.map(n=>
     dataArr.map(t=>{
-      const s=t.sections.find(x=>normalize(x.name)===normalize(n));
+      const s=t.sections.find(x=>norm(x.name)===n);
       return s?s.marks:0;
     })
   );
@@ -388,7 +371,7 @@ function drawGraph(){
   }
 
   secData.forEach((d,i)=>{
-    datasets.push({label:secNames[i],data:d,fill:false,tension:0.3});
+    datasets.push({label:orderedNames[i],data:d,fill:false,tension:0.3});
   });
 
   window.chart=new Chart(graph,{
