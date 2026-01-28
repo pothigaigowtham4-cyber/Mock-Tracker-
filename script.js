@@ -15,22 +15,40 @@ const quotes = [
 
 let qIndex = 0;
 
-/* Elements */
-const quoteEl = document.getElementById("quoteText");
-const sections = document.getElementById("sections");
-const examFilter = document.getElementById("examFilter");
-const examName = document.getElementById("examName");
-const testName = document.getElementById("testName");
-const testDate = document.getElementById("testDate");
-const platformName = document.getElementById("platformName");
-const negativeMark = document.getElementById("negativeMark");
-const tablesArea = document.getElementById("tablesArea");
-const graphPage = document.getElementById("graphPage");
+/* ---------------- DATA ---------------- */
+let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let editIndex = null;
+let targets = JSON.parse(localStorage.getItem("targets")) || {}; // 🎯 per exam target
+
+/* ===== FIXED SECTION ORDER ===== */
+const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
+function norm(s){ return s.trim().toUpperCase(); }
+
+/* ---------------- DOM READY ---------------- */
+document.addEventListener("DOMContentLoaded", () => {
+
+  /* Elements */
+  window.quoteEl = document.getElementById("quoteText");
+  window.sections = document.getElementById("sections");
+  window.examFilter = document.getElementById("examFilter");
+  window.examName = document.getElementById("examName");
+  window.testName = document.getElementById("testName");
+  window.testDate = document.getElementById("testDate");
+  window.platformName = document.getElementById("platformName");
+  window.negativeMark = document.getElementById("negativeMark");
+  window.tablesArea = document.getElementById("tablesArea");
+  window.graphPage = document.getElementById("graphPage");
+  window.graph = document.getElementById("graph");
+
+  rotateQuotes();
+  setInterval(rotateQuotes, 60000);
+
+  init();
+});
 
 /* ---------------- QUOTES ---------------- */
 function rotateQuotes(){
   if(!quoteEl) return;
-
   quoteEl.classList.remove("show");
   setTimeout(()=>{
     quoteEl.textContent = quotes[qIndex];
@@ -39,23 +57,7 @@ function rotateQuotes(){
   }, 400);
 }
 
-setInterval(rotateQuotes, 60000);
-window.addEventListener("load", rotateQuotes);
-
-/* ---------------- DATA ---------------- */
-let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let editIndex = null;
-
-let targets = JSON.parse(localStorage.getItem("targets")) || {}; // 🎯 per exam target
-
-init();
-
-/* ===== ONLY NEW PART: FIXED TABLE SECTION ORDER ===== */
-const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
-
-function norm(s){ return s.trim().toUpperCase(); }
-/* =================================================== */
-
+/* ---------------- INIT ---------------- */
 function init(){
   initSections();
   renderAll();
@@ -196,6 +198,7 @@ function autoFeedback(t){
   return "🟢 Balanced attempt & accuracy. Continue with same approach.";
 }
 
+/* -------- TABLE RENDER -------- */
 function renderTables(){
   tablesArea.innerHTML="";
   const filter=examFilter.value;
@@ -221,7 +224,6 @@ function renderTables(){
     const table=document.createElement("table"); 
     card.appendChild(table);
 
-    /* ----- ONLY CHANGE: HEADER FIXED ORDER ----- */
     const baseSections = arr[0].sections;
     const orderedNames = [];
 
@@ -231,7 +233,6 @@ function renderTables(){
     baseSections.forEach(s=>{
       if(!orderedNames.includes(norm(s.name))) orderedNames.push(norm(s.name));
     });
-    /* ------------------------------------------- */
 
     let head=`<tr><th>Sr</th><th>Date</th><th>Test</th><th>Platform</th>`;
     orderedNames.forEach(n=>head+=`<th>${n}</th>`);
@@ -345,7 +346,6 @@ function drawGraph(){
 
   if(window.chart) window.chart.destroy();
 
-  /* ----- ONLY CHANGE: GRAPH SECTION ORDER ----- */
   const baseSections = dataArr[0].sections;
   const orderedNames = [];
 
@@ -355,7 +355,6 @@ function drawGraph(){
   baseSections.forEach(s=>{
     if(!orderedNames.includes(norm(s.name))) orderedNames.push(norm(s.name));
   });
-  /* ------------------------------------------- */
 
   const secData = orderedNames.map(n=>
     dataArr.map(t=>{
@@ -404,7 +403,6 @@ function exportPDF(){
   win.document.close(); win.print();
 }
 
-/* ---- EXCEL: SEPARATE SHEET PER EXAM ---- */
 function exportExcel(){
   if(tests.length===0){ alert("No data"); return; }
 
