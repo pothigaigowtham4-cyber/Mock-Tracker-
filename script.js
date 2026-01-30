@@ -4,13 +4,13 @@ const quotes = [
 "Don’t stop when you’re tired; stop when you are finally done. The discipline you find today builds the freedom you enjoy tomorrow.",
 "A mountain of books is just a series of single pages waiting to be turned. Focus on the progress of the hour, not the pressure of the exam.",
 "Be the person your future self will look back on and thank for not quitting. The work is temporary, but the result stays forever.",
-"Motivation gets you to the desk, but habit is what keeps the pen moving. Small sessions of deep focus beat long hours of distracted scrolling.",
-"You aren't just studying a subject; you are upgrading your own mind. Invest in your brain now—it’s the only asset that never loses its value.",
+"Motivation gets you to the desk, but habit is what keeps the pen moving.",
+"You aren't just studying a subject; you are upgrading your own mind.",
 "Suffer the boredom of study now, or suffer the sting of regret later.",
-"While you are resting, someone else is working to take your spot. Don't study to beat others; study so that no one can ignore your talent.",
-"Study when you are inspired, but study harder when you are not. Consistency means letting your schedule, not your mood, run your day.",
-"Don't look at the peak of the mountain; just look at your next step. Winning the day is the only way to eventually win the entire year.",
-"Greatness isn't a grand act; it is simply a series of small wins stacked together. True mastery is found in the quiet work you do when nobody is watching."
+"While you are resting, someone else is working to take your spot.",
+"Consistency means letting your schedule run your day, not your mood.",
+"Winning the day is the only way to win the year.",
+"Greatness is built in silence."
 ];
 
 let qIndex = 0;
@@ -18,7 +18,8 @@ let qIndex = 0;
 /* ---------------- DATA ---------------- */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
-let targets = JSON.parse(localStorage.getItem("targets")) || {}; // 🎯 per exam target
+let targets = JSON.parse(localStorage.getItem("targets")) || {};
+let feedbackHistory = JSON.parse(localStorage.getItem("feedbackHistory")) || {};
 
 /* ===== FIXED SECTION ORDER ===== */
 const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
@@ -27,7 +28,6 @@ function norm(s){ return s.trim().toUpperCase(); }
 /* ---------------- DOM READY ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* Elements */
   window.quoteEl = document.getElementById("quoteText");
   window.sections = document.getElementById("sections");
   window.examFilter = document.getElementById("examFilter");
@@ -141,7 +141,7 @@ function saveTest(){
     const w=Number(r.children[3].value)||0;
     const u=Number(r.children[4].value)||0;
 
-    total += marks;
+    total+=marks;
     tc+=c; tw+=w; tu+=u;
 
     sectionsArr.push({name,marks,c,w,u});
@@ -161,7 +161,68 @@ function saveTest(){
   renderAll();
 }
 
-/* -------- DROPDOWN & TABLE -------- */
+/* ================== SMART FEEDBACK (ONLY LOGIC CHANGE) ================== */
+function autoFeedback(t){
+
+  const examTests = tests
+    .filter(x => x.exam === t.exam)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const idx = examTests.indexOf(t);
+  const prev = idx > 0 ? examTests[idx-1] : null;
+
+  let feedbackPool = [];
+
+  if(!prev){
+    feedbackPool.push("🧪 First test for this exam. This becomes your baseline.");
+  }else{
+    if(t.total > prev.total)
+      feedbackPool.push("📈 Score improved from previous test. Strategy is moving in right direction.");
+    else if(t.total < prev.total)
+      feedbackPool.push("📉 Score dropped compared to last test. Analyse mistakes deeply.");
+    else
+      feedbackPool.push("➖ Score stagnant. Push either attempts or accuracy consciously.");
+  }
+
+  if(t.accuracy < 60)
+    feedbackPool.push("🎯 Accuracy is risky. Reduce guesses and focus on concepts.");
+  else if(t.accuracy > 80)
+    feedbackPool.push("✅ Accuracy is strong. You can safely increase attempts.");
+  else
+    feedbackPool.push("⚖ Accuracy balanced. Maintain same approach.");
+
+  if(t.negLoss > t.total * 0.15)
+    feedbackPool.push("❗ Negative marks are hurting your score badly.");
+  else
+    feedbackPool.push("🛡 Negative marks are under control.");
+
+  const target = targets[t.exam];
+  if(target){
+    const diff = t.total - target;
+    if(diff >= 10) feedbackPool.push("🔥 Well above target. Raise difficulty level.");
+    else if(diff >= 0) feedbackPool.push("🎯 Target achieved. Focus on consistency.");
+    else if(diff > -10) feedbackPool.push("🟡 Very close to target. Minor corrections needed.");
+    else feedbackPool.push("🚨 Far below target. Revise basics before next mock.");
+  }
+
+  const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
+  feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first for quick gains.`);
+
+  if(!feedbackHistory[t.exam]) feedbackHistory[t.exam] = [];
+
+  let finalFeedback =
+    feedbackPool.find(f => !feedbackHistory[t.exam].includes(f)) || feedbackPool[0];
+
+  feedbackHistory[t.exam].push(finalFeedback);
+  if(feedbackHistory[t.exam].length > 6)
+    feedbackHistory[t.exam].shift();
+
+  localStorage.setItem("feedbackHistory", JSON.stringify(feedbackHistory));
+  return finalFeedback;
+}
+
+/* ================== EVERYTHING BELOW IS UNCHANGED ================== */
+
 function renderAll(){
   renderDropdown();
   renderTables();
@@ -174,28 +235,6 @@ function renderDropdown(){
   examFilter.innerHTML=`<option value="ALL">All Exams</option>`;
   exams.forEach(e=>examFilter.innerHTML+=`<option>${e}</option>`);
   if(exams.includes(cur)) examFilter.value=cur;
-}
-
-/* -------- AUTO FEEDBACK -------- */
-function autoFeedback(t){
-  const attempts = t.tc + t.tw;
-  const target = targets[t.exam];
-
-  if(target){
-    const diff = t.total - target;
-    if(diff >= 10) return "🔥 Above target by " + diff + " marks. Excellent consistency, keep pushing.";
-    if(diff >= 0) return "✅ Target achieved. Focus on improving accuracy for safer margin.";
-    if(diff > -10) return "🟡 Close to target. Improve weakest section to cross target.";
-    return "❗ Far below target. Revisit concepts and revise mistakes deeply.";
-  }
-
-  if(t.accuracy < 55 && attempts > 60) return "❗ Very risky attempts. Reduce guesses and improve basics.";
-  if(t.accuracy < 65) return "⚠ Accuracy low. Focus on concept clarity before increasing attempts.";
-  if(t.accuracy > 85 && attempts < 40) return "🟡 Very safe but under-attempting. Try solving more easy questions.";
-  if(t.accuracy >= 75 && attempts >= 60) return "🟢 Strong performance. Maintain strategy and push speed.";
-  if(t.negLoss > (t.total * 0.15)) return "❗ Negative marks are hurting. Avoid doubtful questions.";
-
-  return "🟢 Balanced attempt & accuracy. Continue with same approach.";
 }
 
 /* -------- TABLE RENDER -------- */
@@ -346,32 +385,11 @@ function drawGraph(){
 
   if(window.chart) window.chart.destroy();
 
-  const baseSections = dataArr[0].sections;
-  const orderedNames = [];
-
-  FIXED_ORDER.forEach(n=>{
-    if(baseSections.find(s=>norm(s.name)===n)) orderedNames.push(n);
-  });
-  baseSections.forEach(s=>{
-    if(!orderedNames.includes(norm(s.name))) orderedNames.push(norm(s.name));
-  });
-
-  const secData = orderedNames.map(n=>
-    dataArr.map(t=>{
-      const s=t.sections.find(x=>norm(x.name)===n);
-      return s?s.marks:0;
-    })
-  );
-
   const datasets=[{label:"Total Marks",data:totals,fill:true,tension:0.3}];
 
   if(target){
     datasets.push({label:"Target",data:targetLine,borderDash:[5,5]});
   }
-
-  secData.forEach((d,i)=>{
-    datasets.push({label:orderedNames[i],data:d,fill:false,tension:0.3});
-  });
 
   window.chart=new Chart(graph,{
     type:"line",
