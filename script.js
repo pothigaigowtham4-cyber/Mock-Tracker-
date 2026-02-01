@@ -12,7 +12,6 @@ const quotes = [
   "Greatness is built in silence."
 ];
 
-// Start from a random quote index
 let qIndex = Math.floor(Math.random() * quotes.length);
 
 /* ---------------- DATA ---------------- */
@@ -20,6 +19,7 @@ let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let editIndex = null;
 let targets = JSON.parse(localStorage.getItem("targets")) || {};
 let feedbackHistory = JSON.parse(localStorage.getItem("feedbackHistory")) || {};
+let countdowns = JSON.parse(localStorage.getItem("countdowns")) || [];
 
 /* ===== FIXED SECTION ORDER ===== */
 const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
@@ -60,7 +60,8 @@ function init(){
   initSections();
   renderAll();
   addTargetUI();
-  addExportButtons();
+  addCountdownUI();
+  addDarkModeToggle();
 }
 
 /* -------- TARGET PER EXAM -------- */
@@ -128,7 +129,7 @@ function deleteSection(btn){
   btn.parentElement.remove();
 }
 
-/* -------- SAVE -------- */
+/* -------- SAVE TEST -------- */
 function saveTest(){
   const exam=examName.value.trim();
   const test=testName.value.trim();
@@ -166,7 +167,98 @@ function saveTest(){
   renderAll();
 }
 
-/* ================== SMART FEEDBACK (ONLY LOGIC CHANGE) ================== */
+/* ---------------- RENDER ALL ---------------- */
+function renderAll(){
+  renderDropdown();
+  renderTables();
+}
+
+/* -------- DROPDOWN -------- */
+function renderDropdown(){
+  const exams = ["ALL", ...new Set(tests.map(t=>t.exam))];
+  examFilter.innerHTML = "";
+  exams.forEach(e=>{
+    const opt = document.createElement("option");
+    opt.value = e;
+    opt.textContent = e;
+    examFilter.appendChild(opt);
+  });
+}
+
+/* -------- TABLES PER EXAM -------- */
+function renderTables(){
+  tablesArea.innerHTML = "";
+  const selected = examFilter.value;
+  const grouped = {};
+
+  tests.forEach(t=>{
+    if(selected==="ALL" || selected===t.exam){
+      if(!grouped[t.exam]) grouped[t.exam]=[];
+      grouped[t.exam].push(t);
+    }
+  });
+
+  Object.keys(grouped).forEach(exam=>{
+    const tableWrapper = document.createElement("div");
+    tableWrapper.className = "examTableWrapper";
+    tableWrapper.innerHTML = `<h3>${exam}</h3>`;
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <tr>
+        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy %</th><th>Feedback</th><th>Edit</th><th>Delete</th>
+      </tr>
+    `;
+    grouped[exam].forEach((t,i)=>{
+      const feedback = autoFeedback(t);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${t.test}</td>
+        <td>${t.date}</td>
+        <td>${t.platform}</td>
+        <td>${t.total}</td>
+        <td>${t.accuracy}</td>
+        <td>${feedback}</td>
+        <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
+        <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>
+      `;
+      table.appendChild(tr);
+    });
+    tableWrapper.appendChild(table);
+    tablesArea.appendChild(tableWrapper);
+  });
+}
+
+/* -------- EDIT / DELETE TEST -------- */
+function editTest(idx){
+  const t = tests[idx];
+  examName.value = t.exam;
+  testName.value = t.test;
+  testDate.value = t.date;
+  platformName.value = t.platform;
+  negativeMark.value = t.neg;
+  initSections();
+  t.sections.forEach((s,i)=>{
+    if(i<document.querySelectorAll(".sectionRow").length){
+      const row = document.querySelectorAll(".sectionRow")[i];
+      row.querySelector(".sectionName").value = s.name;
+      row.querySelector(".sectionMarks").value = s.marks;
+      row.children[2].value = s.c;
+      row.children[3].value = s.w;
+      row.children[4].value = s.u;
+    } else addSection(s.name,s.marks,s.c,s.w,s.u);
+  });
+  editIndex = idx;
+}
+
+function deleteTest(idx){
+  if(confirm("Delete this test?")){
+    tests.splice(idx,1);
+    localStorage.setItem("tests",JSON.stringify(tests));
+    renderAll();
+  }
+}
+
+/* ---------------- SMART FEEDBACK ---------------- */
 function autoFeedback(t){
   const examTests = tests
     .filter(x => x.exam === t.exam)
@@ -210,5 +302,89 @@ function autoFeedback(t){
   return finalFeedback;
 }
 
-/* ================== EVERYTHING ELSE REMAINS THE SAME ================== */
-// renderAll(), renderDropdown(), renderTables(), editTest(), deleteTest(), drawGraph(), showGraph(), hideGraph(), addExportButtons(), exportPDF(), exportExcel() etc.
+/* ---------------- GRAPH ---------------- */
+function showGraph(){
+  graphPage.style.display="block";
+  tablesArea.style.display="none";
+  drawGraph();
+}
+
+function hideGraph(){
+  graphPage.style.display="none";
+  tablesArea.style.display="block";
+}
+
+function drawGraph(){
+  const ctx = graph.getContext('2d');
+  const selected = examFilter.value;
+  const examTests = selected==="ALL"?tests:tests.filter(t=>t.exam===selected);
+  const labels = examTests.map(t=>t.test);
+  const data = examTests.map(t=>t.total);
+  if(window.graphInstance) window.graphInstance.destroy();
+  window.graphInstance = new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Total Marks',data,fill:false,borderColor:'blue'}]},
+    options:{responsive:true}
+  });
+}
+
+/* ---------------- DARK MODE TOGGLE ---------------- */
+function addDarkModeToggle(){
+  const btn = document.createElement("button");
+  btn.textContent = "🌙 Dark Mode";
+  btn.style.position = "absolute";
+  btn.style.right="20px";
+  btn.style.top="10px";
+  btn.onclick = ()=>{
+    document.body.classList.toggle("dark");
+    btn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
+  };
+  document.body.appendChild(btn);
+}
+
+/* ---------------- COUNTDOWN ---------------- */
+function addCountdownUI(){
+  const box = document.createElement("div");
+  box.innerHTML=`
+    <h4>Exam Countdown ⏳</h4>
+    <input id="countdownExamName" placeholder="Exam Name">
+    <input id="countdownExamDate" type="date">
+    <button onclick="saveCountdown()">Add / Update</button>
+    <div id="countdownList"></div>
+  `;
+  document.querySelector(".card").appendChild(box);
+  renderCountdowns();
+}
+
+function saveCountdown(){
+  const name = document.getElementById("countdownExamName").value.trim();
+  const date = document.getElementById("countdownExamDate").value;
+  if(!name || !date){ alert("Fill all fields"); return; }
+  const idx = countdowns.findIndex(c=>c.name===name);
+  if(idx>=0) countdowns[idx].date=date;
+  else countdowns.push({name,date});
+  localStorage.setItem("countdowns",JSON.stringify(countdowns));
+  renderCountdowns();
+}
+
+function renderCountdowns(){
+  const div = document.getElementById("countdownList");
+  div.innerHTML="";
+  countdowns.forEach((c,i)=>{
+    const d = document.createElement("div");
+    const remaining = Math.ceil((new Date(c.date)-new Date())/86400000);
+    d.innerHTML=`${c.name} - ${c.date} - ${remaining} days <button onclick="deleteCountdown(${i})">🗑</button>`;
+    div.appendChild(d);
+  });
+}
+
+function deleteCountdown(idx){
+  countdowns.splice(idx,1);
+  localStorage.setItem("countdowns",JSON.stringify(countdowns));
+  renderCountdowns();
+}
+
+/* ---------------- EXPORT BUTTON PLACEHOLDER ---------------- */
+function addExportButtons(){
+  // implement PDF / Excel export if needed
+}
