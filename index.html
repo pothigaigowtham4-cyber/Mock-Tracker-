@@ -5,86 +5,87 @@
 <title>Mock Mark Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Libraries -->
+<!-- STOP favicon.ico error -->
+<link rel="icon" href="data:,">
+
+<!-- LIBRARIES -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-/* ================= GLOBAL ================= */
 body{
   margin:0;
-  font-family:Segoe UI, Arial, sans-serif;
+  font-family:Segoe UI,Arial,sans-serif;
   background:#f2f4f7;
   color:#111;
-  transition:.3s;
 }
 .dark body{background:#121212;color:#eee}
 
-h3{margin-top:0}
-button{cursor:pointer}
-
-/* ================= HEADER ================= */
 header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:12px 20px;
+  padding:14px 22px;
   background:linear-gradient(90deg,#ffb347,#4caf50);
 }
+
 .logoBox{
   display:flex;
   align-items:center;
+  gap:12px;
 }
-.logoSvg{
-  width:110px;
+.logoBox img{
+  height:120px; /* increased */
 }
+
 .quote{
   flex:1;
   text-align:center;
   font-weight:600;
   color:#083b0b;
 }
+
 .headerRight{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 }
-.flag{font-size:34px}
+.headerRight img{height:40px}
+
 .darkBtn{
   padding:8px 14px;
   border:none;
   border-radius:8px;
   background:#fff;
+  cursor:pointer;
 }
 
-/* ================= LAYOUT ================= */
+/* ===== LAYOUT ===== */
 .container{
   padding:16px;
   display:flex;
   flex-direction:column;
   gap:18px;
 }
+
 .card{
   padding:16px;
   border-radius:16px;
   box-shadow:0 6px 16px rgba(0,0,0,.15);
 }
 
-/* colorful cards */
 .testCard{background:linear-gradient(135deg,#ffe259,#ffa751)}
 .sectionCard{background:linear-gradient(135deg,#c2ffd8,#465efb)}
 .countdownCard{background:linear-gradient(135deg,#fbc2eb,#a6c1ee)}
 .filterCard{background:linear-gradient(135deg,#d4fc79,#96e6a1)}
 .tableCard{background:#f9f9f9}
 
-/* dark mode cards */
 .dark .card{
   background:#1f1f1f !important;
   color:#f1f1f1;
 }
 
-/* ================= FORMS ================= */
 .formGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -94,31 +95,32 @@ header{
   display:flex;
   flex-direction:column;
 }
-label{font-weight:600;font-size:14px}
+label{font-weight:600}
 input,select{
   padding:8px;
   border-radius:6px;
   border:1px solid #999;
 }
+
 .dark input,.dark select{
   background:#2a2a2a;
   color:#fff;
   border:1px solid #555;
 }
 
-/* ================= BUTTONS ================= */
 .btn{
   padding:8px 16px;
   border:none;
   border-radius:8px;
   background:#1976d2;
   color:#fff;
+  cursor:pointer;
 }
 .btn.green{background:#2e7d32}
 .btn.red{background:#c62828}
 .btn.gray{background:#555}
 
-/* ================= SECTION ROW ================= */
+/* ===== SECTION ROW ===== */
 .sectionRow{
   display:grid;
   grid-template-columns:140px repeat(4,1fr) auto;
@@ -126,7 +128,7 @@ input,select{
   margin-bottom:8px;
 }
 
-/* ================= TABLE ================= */
+/* ===== TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -142,46 +144,37 @@ th{background:#e6e6e6}
 .best{background:#c8e6c9 !important;font-weight:700}
 .worst{background:#ffcdd2 !important;font-weight:700}
 
-/* ================= GRAPH ================= */
+/* ===== GRAPH ===== */
 #graphWrap{display:none;height:280px}
 
-/* ================= ANALYSIS ================= */
-.analysis{
-  margin-top:10px;
-  background:#fff3cd;
-  padding:10px;
-  border-radius:10px;
+/* ===== COUNTDOWN ===== */
+.countBox{
+  font-size:26px;
+  font-weight:700;
 }
-.dark .analysis{background:#2b2b2b}
 </style>
 </head>
 
 <body>
+
 <header>
   <div class="logoBox">
-    <!-- INLINE SVG LOGO (no 404 ever) -->
-    <svg class="logoSvg" viewBox="0 0 300 120">
-      <rect width="300" height="120" rx="18" fill="#8b1c1c"/>
-      <text x="150" y="55" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">
-        MOCK MARK
-      </text>
-      <text x="150" y="90" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">
-        TRACKER
-      </text>
-    </svg>
+    <img src="emblem.png" alt="Emblem">
   </div>
 
-  <div class="quote">While you are resting, someone else is working to take your spot.</div>
+  <div class="quote">
+    While you are resting, someone else is working to take your spot.
+  </div>
 
   <div class="headerRight">
-    <div class="flag">🇮🇳</div>
+    <img src="flag.jpg" alt="Indian Flag">
     <button class="darkBtn" onclick="toggleDark()">🌙 Dark Mode</button>
   </div>
 </header>
 
 <div class="container">
 
-<!-- ================= TEST DETAILS ================= -->
+<!-- TEST DETAILS -->
 <div class="card testCard">
   <h3>Test Details</h3>
   <div class="formGrid">
@@ -191,18 +184,33 @@ th{background:#e6e6e6}
     <div class="formGroup"><label>Test Date</label><input type="date" id="testDate"></div>
     <div class="formGroup"><label>Platform</label><input id="platform"></div>
   </div>
+  <br>
+  <button class="btn green" onclick="saveTest()">Save Test</button>
 </div>
 
-<!-- ================= SECTIONAL ================= -->
+<!-- SECTIONAL MARKS -->
 <div class="card sectionCard">
   <h3>Sectional Marks</h3>
   <div id="sections"></div>
   <button class="btn green" onclick="addSection()">+ Add Section</button>
 </div>
 
-<!-- ================= FILTER + GRAPH ================= -->
+<!-- EXAM DAY COUNTDOWN -->
+<div class="card countdownCard">
+  <h3>Exam Day Countdown</h3>
+  <div class="formGrid">
+    <div class="formGroup">
+      <label>Exam Date</label>
+      <input type="date" id="examDate">
+    </div>
+  </div>
+  <br>
+  <div class="countBox" id="countdownText">Set exam date</div>
+</div>
+
+<!-- FILTER -->
 <div class="card filterCard">
-  <h3>Filter</h3>
+  <h3>Filter & Tools</h3>
   <div style="display:flex;gap:10px;flex-wrap:wrap">
     <select id="examFilter" onchange="renderTable()"></select>
     <button class="btn gray" onclick="toggleGraph()">📊 Graph</button>
@@ -211,18 +219,22 @@ th{background:#e6e6e6}
   </div>
 </div>
 
-<!-- ================= TABLE ================= -->
+<!-- TABLE -->
 <div class="card tableCard">
   <h3 id="tableHeader">Test Records</h3>
   <table>
     <thead>
-      <tr id="tableHead"></tr>
+      <tr>
+        <th>Test</th>
+        <th>Date</th>
+        <th>Total</th>
+      </tr>
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
 </div>
 
-<!-- ================= GRAPH ================= -->
+<!-- GRAPH -->
 <div class="card tableCard" id="graphWrap">
   <canvas id="chart"></canvas>
 </div>
@@ -230,59 +242,42 @@ th{background:#e6e6e6}
 </div>
 
 <script>
-/* ================= DATA ================= */
 let tests=[];
-let sections=[];
 let chart;
 
-/* ================= DARK ================= */
+/* DARK MODE */
 function toggleDark(){
   document.documentElement.classList.toggle("dark");
 }
 
-/* ================= SECTIONS ================= */
-function addSection(){
-  const id=Date.now();
-  sections.push({id,name:""});
-  renderSections();
+/* SAVE TEST */
+function saveTest(){
+  const t={
+    exam:examName.value,
+    test:testName.value,
+    date:testDate.value,
+    total:Math.floor(Math.random()*100)+100
+  };
+  tests.push(t);
+  renderFilter();
+  renderTable();
 }
 
-function deleteSection(id){
-  sections=sections.filter(s=>s.id!==id);
-  renderSections();
-}
-
-function renderSections(){
-  const box=document.getElementById("sections");
-  box.innerHTML="";
-  sections.forEach(s=>{
-    box.innerHTML+=`
-    <div class="sectionRow">
-      <input placeholder="Section" oninput="s.name=this.value">
-      <input placeholder="Marks">
-      <input placeholder="Correct">
-      <input placeholder="Wrong">
-      <input placeholder="Unattempted">
-      <button class="btn red" onclick="deleteSection(${s.id})">✖</button>
-    </div>`;
-  });
-}
-
-/* ================= FILTER ================= */
+/* FILTER */
 function renderFilter(){
-  const f=document.getElementById("examFilter");
-  f.innerHTML=`<option value="">All Exams</option>`;
+  examFilter.innerHTML='<option value="">All Exams</option>';
   [...new Set(tests.map(t=>t.exam))].forEach(e=>{
-    f.innerHTML+=`<option>${e}</option>`;
+    examFilter.innerHTML+=`<option>${e}</option>`;
   });
 }
 
-/* ================= TABLE ================= */
+/* DATE FORMAT */
 function formatDate(d){
   const x=new Date(d);
   return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
 }
 
+/* TABLE */
 function renderTable(){
   const f=examFilter.value;
   const list=f?tests.filter(t=>t.exam===f):tests;
@@ -306,15 +301,15 @@ function renderTable(){
   });
 }
 
-/* ================= GRAPH ================= */
+/* GRAPH */
 function toggleGraph(){
-  const g=document.getElementById("graphWrap");
-  g.style.display=g.style.display==="none"?"block":"none";
-  if(g.style.display==="block")renderGraph();
+  graphWrap.style.display=
+    graphWrap.style.display==="none"?"block":"none";
+  if(graphWrap.style.display==="block")renderGraph();
 }
 function renderGraph(){
   if(chart)chart.destroy();
-  chart=new Chart(document.getElementById("chart"),{
+  chart=new Chart(chart,{
     type:"line",
     data:{
       labels:tests.map(t=>t.test),
@@ -323,7 +318,14 @@ function renderGraph(){
   });
 }
 
-/* ================= EXPORT ================= */
+/* COUNTDOWN */
+setInterval(()=>{
+  if(!examDate.value)return;
+  const diff=Math.ceil((new Date(examDate.value)-new Date())/86400000);
+  countdownText.textContent=diff>0?`${diff} Days Left`:"Exam Day!";
+},1000);
+
+/* EXPORT */
 function exportExcel(){
   const ws=XLSX.utils.json_to_sheet(tests);
   const wb=XLSX.utils.book_new();
@@ -338,5 +340,6 @@ function exportPDF(){
   pdf.save("MockTracker.pdf");
 }
 </script>
+
 </body>
 </html>
