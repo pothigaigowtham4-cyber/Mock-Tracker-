@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
-  
+
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- XLSX for Excel Export -->
@@ -31,44 +31,39 @@
 
   <!-- ================= FORM ================= -->
   <div class="container">
-    <div class="card fullWidth">
+    <div class="card trackerCard">
       <h3>Test Tracker</h3>
-
       <div class="formGrid">
+
         <div class="formGroup">
           <label for="examName">Exam Name</label>
           <input id="examName" placeholder="CGL / NTPC">
         </div>
-
         <div class="formGroup">
           <label for="testName">Test Name</label>
           <input id="testName" placeholder="Mock 1">
         </div>
-
         <div class="formGroup">
           <label for="testDate">Test Date</label>
           <input id="testDate" type="date">
         </div>
-
         <div class="formGroup">
           <label for="platformName">Platform Name</label>
           <input id="platformName" placeholder="OLIVEBOARD">
         </div>
-
         <div class="formGroup">
           <label for="negativeMark">Negative Mark</label>
           <input id="negativeMark" type="number" placeholder="0.25">
         </div>
-
         <div class="formGroup">
           <label for="targetInput">Set Target 🎯</label>
           <input id="targetInput" type="number" placeholder="Enter Target Marks">
         </div>
+
       </div>
 
       <h4>Sections</h4>
       <div id="sections"></div>
-
       <div class="btnRow">
         <button class="addBtn" onclick="addSection()">+ Add Section</button>
         <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
