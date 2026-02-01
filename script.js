@@ -21,10 +21,6 @@ let targets = JSON.parse(localStorage.getItem("targets")) || {};
 let feedbackHistory = JSON.parse(localStorage.getItem("feedbackHistory")) || {};
 let countdowns = JSON.parse(localStorage.getItem("countdowns")) || [];
 
-/* ===== FIXED SECTION ORDER ===== */
-const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
-function norm(s){ return s.trim().toUpperCase(); }
-
 /* ---------------- DOM READY ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
   window.quoteEl = document.getElementById("quoteText");
@@ -35,12 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
   window.testDate = document.getElementById("testDate");
   window.platformName = document.getElementById("platformName");
   window.negativeMark = document.getElementById("negativeMark");
+  window.targetInput = document.getElementById("targetInput");
   window.tablesArea = document.getElementById("tablesArea");
   window.graphPage = document.getElementById("graphPage");
   window.graph = document.getElementById("graph");
+  window.darkModeBtn = document.getElementById("darkModeBtn");
 
   rotateQuotes();
-  setInterval(rotateQuotes, 30000); // 30 seconds
+  setInterval(rotateQuotes, 30000);
+  darkModeBtn.onclick = toggleDarkMode;
+
   init();
 });
 
@@ -59,51 +59,12 @@ function rotateQuotes(){
 function init(){
   initSections();
   renderAll();
-  addTargetUI();
-  addCountdownUI();
-  addDarkModeToggle();
-}
-
-/* -------- TARGET PER EXAM -------- */
-function addTargetUI(){
-  const box = document.createElement("div");
-  box.innerHTML = `
-    <h4>Set Target for Selected Exam 🎯</h4>
-    <input id="targetInput" type="number" placeholder="Enter Target Marks">
-    <button onclick="saveTarget()">Save Target</button>
-  `;
-  document.querySelector(".card").appendChild(box);
-}
-
-function saveTarget(){
-  const exam = examFilter.value;
-  if(exam==="ALL"){
-    alert("Select an exam first");
-    return;
-  }
-  const val = Number(document.getElementById("targetInput").value);
-  if(!val){
-    alert("Enter valid target");
-    return;
-  }
-  targets[exam] = val;
-  localStorage.setItem("targets", JSON.stringify(targets));
-  alert("Target saved for " + exam);
-  drawGraph();
 }
 
 /* -------- SECTIONS -------- */
 function initSections(){
   sections.innerHTML="";
-  const labelRow = document.createElement("div");
-  labelRow.className="sectionLabels";
-  labelRow.innerHTML=`
-    <span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>
-  `;
-  sections.appendChild(labelRow);
-  addSection();
-  addSection();
-  addSection();
+  addSection(); addSection(); addSection();
 }
 
 function addSection(name="", marks=0, c=0, w=0, u=0){
@@ -122,10 +83,7 @@ function addSection(name="", marks=0, c=0, w=0, u=0){
 
 function deleteSection(btn){
   const rows = document.querySelectorAll(".sectionRow");
-  if(rows.length <= 1){
-    alert("At least one section is required.");
-    return;
-  }
+  if(rows.length <= 1){ alert("At least one section is required."); return; }
   btn.parentElement.remove();
 }
 
@@ -136,11 +94,13 @@ function saveTest(){
   const date=testDate.value;
   const platform=platformName.value.trim();
   const neg=Number(negativeMark.value)||0;
+  const targetVal = Number(targetInput.value);
 
   if(!exam||!test||!date||!platform){
-    alert("Fill all details");
-    return;
+    alert("Fill all details"); return;
   }
+
+  if(targetVal) targets[exam] = targetVal;
 
   let sectionsArr=[], total=0, tc=0, tw=0, tu=0;
   document.querySelectorAll(".sectionRow").forEach(r=>{
@@ -155,14 +115,15 @@ function saveTest(){
 
   const negLoss = tw * neg;
   const accuracy = tc + tw > 0 ? ((tc/(tc+tw))*100).toFixed(1) : 0;
-
   const obj={exam,test,date,platform,neg,total,negLoss,tc,tw,tu,accuracy,sections:sectionsArr};
 
   if(editIndex==null) tests.push(obj);
   else tests[editIndex]=obj;
 
   localStorage.setItem("tests",JSON.stringify(tests));
+  localStorage.setItem("targets",JSON.stringify(targets));
   editIndex=null;
+  targetInput.value = targets[exam] || "";
   initSections();
   renderAll();
 }
@@ -183,6 +144,7 @@ function renderDropdown(){
     opt.textContent = e;
     examFilter.appendChild(opt);
   });
+  if(examFilter.value==="ALL" && exams.length>1) examFilter.value=exams[1];
 }
 
 /* -------- TABLES PER EXAM -------- */
@@ -199,28 +161,36 @@ function renderTables(){
   });
 
   Object.keys(grouped).forEach(exam=>{
+    const examTests = grouped[exam];
+    const avg = (examTests.reduce((a,b)=>a+b.total,0)/examTests.length).toFixed(1);
+
     const tableWrapper = document.createElement("div");
     tableWrapper.className = "examTableWrapper";
-    tableWrapper.innerHTML = `<h3>${exam}</h3>`;
+    tableWrapper.innerHTML = `<h3>${exam} - Avg: ${avg}</h3>`;
     const table = document.createElement("table");
     table.innerHTML = `
       <tr>
-        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy %</th><th>Feedback</th><th>Edit</th><th>Delete</th>
+        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy %</th><th>Edit</th><th>Delete</th>
       </tr>
     `;
-    grouped[exam].forEach((t,i)=>{
-      const feedback = autoFeedback(t);
+
+    const totals = examTests.map(t=>t.total);
+    const maxTotal = Math.max(...totals);
+    const minTotal = Math.min(...totals);
+
+    examTests.forEach((t,i)=>{
       const tr = document.createElement("tr");
+      tr.className = t.total===maxTotal?"best":t.total===minTotal?"worst":"";
       tr.innerHTML = `
         <td>${t.test}</td>
         <td>${t.date}</td>
         <td>${t.platform}</td>
         <td>${t.total}</td>
         <td>${t.accuracy}</td>
-        <td>${feedback}</td>
         <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
         <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>
       `;
+      tr.onclick = ()=>toggleAnalysis(tr, t);
       table.appendChild(tr);
     });
     tableWrapper.appendChild(table);
@@ -228,7 +198,28 @@ function renderTables(){
   });
 }
 
-/* -------- EDIT / DELETE TEST -------- */
+/* -------- ANALYSIS ROW -------- */
+function toggleAnalysis(row,t){
+  const next = row.nextElementSibling;
+  if(next && next.classList.contains("analysisRow")){
+    next.remove();
+    return;
+  }
+  const analysis = document.createElement("tr");
+  analysis.className="analysisRow";
+  const td = document.createElement("td");
+  td.colSpan=7;
+  td.innerHTML = `
+    <b>Sections:</b> ${t.sections.map(s=>`${s.name}: ${s.marks}`).join(', ')} <br>
+    <b>Correct:</b> ${t.tc}, <b>Wrong:</b> ${t.tw}, <b>Unattempted:</b> ${t.tu} <br>
+    <b>Negative Marks:</b> ${t.negLoss} <br>
+    <b>Insights:</b> ${autoFeedback(t)}
+  `;
+  analysis.appendChild(td);
+  row.parentNode.insertBefore(analysis,row.nextSibling);
+}
+
+/* ---------------- EDIT / DELETE ---------------- */
 function editTest(idx){
   const t = tests[idx];
   examName.value = t.exam;
@@ -236,6 +227,7 @@ function editTest(idx){
   testDate.value = t.date;
   platformName.value = t.platform;
   negativeMark.value = t.neg;
+  targetInput.value = targets[t.exam] || "";
   initSections();
   t.sections.forEach((s,i)=>{
     if(i<document.querySelectorAll(".sectionRow").length){
@@ -267,46 +259,48 @@ function autoFeedback(t){
   const prev = idx > 0 ? examTests[idx-1] : null;
 
   let feedbackPool = [];
-  if(!prev){
-    feedbackPool.push("🧪 First test for this exam. This becomes your baseline.");
-  } else {
-    if(t.total > prev.total) feedbackPool.push("📈 Score improved from previous test. Strategy is moving in right direction.");
-    else if(t.total < prev.total) feedbackPool.push("📉 Score dropped compared to last test. Analyse mistakes deeply.");
-    else feedbackPool.push("➖ Score stagnant. Push either attempts or accuracy consciously.");
+  if(!prev) feedbackPool.push("🧪 First test for this exam. Baseline established.");
+  else {
+    if(t.total>prev.total) feedbackPool.push("📈 Score improved from previous test.");
+    else if(t.total<prev.total) feedbackPool.push("📉 Score dropped compared to last test.");
+    else feedbackPool.push("➖ Score stagnant. Push attempts or accuracy.");
   }
 
-  if(t.accuracy < 60) feedbackPool.push("🎯 Accuracy is risky. Reduce guesses and focus on concepts.");
-  else if(t.accuracy > 80) feedbackPool.push("✅ Accuracy is strong. You can safely increase attempts.");
-  else feedbackPool.push("⚖ Accuracy balanced. Maintain same approach.");
+  if(t.accuracy<60) feedbackPool.push("🎯 Accuracy risky. Reduce guesses.");
+  else if(t.accuracy>80) feedbackPool.push("✅ Accuracy strong.");
+  else feedbackPool.push("⚖ Accuracy balanced.");
 
-  if(t.negLoss > t.total * 0.15) feedbackPool.push("❗ Negative marks are hurting your score badly.");
-  else feedbackPool.push("🛡 Negative marks are under control.");
+  if(t.negLoss>t.total*0.15) feedbackPool.push("❗ Negative marks hurting score.");
+  else feedbackPool.push("🛡 Negative marks under control.");
 
   const target = targets[t.exam];
   if(target){
     const diff = t.total - target;
-    if(diff >= 10) feedbackPool.push("🔥 Well above target. Raise difficulty level.");
-    else if(diff >= 0) feedbackPool.push("🎯 Target achieved. Focus on consistency.");
-    else if(diff > -10) feedbackPool.push("🟡 Very close to target. Minor corrections needed.");
-    else feedbackPool.push("🚨 Far below target. Revise basics before next mock.");
+    if(diff>=10) feedbackPool.push("🔥 Above target. Raise difficulty.");
+    else if(diff>=0) feedbackPool.push("🎯 Target achieved. Maintain consistency.");
+    else if(diff>-10) feedbackPool.push("🟡 Very close to target. Minor corrections needed.");
+    else feedbackPool.push("🚨 Far below target. Revise basics.");
   }
 
   const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
-  feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first for quick gains.`);
+  feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first.`);
 
-  if(!feedbackHistory[t.exam]) feedbackHistory[t.exam] = [];
-  let finalFeedback = feedbackPool.find(f => !feedbackHistory[t.exam].includes(f)) || feedbackPool[0];
+  if(!feedbackHistory[t.exam]) feedbackHistory[t.exam]=[];
+  let finalFeedback = feedbackPool.find(f=>!feedbackHistory[t.exam].includes(f)) || feedbackPool[0];
   feedbackHistory[t.exam].push(finalFeedback);
-  if(feedbackHistory[t.exam].length > 6) feedbackHistory[t.exam].shift();
-  localStorage.setItem("feedbackHistory", JSON.stringify(feedbackHistory));
+  if(feedbackHistory[t.exam].length>6) feedbackHistory[t.exam].shift();
+  localStorage.setItem("feedbackHistory",JSON.stringify(feedbackHistory));
   return finalFeedback;
 }
 
 /* ---------------- GRAPH ---------------- */
 function showGraph(){
+  const selected = examFilter.value;
+  if(selected==="ALL"){ alert("Select an exam for graph"); return; }
+
   graphPage.style.display="block";
   tablesArea.style.display="none";
-  drawGraph();
+  drawGraph(selected);
 }
 
 function hideGraph(){
@@ -314,10 +308,9 @@ function hideGraph(){
   tablesArea.style.display="block";
 }
 
-function drawGraph(){
+function drawGraph(exam){
   const ctx = graph.getContext('2d');
-  const selected = examFilter.value;
-  const examTests = selected==="ALL"?tests:tests.filter(t=>t.exam===selected);
+  const examTests = tests.filter(t=>t.exam===exam);
   const labels = examTests.map(t=>t.test);
   const data = examTests.map(t=>t.total);
   if(window.graphInstance) window.graphInstance.destroy();
@@ -328,63 +321,34 @@ function drawGraph(){
   });
 }
 
-/* ---------------- DARK MODE TOGGLE ---------------- */
-function addDarkModeToggle(){
-  const btn = document.createElement("button");
-  btn.textContent = "🌙 Dark Mode";
-  btn.style.position = "absolute";
-  btn.style.right="20px";
-  btn.style.top="10px";
-  btn.onclick = ()=>{
-    document.body.classList.toggle("dark");
-    btn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
-  };
-  document.body.appendChild(btn);
+/* ---------------- DARK MODE ---------------- */
+function toggleDarkMode(){
+  document.body.classList.toggle("dark");
+  darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
 }
 
-/* ---------------- COUNTDOWN ---------------- */
-function addCountdownUI(){
-  const box = document.createElement("div");
-  box.innerHTML=`
-    <h4>Exam Countdown ⏳</h4>
-    <input id="countdownExamName" placeholder="Exam Name">
-    <input id="countdownExamDate" type="date">
-    <button onclick="saveCountdown()">Add / Update</button>
-    <div id="countdownList"></div>
-  `;
-  document.querySelector(".card").appendChild(box);
-  renderCountdowns();
+/* ---------------- EXPORT ---------------- */
+function exportExcel(){
+  const ws = XLSX.utils.json_to_sheet(tests.map(t=>{
+    return {
+      Exam:t.exam, Test:t.test, Date:t.date, Platform:t.platform, Total:t.total, Accuracy:t.accuracy,
+      Sections:t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')
+    }
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tests");
+  XLSX.writeFile(wb, "MockTracker.xlsx");
 }
 
-function saveCountdown(){
-  const name = document.getElementById("countdownExamName").value.trim();
-  const date = document.getElementById("countdownExamDate").value;
-  if(!name || !date){ alert("Fill all fields"); return; }
-  const idx = countdowns.findIndex(c=>c.name===name);
-  if(idx>=0) countdowns[idx].date=date;
-  else countdowns.push({name,date});
-  localStorage.setItem("countdowns",JSON.stringify(countdowns));
-  renderCountdowns();
-}
-
-function renderCountdowns(){
-  const div = document.getElementById("countdownList");
-  div.innerHTML="";
-  countdowns.forEach((c,i)=>{
-    const d = document.createElement("div");
-    const remaining = Math.ceil((new Date(c.date)-new Date())/86400000);
-    d.innerHTML=`${c.name} - ${c.date} - ${remaining} days <button onclick="deleteCountdown(${i})">🗑</button>`;
-    div.appendChild(d);
+function exportPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y=10;
+  tests.forEach(t=>{
+    doc.text(`Exam: ${t.exam} | Test: ${t.test} | Date: ${t.date} | Total: ${t.total} | Accuracy: ${t.accuracy}`, 10, y);
+    y+=7;
+    doc.text(`Sections: ${t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')}`, 10, y);
+    y+=10;
   });
-}
-
-function deleteCountdown(idx){
-  countdowns.splice(idx,1);
-  localStorage.setItem("countdowns",JSON.stringify(countdowns));
-  renderCountdowns();
-}
-
-/* ---------------- EXPORT BUTTON PLACEHOLDER ---------------- */
-function addExportButtons(){
-  // implement PDF / Excel export if needed
+  doc.save("MockTracker.pdf");
 }
