@@ -2,104 +2,310 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mock Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+<title>Mock Mark Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* ---------- GLOBAL ---------- */
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f4f6f8;
+  color:#111;
+  transition:0.3s;
+}
+.dark body{background:#121212;color:#eaeaea;}
+
+button{cursor:pointer}
+
+/* ---------- HEADER ---------- */
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 20px;
+  background:linear-gradient(90deg,#ffb347,#4caf50);
+}
+.logo{
+  height:80px; /* increased size */
+}
+.quote{
+  flex:1;
+  text-align:center;
+  font-weight:bold;
+  color:#003366;
+}
+.headerRight{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+.flag{
+  font-size:32px; /* emoji flag */
+}
+.darkToggle{
+  padding:8px 14px;
+  border:none;
+  border-radius:8px;
+  background:#fff;
+}
+
+/* ---------- CONTAINER ---------- */
+.container{
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+/* ---------- CARDS ---------- */
+.card{
+  padding:16px;
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+.testCard{background:linear-gradient(90deg,#ffe259,#ffa751);}
+.sectionCard{background:linear-gradient(90deg,#c2ffd8,#465efb);}
+.countdownCard{background:linear-gradient(90deg,#fbc2eb,#a6c1ee);}
+.filterCard{background:linear-gradient(90deg,#d4fc79,#96e6a1);}
+.tableCard{
+  background:#f9f9f9; /* ash white */
+}
+
+/* ---------- DARK MODE ---------- */
+.dark .card{
+  background:#1e1e1e !important;
+  color:#f1f1f1;
+}
+.dark input,.dark select{
+  background:#2a2a2a;
+  color:#fff;
+  border:1px solid #555;
+}
+.dark table{color:#fff}
+
+/* ---------- FORM GRID ---------- */
+.formGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.formGroup{
+  display:flex;
+  flex-direction:column;
+}
+input,select{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #aaa;
+}
+
+/* ---------- BUTTONS ---------- */
+.primaryBtn{
+  padding:8px 16px;
+  background:#007bff;
+  color:#fff;
+  border:none;
+  border-radius:8px;
+}
+.successBtn{background:#28a745}
+
+/* ---------- TABLE ---------- */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #ccc;
+  padding:6px;
+  text-align:center;
+}
+th{background:#eaeaea}
+.dark th{background:#333}
+
+.best{
+  background:#c8f7c5 !important;
+  font-weight:bold;
+}
+.worst{
+  background:#f7c5c5 !important;
+  font-weight:bold;
+}
+
+/* ---------- GRAPH ---------- */
+.graphBox{
+  height:260px;
+}
+
+/* ---------- ANALYSIS ---------- */
+.analysis{
+  background:#fff3cd;
+  padding:8px;
+  border-radius:8px;
+  margin-top:8px;
+}
+.dark .analysis{
+  background:#2b2b2b;
+}
+</style>
 </head>
+
 <body>
-
-  <!-- ---------- HEADER ---------- -->
-  <div class="topHeader">
-    <div class="logoBox">
-      <img src="emblem.png" class="emblem" alt="Emblem">
-      <h1>Mock Mark Tracker</h1>
-    </div>
-    <div class="quoteBox">
-      <p id="quoteText"></p>
-    </div>
-    <div class="headerRight">
-      <img src="flag.png" class="flag" alt="Flag of India">
-      <button id="darkModeBtn">🌙 Dark Mode</button>
-    </div>
+<header>
+  <img src="logo.png" class="logo" alt="Mock Mark Tracker Logo">
+  <div class="quote">While you are resting, someone else is working to take your spot.</div>
+  <div class="headerRight">
+    <div class="flag">🇮🇳</div>
+    <button class="darkToggle" onclick="toggleDark()">🌙 Dark Mode</button>
   </div>
+</header>
 
-  <!-- ---------- MAIN CONTAINER ---------- -->
-  <div class="container">
+<div class="container">
 
-    <!-- ---------- TEST DETAILS CARD ---------- -->
-    <div class="card colorfulCard" id="testDetailsCard">
-      <h3>Test Details 📝</h3>
-      <div class="formGrid">
-        <div class="formGroup">
-          <label for="examName">Exam Name</label>
-          <input type="text" id="examName" placeholder="Enter exam name">
-        </div>
-        <div class="formGroup">
-          <label for="targetInput">Target Marks</label>
-          <input type="number" id="targetInput" placeholder="Enter target marks">
-        </div>
-        <div class="formGroup">
-          <label for="testName">Test Name</label>
-          <input type="text" id="testName" placeholder="Enter test name">
-        </div>
-        <div class="formGroup">
-          <label for="testDate">Test Date</label>
-          <input type="date" id="testDate">
-        </div>
-        <div class="formGroup">
-          <label for="platformName">Platform</label>
-          <input type="text" id="platformName" placeholder="Platform/Source">
-        </div>
-        <div class="formGroup">
-          <label for="negativeMark">Negative Mark per Wrong</label>
-          <input type="number" id="negativeMark" value="0">
-        </div>
-      </div>
-      <div class="btnRow">
-        <button class="saveBtn" onclick="saveTest()">Save Test</button>
-      </div>
-    </div>
-
-    <!-- ---------- SECTIONAL MARKS CARD ---------- -->
-    <div class="card colorfulCard" id="sectionsWrapper">
-      <h3>Sectional Marks 🗂</h3>
-      <div id="sections"></div>
-      <div class="btnRow">
-        <button class="addBtn" onclick="addSection()">➕ Add Section</button>
-      </div>
-    </div>
-
-    <!-- ---------- EXAM COUNTDOWN CARD ---------- -->
-    <div class="card colorfulCard" id="examCountdownCard"></div>
-
-    <!-- ---------- FILTER AND GRAPH BUTTON ---------- -->
-    <div class="card colorfulCard" id="filterGraphCard">
-      <div class="filterGraphRow">
-        <div>
-          <label for="examFilter">Filter by Exam:</label>
-          <select id="examFilter"></select>
-        </div>
-        <div>
-          <button onclick="toggleGraph()">📈 Graph</button>
-        </div>
-        <div class="exportBtns">
-          <button onclick="exportExcel()">Export Excel</button>
-          <button onclick="exportPDF()">Export PDF</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ---------- TABLE AREA ---------- -->
-    <div id="tablesArea"></div>
-
-    <!-- ---------- GRAPH AREA ---------- -->
-    <div class="card colorfulCard" id="graphCard" style="display:none;">
-      <canvas id="examGraph"></canvas>
-    </div>
-
+<!-- TEST DETAILS -->
+<div class="card testCard">
+  <h3>Test Details</h3>
+  <div class="formGrid">
+    <div class="formGroup"><label>Exam Name</label><input id="exam"></div>
+    <div class="formGroup"><label>Target Marks</label><input id="target"></div>
+    <div class="formGroup"><label>Test Name</label><input id="test"></div>
+    <div class="formGroup"><label>Test Date</label><input type="date" id="date"></div>
+    <div class="formGroup"><label>Platform</label><input id="platform"></div>
   </div>
+  <br>
+  <button class="primaryBtn" onclick="saveTest()">Save Test</button>
+</div>
 
-  <script src="script.js"></script>
+<!-- SECTIONAL -->
+<div class="card sectionCard">
+  <h3>Sectional Marks</h3>
+  <div class="formGrid">
+    <div class="formGroup"><label>English</label><input id="eng"></div>
+    <div class="formGroup"><label>Maths</label><input id="math"></div>
+    <div class="formGroup"><label>Reasoning</label><input id="reason"></div>
+    <div class="formGroup"><label>GK</label><input id="gk"></div>
+  </div>
+  <br>
+  <button class="successBtn" onclick="addMarks()">Add Marks</button>
+</div>
+
+<!-- FILTER -->
+<div class="card filterCard">
+  <h3>Filter by Exam</h3>
+  <select id="examFilter" onchange="renderTable()"></select>
+</div>
+
+<!-- TABLE -->
+<div class="card tableCard">
+  <h3 id="examHeader">Test Records</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Date</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<!-- GRAPH -->
+<div class="card tableCard">
+  <h3>Performance Trend</h3>
+  <div class="graphBox">
+    <canvas id="chart"></canvas>
+  </div>
+</div>
+
+</div>
+
+<script>
+let tests=[];
+let current=null;
+let chart;
+
+function toggleDark(){
+  document.documentElement.classList.toggle("dark");
+}
+
+function saveTest(){
+  current={
+    exam:exam.value,
+    test:test.value,
+    date:date.value,
+    platform:platform.value,
+    marks:{}
+  };
+}
+
+function addMarks(){
+  current.marks={
+    eng:+eng.value,
+    math:+math.value,
+    reason:+reason.value,
+    gk:+gk.value
+  };
+  current.total=Object.values(current.marks).reduce((a,b)=>a+b,0);
+  tests.push(current);
+  current=null;
+  renderFilter();
+  renderTable();
+  renderChart();
+}
+
+function renderFilter(){
+  examFilter.innerHTML=`<option value="">All</option>`;
+  [...new Set(tests.map(t=>t.exam))].forEach(e=>{
+    examFilter.innerHTML+=`<option>${e}</option>`;
+  });
+}
+
+function formatDate(d){
+  const x=new Date(d);
+  return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
+}
+
+function renderTable(){
+  const f=examFilter.value;
+  let list=f?tests.filter(t=>t.exam===f):tests;
+  tableBody.innerHTML="";
+  if(!list.length) return;
+
+  let max=Math.max(...list.map(t=>t.total));
+  let min=Math.min(...list.map(t=>t.total));
+  let avg=(list.reduce((a,b)=>a+b.total,0)/list.length).toFixed(1);
+
+  examHeader.textContent=`${f||"All Exams"} | Average: ${avg}`;
+
+  list.forEach(t=>{
+    let cls=t.total===max?"best":t.total===min?"worst":"";
+    tableBody.innerHTML+=`
+      <tr class="${cls}">
+        <td>${t.test}</td>
+        <td>${formatDate(t.date)}</td>
+        <td>${t.total}</td>
+      </tr>`;
+  });
+}
+
+function renderChart(){
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{
+      labels:tests.map(t=>t.test),
+      datasets:[{
+        label:"Total Marks",
+        data:tests.map(t=>t.total),
+        borderWidth:2
+      }]
+    }
+  });
+}
+</script>
 </body>
 </html>
