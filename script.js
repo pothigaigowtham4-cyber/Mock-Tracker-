@@ -10,6 +10,7 @@ let qIndex = Math.floor(Math.random()*quotes.length);
 let tests = JSON.parse(localStorage.getItem("tests"))||[];
 let editIndex=null;
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
+let examDates = JSON.parse(localStorage.getItem("examDates"))||{}; // New: exam date input
 
 document.addEventListener("DOMContentLoaded",()=>{
   window.quoteEl=document.getElementById("quoteText");
@@ -26,14 +27,33 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.graph=document.getElementById("graph");
   window.darkModeBtn=document.getElementById("darkModeBtn");
 
+  // --- New elements for exam date counter
+  window.examCounterCard=document.createElement("div");
+  examCounterCard.className="examCounterCard";
+  examCounterCard.innerHTML=`<h3>Exam Date Counter</h3>
+    <input id="counterExamName" placeholder="Exam Name">
+    <input id="counterExamDate" type="date">
+    <button id="saveExamDateBtn">Save Date</button>
+    <p id="remainingDays">Remaining Days: -</p>`;
+  document.body.prepend(examCounterCard);
+
+  window.counterExamName=document.getElementById("counterExamName");
+  window.counterExamDate=document.getElementById("counterExamDate");
+  window.saveExamDateBtn=document.getElementById("saveExamDateBtn");
+  window.remainingDays=document.getElementById("remainingDays");
+
+  saveExamDateBtn.onclick=saveExamDate;
+
   rotateQuotes();
   setInterval(rotateQuotes,30000);
   initSections();
   renderAll();
+  updateExamCounter();
 
   darkModeBtn.onclick=()=>{ 
     document.body.classList.toggle("dark"); 
     darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode"; 
+    updateExamCounter(); // update counter text color
   }
 });
 
@@ -96,7 +116,6 @@ function renderAll(){
 }
 
 function renderDropdown(){
-  // --- FIXED FILTER: trim exam names for consistency
   const exams=["ALL",...new Set(tests.map(t=>t.exam.trim()))];
   examFilter.innerHTML="";
   exams.forEach(e=>{ 
@@ -109,11 +128,11 @@ function renderDropdown(){
 
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected=examFilter.value.trim(); // trim to match keys
+  const selected=examFilter.value.trim();
   const grouped={};
 
   tests.forEach(t=>{
-    const examKey = t.exam.trim(); // normalize exam name
+    const examKey = t.exam.trim();
     if(selected==="ALL" || examKey === selected){
       if(!grouped[examKey]) grouped[examKey]=[];
       grouped[examKey].push(t);
@@ -125,13 +144,8 @@ function renderTables(){
     tableWrapper.className="examTableWrapper";
     tableWrapper.style.background= `hsl(${i*60}, 80%, 90%)`;
 
-    // Countdown
-    const examDate = new Date(grouped[exam][0].date);
-    const diff = Math.ceil((examDate - new Date())/(1000*60*60*24));
-    const countdown = diff>=0?` | ${diff} days left`:" | Completed";
-
     const avg=Math.round(grouped[exam].reduce((a,b)=>a+b.total,0)/grouped[exam].length);
-    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"} ${countdown}</h3>`;
+    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"}</h3>`; // removed completed
 
     const table=document.createElement("table");
     const sectionNames=grouped[exam][0].sections.map(s=>s.name);
@@ -150,7 +164,7 @@ function renderTables(){
       if(t.total===worst) tr.classList.add("worst");
 
       let sectionColumns="";
-      t.sections.forEach(sec=>sectionColumns+=`<td>${sec.marks}</td>`); // only marks
+      t.sections.forEach(sec=>sectionColumns+=`<td>${sec.marks}</td>`);
 
       const dt=new Date(t.date);
       const dtStr = dt.getDate().toString().padStart(2,'0')+"-"+(dt.getMonth()+1).toString().padStart(2,'0')+"-"+dt.getFullYear();
@@ -167,6 +181,29 @@ function renderTables(){
     tableWrapper.appendChild(table);
     tablesArea.appendChild(tableWrapper);
   });
+}
+
+/* ---------------- EXAM DATE COUNTER ---------------- */
+function saveExamDate(){
+  const name = counterExamName.value.trim();
+  const date = counterExamDate.value;
+  if(!name || !date){ alert("Enter both Exam Name and Date"); return; }
+  examDates[name]=date;
+  localStorage.setItem("examDates",JSON.stringify(examDates));
+  updateExamCounter();
+}
+
+function updateExamCounter(){
+  const name = counterExamName.value.trim();
+  if(!name || !examDates[name]){
+    remainingDays.textContent = "Remaining Days: -";
+    return;
+  }
+  const today = new Date();
+  const examDate = new Date(examDates[name]);
+  const diff = Math.ceil((examDate - today)/(1000*60*60*24));
+  remainingDays.textContent = diff>=0?`Remaining Days for ${name}: ${diff}`:`${name} exam date passed`;
+  remainingDays.style.color = document.body.classList.contains("dark") ? "#eaeaea":"#111";
 }
 
 /* ---------------- ANALYSIS ---------------- */
