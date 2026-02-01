@@ -69,7 +69,7 @@ function init(){
     initSections();
     renderAll();
     addTargetUI();
-    addExportButtons();
+    addExportButtons?.();  // optional if you already have export buttons function
     addCountdownUI();
     addDarkModeToggle();
 }
@@ -115,7 +115,7 @@ function saveTarget(){
     targets[exam] = val;
     localStorage.setItem("targets", JSON.stringify(targets));
     alert("Target saved for " + exam);
-    drawGraph();
+    renderAll();
 }
 
 /* -------- SECTIONS -------- */
@@ -289,4 +289,82 @@ function renderCountdowns(){
             <button onclick="deleteCountdown(${i})">🗑</button>`;
         list.appendChild(div);
     });
+}
+
+/* -------- RENDER TABLE WITH FEEDBACK & COUNTDOWN -------- */
+function renderAll(){
+    if(!tablesArea) return;
+    tablesArea.innerHTML = "";
+
+    if(tests.length === 0){
+        tablesArea.innerHTML = "<p>No tests saved yet.</p>";
+        return;
+    }
+
+    tests.forEach((t, idx) => {
+        const div = document.createElement("div");
+        div.className = "testCard";
+
+        // Get smart feedback
+        const feedback = autoFeedback(t);
+
+        // Days to exam (if countdown exists)
+        let countdownText = "";
+        const cd = examCountdowns.find(e => e.name === t.exam);
+        if(cd){
+            const days = Math.ceil((new Date(cd.date)-new Date())/(1000*60*60*24));
+            countdownText = days>=0 ? `${days} days left` : "Exam passed";
+        }
+
+        div.innerHTML = `
+            <h3>${t.exam} - ${t.test}</h3>
+            <p>Date: ${t.date} | Platform: ${t.platform} | Negative Marks: ${t.neg}</p>
+            <p>Total Marks: ${t.total} | Accuracy: ${t.accuracy}% | Neg Loss: ${t.negLoss}</p>
+            <p>📅 Countdown: ${countdownText}</p>
+            <p>💡 Feedback: ${feedback}</p>
+            <table border="1" cellspacing="0" cellpadding="4">
+                <tr>
+                    <th>Section</th><th>Marks</th><th>Correct</th><th>Wrong</th><th>Unattempted</th>
+                </tr>
+                ${t.sections.map(s => `<tr>
+                    <td>${s.name}</td>
+                    <td>${s.marks}</td>
+                    <td>${s.c}</td>
+                    <td>${s.w}</td>
+                    <td>${s.u}</td>
+                </tr>`).join("")}
+            </table>
+            <button onclick="editTest(${idx})">✏ Edit</button>
+            <button onclick="deleteTest(${idx})">🗑 Delete</button>
+        `;
+        tablesArea.appendChild(div);
+    });
+}
+
+/* -------- EDIT / DELETE TEST -------- */
+function editTest(idx){
+    const t = tests[idx];
+    editIndex = idx;
+    examName.value = t.exam;
+    testName.value = t.test;
+    testDate.value = t.date;
+    platformName.value = t.platform;
+    negativeMark.value = t.neg;
+
+    // Clear and rebuild sections
+    sections.innerHTML = "";
+    const labelRow = document.createElement("div");
+    labelRow.className="sectionLabels";
+    labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>`;
+    sections.appendChild(labelRow);
+
+    t.sections.forEach(s => addSection(s.name, s.marks, s.c, s.w, s.u));
+}
+
+function deleteTest(idx){
+    if(confirm("Delete this test?")){
+        tests.splice(idx,1);
+        localStorage.setItem("tests", JSON.stringify(tests));
+        renderAll();
+    }
 }
