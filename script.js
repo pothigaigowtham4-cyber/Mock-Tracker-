@@ -31,15 +31,22 @@ document.addEventListener("DOMContentLoaded",()=>{
   initSections();
   renderAll();
 
-  darkModeBtn.onclick=()=>{ document.body.classList.toggle("dark"); darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode"; }
+  darkModeBtn.onclick=()=>{ 
+    document.body.classList.toggle("dark"); 
+    darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode"; 
+  }
 });
 
 function rotateQuotes(){ quoteEl.textContent=quotes[qIndex]; qIndex=(qIndex+1)%quotes.length; }
 
 /* -------- SECTIONS -------- */
-function initSections(){ sections.innerHTML=""; addSection(); addSection(); addSection(); addSectionHeader(); }
+function initSections(){ 
+  sections.innerHTML=""; 
+  addSection(); addSection(); addSection(); addSectionHeader(); 
+}
 function addSectionHeader(){
-  const header=document.createElement("div"); header.className="sectionLabels";
+  const header=document.createElement("div"); 
+  header.className="sectionLabels";
   header.innerHTML="<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>";
   sections.prepend(header);
 }
@@ -57,7 +64,10 @@ function deleteSection(btn){ if(document.querySelectorAll(".sectionRow").length>
 function saveTest(){
   const exam=examName.value.trim(), test=testName.value.trim(), date=testDate.value, platform=platformName.value.trim(), neg=Number(negativeMark.value)||0;
   const targetVal=Number(targetInput.value);
-  if(exam && test && date && platform){ if(targetVal) targets[exam]=targetVal; localStorage.setItem("targets",JSON.stringify(targets)); } else { alert("Fill all fields"); return; }
+  if(exam && test && date && platform){ 
+    if(targetVal) targets[exam]=targetVal; 
+    localStorage.setItem("targets",JSON.stringify(targets)); 
+  } else { alert("Fill all fields"); return; }
 
   let sectionsArr=[], total=0, tc=0, tw=0, tu=0;
   document.querySelectorAll(".sectionRow").forEach(r=>{
@@ -86,7 +96,13 @@ function renderAll(){
 
 function renderDropdown(){
   const exams=["ALL",...new Set(tests.map(t=>t.exam))];
-  examFilter.innerHTML=""; exams.forEach(e=>{ const opt=document.createElement("option"); opt.value=e; opt.textContent=e; examFilter.appendChild(opt); });
+  examFilter.innerHTML="";
+  exams.forEach(e=>{ 
+    const opt=document.createElement("option"); 
+    opt.value=e; 
+    opt.textContent=e; 
+    examFilter.appendChild(opt); 
+  });
 }
 
 function renderTables(){
@@ -100,14 +116,20 @@ function renderTables(){
     }
   });
 
-  Object.keys(grouped).forEach(exam=>{
-    const tableWrapper=document.createElement("div"); tableWrapper.className="examTableWrapper";
+  Object.keys(grouped).forEach((exam,i)=>{
+    const tableWrapper=document.createElement("div"); 
+    tableWrapper.className="examTableWrapper";
+    tableWrapper.style.background= `hsl(${i*60}, 80%, 90%)`; // colorful card
+
     const avg=Math.round(grouped[exam].reduce((a,b)=>a+b.total,0)/grouped[exam].length);
-    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg}</h3>`;
+    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"}</h3>`;
 
     const table=document.createElement("table");
+    const sectionCount=Math.max(...grouped[exam].map(t=>t.sections.length));
+    let sectionHeaders="";
+    for(let s=0;s<sectionCount;s++) sectionHeaders+=`<th>Sec ${s+1}</th>`;
     table.innerHTML=`<tr>
-      <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th><th>Sections</th><th>Feedback</th><th>Edit</th><th>Delete</th>
+      <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>${sectionHeaders}<th>Feedback</th><th>Edit</th><th>Delete</th>
     </tr>`;
 
     const totals=grouped[exam].map(t=>t.total);
@@ -118,22 +140,24 @@ function renderTables(){
       if(t.total===best) tr.classList.add("best");
       if(t.total===worst) tr.classList.add("worst");
 
-      // Colorful sections
-      const sectionDiv=document.createElement("div");
-      sectionDiv.className="sectionColors";
-      t.sections.forEach((s,i)=>{
-        const span=document.createElement("span");
-        span.textContent=`${s.name}:${s.marks}`;
-        sectionDiv.appendChild(span);
-      });
+      let sectionData="";
+      t.sections.forEach(s=>sectionData+=`${s.name}:${s.marks} `);
 
-      tr.innerHTML=`<td>${t.test}</td><td>${t.date}</td><td>${t.platform}</td><td>${t.total}</td><td>${t.accuracy}</td>
-      <td></td>
+      let sectionColumns="";
+      for(let s=0;s<sectionCount;s++){
+        const sec=t.sections[s];
+        sectionColumns+=`<td>${sec?sec.marks+" ("+sec.c+"/"+sec.w+"/"+sec.u+")":""}</td>`;
+      }
+
+      // format date dd-mm-yyyy
+      const dt=new Date(t.date);
+      const dtStr = dt.getDate().toString().padStart(2,'0')+"-"+(dt.getMonth()+1).toString().padStart(2,'0')+"-"+dt.getFullYear();
+
+      tr.innerHTML=`<td>${t.test}</td><td>${dtStr}</td><td>${t.platform}</td><td>${t.total}</td><td>${t.accuracy}</td>
+      ${sectionColumns}
       <td><button onclick="toggleAnalysis(this)">Show</button></td>
       <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
       <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>`;
-      
-      tr.children[5].appendChild(sectionDiv); // add colorful sections
 
       table.appendChild(tr);
     });
@@ -143,7 +167,6 @@ function renderTables(){
   });
 }
 
-
 /* ---------------- ANALYSIS ---------------- */
 function toggleAnalysis(btn){
   const tr=btn.parentElement.parentElement;
@@ -152,35 +175,88 @@ function toggleAnalysis(btn){
     btn.textContent="Show";
     return;
   }
-  const idx=tr.rowIndex-1; const t=tests[idx];
-  const feedback=autoFeedback(t);
+
+  const idx = Array.from(tr.parentNode.children).indexOf(tr) - 1; // exclude header
+  const t=tests[idx];
+  const weak=t.sections.reduce((a,b)=>a.marks>b.marks?b:a);
   const analysisRow=document.createElement("tr");
-  analysisRow.className="analysisRow"; analysisRow.innerHTML=`<td colspan="9">${feedback}. Neg:${t.negLoss}, Weak:${t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name}</td>`;
+  analysisRow.className="analysisRow"; 
+  analysisRow.innerHTML=`<td colspan="${tr.children.length}">Weak Section: ${weak.name} | Neg Penalty: ${t.negLoss}</td>`;
   tr.parentNode.insertBefore(analysisRow,tr.nextSibling);
   btn.textContent="Hide";
 }
 
 /* -------- EDIT / DELETE -------- */
-function editTest(idx){ const t=tests[idx]; editIndex=idx; examName.value=t.exam; testName.value=t.test; testDate.value=t.date; platformName.value=t.platform; negativeMark.value=t.neg; targetInput.value=targets[t.exam]||""; initSections(); t.sections.forEach((s,i)=>{ const row=document.querySelectorAll(".sectionRow")[i]; if(row) { row.querySelector(".sectionName").value=s.name; row.querySelector(".sectionMarks").value=s.marks; row.children[2].value=s.c; row.children[3].value=s.w; row.children[4].value=s.u; } else addSection(s.name,s.marks,s.c,s.w,s.u); }); }
+function editTest(idx){ 
+  const t=tests[idx]; editIndex=idx; 
+  examName.value=t.exam; testName.value=t.test; testDate.value=t.date; platformName.value=t.platform; negativeMark.value=t.neg; 
+  targetInput.value=targets[t.exam]||""; 
+  initSections(); 
+  t.sections.forEach((s,i)=>{ 
+    const row=document.querySelectorAll(".sectionRow")[i]; 
+    if(row) { 
+      row.querySelector(".sectionName").value=s.name; 
+      row.querySelector(".sectionMarks").value=s.marks; 
+      row.children[2].value=s.c; 
+      row.children[3].value=s.w; 
+      row.children[4].value=s.u; 
+    } else addSection(s.name,s.marks,s.c,s.w,s.u); 
+  }); 
+}
 
-function deleteTest(idx){ if(confirm("Delete this test?")){ tests.splice(idx,1); localStorage.setItem("tests",JSON.stringify(tests)); renderAll(); } }
-
-/* ---------------- FEEDBACK ---------------- */
-function autoFeedback(t){ return `Feedback for ${t.test}`; }
+function deleteTest(idx){ 
+  if(confirm("Delete this test?")){ 
+    tests.splice(idx,1); 
+    localStorage.setItem("tests",JSON.stringify(tests)); 
+    renderAll(); 
+  } 
+}
 
 /* ---------------- GRAPH ---------------- */
 function showGraph(){
-  const selected=examFilter.value; if(selected==="ALL"){ alert("Select exam"); return; }
+  const selected=examFilter.value; 
+  if(selected==="ALL"){ alert("Select exam"); return; }
   graphPage.style.display="block"; tablesArea.style.display="none"; drawGraph(selected);
 }
 function hideGraph(){ graphPage.style.display="none"; tablesArea.style.display="block"; }
 function drawGraph(exam){
-  const ctx=graph.getContext('2d'); const examTests=tests.filter(t=>t.exam===exam);
-  const labels=examTests.map(t=>t.test); const data=examTests.map(t=>t.total);
+  const ctx=graph.getContext('2d'); 
+  const examTests=tests.filter(t=>t.exam===exam);
+  const labels=examTests.map(t=>t.test); 
+  const data=examTests.map(t=>t.total);
   if(window.graphInstance) window.graphInstance.destroy();
-  window.graphInstance=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Total Marks',data,fill:false,borderColor:'blue'}]},options:{responsive:true}});
+  window.graphInstance=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{label:'Total Marks',data,fill:false,borderColor:'blue', tension:0.2}]},
+    options:{responsive:true, plugins:{legend:{display:true}}}
+  });
 }
 
 /* ---------------- EXPORT ---------------- */
-function exportExcel(){ const ws=XLSX.utils.json_to_sheet(tests.map(t=>({Exam:t.exam,Test:t.test,Date:t.date,Platform:t.platform,Total:t.total,Accuracy:t.accuracy,Sections:t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')}))); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Tests"); XLSX.writeFile(wb,"MockTracker.xlsx"); }
-function exportPDF(){ const { jsPDF } = window.jspdf; const doc=new jsPDF(); let y=10; tests.forEach(t=>{ doc.text(`Exam: ${t.exam} | Test: ${t.test} | Date: ${t.date} | Total: ${t.total} | Accuracy: ${t.accuracy}`,10,y); y+=7; doc.text(`Sections: ${t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')}`,10,y); y+=10; }); doc.save("MockTracker.pdf"); }
+function exportExcel(){ 
+  const ws=XLSX.utils.json_to_sheet(tests.map(t=>({
+    Exam:t.exam,
+    Test:t.test,
+    Date:t.date,
+    Platform:t.platform,
+    Total:t.total,
+    Accuracy:t.accuracy,
+    Sections:t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')
+  })));
+  const wb=XLSX.utils.book_new(); 
+  XLSX.utils.book_append_sheet(wb,ws,"Tests"); 
+  XLSX.writeFile(wb,"MockTracker.xlsx"); 
+}
+
+function exportPDF(){ 
+  const { jsPDF } = window.jspdf; 
+  const doc=new jsPDF(); 
+  let y=10; 
+  tests.forEach(t=>{
+    doc.text(`Exam: ${t.exam} | Test: ${t.test} | Date: ${t.date} | Total: ${t.total} | Accuracy: ${t.accuracy}`,10,y); 
+    y+=7; 
+    doc.text(`Sections: ${t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')}`,10,y); 
+    y+=10; 
+  }); 
+  doc.save("MockTracker.pdf"); 
+}
