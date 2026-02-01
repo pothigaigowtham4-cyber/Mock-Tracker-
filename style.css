@@ -164,3 +164,55 @@ tr:hover { background: rgba(0,0,0,0.03); transition: 0.2s; }
   .formGrid { grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); }
   th, td { font-size:0.85em; padding:6px; }
 }
+
+/* ---------------- EXAM DATE COUNTER CARD ---------------- */
+.examCounterCard {
+  width: fit-content;
+  max-width: 600px;
+  padding: 15px;
+  margin: 20px auto;
+  border-radius: 10px;
+  background: #fff8e1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.examCounterCard .counterRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.examCounterCard input { 
+  padding: 6px; 
+  min-width: 120px; 
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.examCounterCard button { 
+  padding: 6px 12px; 
+  border-radius: 4px;
+  border: none;
+  background: #0b5ed7;
+  color: white;
+  cursor: pointer;
+}
+
+body.dark .examCounterCard {
+  background: #2a2a2a;
+  color: #eaeaea;
+}
+
+body.dark .examCounterCard input {
+  background: #1e1e1e;
+  color: #eaeaea;
+  border: 1px solid #555;
+}
+
+body.dark .examCounterCard button {
+  background: #0b5ed7;
+}
+
