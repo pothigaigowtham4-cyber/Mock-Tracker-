@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mock Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta charset="UTF-8">
+<title>Mock Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
   <!-- ---------- HEADER ---------- -->
   <div class="topHeader">
-    <img src="emblem.png" class="emblem" alt="Emblem">
+    <div class="logoBox">
+      <img src="emblem.png" class="emblem" alt="Emblem">
+      <h1>Mock Mark Tracker</h1>
+    </div>
     <div class="quoteBox">
       <p id="quoteText"></p>
     </div>
-    <div class="flagDarkWrapper">
+    <div class="headerRight">
       <img src="flag.png" class="flag" alt="Flag of India">
       <button id="darkModeBtn">🌙 Dark Mode</button>
     </div>
@@ -27,7 +28,7 @@
   <div class="container">
 
     <!-- ---------- TEST DETAILS CARD ---------- -->
-    <div class="card colorfulCard">
+    <div class="card colorfulCard" id="testDetailsCard">
       <h3>Test Details 📝</h3>
       <div class="formGrid">
         <div class="formGroup">
@@ -61,33 +62,39 @@
     </div>
 
     <!-- ---------- SECTIONAL MARKS CARD ---------- -->
-    <div class="card colorfulCard">
-      <h3>Sectional Marks 📊</h3>
-      <div id="sectionsWrapper">
-        <div id="sections"></div>
-        <button class="addBtn" onclick="addSection()">+ Add Section</button>
+    <div class="card colorfulCard" id="sectionsWrapper">
+      <h3>Sectional Marks 🗂</h3>
+      <div id="sections"></div>
+      <div class="btnRow">
+        <button class="addBtn" onclick="addSection()">➕ Add Section</button>
       </div>
     </div>
 
-    <!-- ---------- EXAM DAY COUNTDOWN CARD ---------- -->
+    <!-- ---------- EXAM COUNTDOWN CARD ---------- -->
     <div class="card colorfulCard" id="examCountdownCard"></div>
 
-    <!-- ---------- FILTER & GRAPH BUTTON ---------- -->
-    <div class="card colorfulCard filterGraphRow">
-      <div>
-        <label for="examFilter">Filter by Exam:</label>
-        <select id="examFilter"></select>
+    <!-- ---------- FILTER AND GRAPH BUTTON ---------- -->
+    <div class="card colorfulCard" id="filterGraphCard">
+      <div class="filterGraphRow">
+        <div>
+          <label for="examFilter">Filter by Exam:</label>
+          <select id="examFilter"></select>
+        </div>
+        <div>
+          <button onclick="toggleGraph()">📈 Graph</button>
+        </div>
+        <div class="exportBtns">
+          <button onclick="exportExcel()">Export Excel</button>
+          <button onclick="exportPDF()">Export PDF</button>
+        </div>
       </div>
-      <button onclick="renderGraph()" class="saveBtn">📈 Show Graph</button>
-      <button onclick="exportExcel()" class="saveBtn">📥 Export Excel</button>
-      <button onclick="exportPDF()" class="saveBtn">📄 Export PDF</button>
     </div>
 
     <!-- ---------- TABLE AREA ---------- -->
     <div id="tablesArea"></div>
 
     <!-- ---------- GRAPH AREA ---------- -->
-    <div class="card colorfulCard" style="display:none;" id="graphCard">
+    <div class="card colorfulCard" id="graphCard" style="display:none;">
       <canvas id="examGraph"></canvas>
     </div>
 
