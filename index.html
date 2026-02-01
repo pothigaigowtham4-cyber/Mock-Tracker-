@@ -1,100 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mock Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Mock Test Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --good: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+    }
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    body.dark {
+      --bg: #0f172a;
+      --card: #020617;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    input, button {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5f5;
+      font-size: 14px;
+    }
+
+    body.dark input {
+      background: #020617;
+      color: var(--text);
+      border-color: #334155;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    body.dark th, body.dark td {
+      border-color: #334155;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
 </head>
+
 <body>
-
-<header class="topHeader">
-
-  <!-- Emblem -->
-  <img src="emblem.png" class="emblem">
-
-  <!-- Quotes -->
-  <div class="quoteBox">
-    <p id="quoteText"></p>
+  <div class="top-bar">
+    <div>
+      <h1>Mock Test Tracker</h1>
+      <div class="muted" id="countdown"></div>
+    </div>
+    <div class="toggle">
+      <input type="checkbox" id="darkToggle" />
+      <label for="darkToggle">Dark Mode</label>
+    </div>
   </div>
-
-  <!-- Flag -->
-  <img src="flag.jpg" class="flag">
-
-</header>
-
-<!-- ================= FORM ================= -->
-<div class="container">
 
   <div class="card">
-
-    <h3>Add / Edit Test</h3>
-
-    <div class="formGrid">
-
-      <div class="formGroup">
-        <label for="examName">Exam Name</label>
-        <input id="examName" placeholder="CGL / NTPC">
-      </div>
-
-      <div class="formGroup">
-        <label for="testName">Test Name</label>
-        <input id="testName" placeholder="Mock 1">
-      </div>
-
-      <div class="formGroup">
-        <label for="testDate">Test Date</label>
-        <input id="testDate" type="date">
-      </div>
-
-      <div class="formGroup">
-        <label for="platformName">Platform Name</label>
-        <input id="platformName" placeholder="OLIVEBOARD">
-      </div>
-
-      <div class="formGroup">
-        <label for="negativeMark">Negative Mark</label>
-        <input id="negativeMark" type="number" placeholder="0.25">
-      </div>
-
+    <h3>Add Mock Test</h3>
+    <div class="grid">
+      <input id="testName" placeholder="Test Name" />
+      <input id="english" type="number" placeholder="English" />
+      <input id="maths" type="number" placeholder="Maths" />
+      <input id="reasoning" type="number" placeholder="Reasoning" />
+      <input id="ga" type="number" placeholder="GA" />
+      <button onclick="addTest()">Add Test</button>
     </div>
-
-    <h4>Sections</h4>
-    <div id="sections"></div>
-
-    <div class="btnRow">
-      <button class="addBtn" onclick="addSection()">+ Add Section</button>
-      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
-    </div>
-
-    <h4>Filter Tests</h4>
-    <select id="examFilter" onchange="renderAll()">
-      <option value="ALL">All Exams</option>
-    </select>
-    
-    <br><br>
-    <button onclick="showGraph()">Show Graph 📊</button>
-
   </div>
 
-</div>
+  <div class="card">
+    <h3>Performance Overview</h3>
+    <div class="grid">
+      <div>
+        <strong>Consistency Score</strong>
+        <div id="consistencyScore" class="muted"></div>
+      </div>
+      <div>
+        <strong>Attempt Strategy Insight</strong>
+        <div id="strategyInsight" class="muted"></div>
+      </div>
+    </div>
+  </div>
 
-<!-- ================= TABLES ================= -->
-<div id="tablesArea"></div>
+  <div class="card">
+    <h3>All Tests</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Eng</th>
+          <th>Maths</th>
+          <th>Reason</th>
+          <th>GA</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 
-<!-- ================= GRAPH ================= -->
-<div id="graphPage" style="display:none;">
-  <h3>Performance Graph</h3>
-  <canvas id="graph"></canvas>
-  <br>
-  <button onclick="hideGraph()">⬅ Back</button>
-</div>
+  <script>
+    /* ---------------- CORE DATA ---------------- */
 
-<script src="script.js"></script>
+    const EXAM_DATE = new Date("2026-03-15"); // <-- change only if exam date changes
+    let tests = JSON.parse(localStorage.getItem("mockTests")) || [];
 
+    /* ---------------- DARK MODE ---------------- */
+
+    const darkToggle = document.getElementById("darkToggle");
+    if (localStorage.getItem("darkMode") === "on") {
+      document.body.classList.add("dark");
+      darkToggle.checked = true;
+    }
+
+    darkToggle.addEventListener("change", () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", darkToggle.checked ? "on" : "off");
+    });
+
+    /* ---------------- COUNTDOWN ---------------- */
+
+    function updateCountdown() {
+      const today = new Date();
+      const diff = Math.ceil((EXAM_DATE - today) / (1000 * 60 * 60 * 24));
+      document.getElementById("countdown").textContent =
+        diff >= 0 ? `⏳ ${diff} days to exam` : "Exam date passed";
+    }
+
+    /* ---------------- ADD TEST ---------------- */
+
+    function addTest() {
+      const test = {
+        name: testName.value || `Test ${tests.length + 1}`,
+        eng: +english.value || 0,
+        maths: +maths.value || 0,
+        reason: +reasoning.value || 0,
+        ga: +ga.value || 0
+      };
+
+      tests.push(test);
+      localStorage.setItem("mockTests", JSON.stringify(tests));
+      render();
+    }
+
+    /* ---------------- CONSISTENCY SCORE ---------------- */
+
+    function calculateConsistency() {
+      if (tests.length < 2) return "Need more tests";
+
+      const totals = tests.map(t => t.eng + t.maths + t.reason + t.ga);
+      const avg = totals.reduce((a,b) => a+b,0) / totals.length;
+      const variance = totals.reduce((a,b)=>a+(b-avg)**2,0)/totals.length;
+      const sd = Math.sqrt(variance);
+
+      if (sd < 5) return "Excellent consistency";
+      if (sd < 10) return "Moderate consistency";
+      return "Unstable performance";
+    }
+
+    /* ---------------- STRATEGY INSIGHT ---------------- */
+
+    function strategyInsight() {
+      if (!tests.length) return "No data yet";
+
+      let weak = { eng:0, maths:0, reason:0, ga:0 };
+
+      tests.forEach(t => {
+        weak.eng += t.eng;
+        weak.maths += t.maths;
+        weak.reason += t.reason;
+        weak.ga += t.ga;
+      });
+
+      const avg = {};
+      for (let k in weak) avg[k] = weak[k] / tests.length;
+
+      const minSection = Object.keys(avg).reduce((a,b)=>avg[a]<avg[b]?a:b);
+
+      return `Focus more attempts on ${minSection.toUpperCase()}`;
+    }
+
+    /* ---------------- RENDER ---------------- */
+
+    function render() {
+      tableBody.innerHTML = "";
+
+      tests.forEach(t => {
+        const total = t.eng + t.maths + t.reason + t.ga;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${t.name}</td>
+          <td>${t.eng}</td>
+          <td>${t.maths}</td>
+          <td>${t.reason}</td>
+          <td>${t.ga}</td>
+          <td><strong>${total}</strong></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      document.getElementById("consistencyScore").textContent = calculateConsistency();
+      document.getElementById("strategyInsight").textContent = strategyInsight();
+    }
+
+    updateCountdown();
+    render();
+  </script>
 </body>
 </html>
