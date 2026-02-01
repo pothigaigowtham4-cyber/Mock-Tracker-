@@ -15,7 +15,6 @@ body {
 }
 
 /* ---------- HEADER ---------- */
-
 .topHeader{
   display:flex;
   align-items:center;
@@ -53,12 +52,15 @@ body {
 }
 
 /* ---------- MAIN ---------- */
-
 .container {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.card, .tableCard {
+/* ---------- CARDS ---------- */
+.card, .tableCard, #examCountdownCard {
   background: rgba(255,255,255,0.97);
   padding: 20px;
   border-radius: 14px;
@@ -66,34 +68,22 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-  gap: 10px;
-}
-
-.formGroup {
+.card, #sectionsWrapper {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-
-.formGroup label {
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 3px;
-}
-
-input, select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fdfefe;
-  transition: background 0.3s, color 0.3s, border 0.3s;
+  gap: 20px;
 }
 
 /* ---------- SECTIONS ---------- */
+#sectionsWrapper {
+  flex: 2;
+}
 
+#examCountdownCard {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* ---------- SECTION INPUTS ---------- */
 #sections {
   margin-top: 10px;
 }
@@ -135,7 +125,6 @@ input, select {
 }
 
 /* ---------- BUTTONS ---------- */
-
 .btnRow {
   margin-top: 12px;
   display: flex;
@@ -159,7 +148,6 @@ button:hover {
 }
 
 /* ---------- TABLE ---------- */
-
 #tablesArea {
   padding: 0 20px 40px;
 }
@@ -200,33 +188,31 @@ tr:hover {
   background: #e57373;
 }
 
-/* ---------- GRAPH ---------- */
-
-#graphPage {
-  display: none;
-  padding: 30px;
-  text-align: center;
+/* ---------- ANALYSIS AREA ---------- */
+#analysisArea {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 12px;
+  background: rgba(245,245,245,0.95);
+  transition: background 0.3s, color 0.3s;
 }
 
-/* ---------- DATA ENTRY UI ---------- */
-
-.card {
-  background: linear-gradient(135deg,#ffffff,#e3f2fd);
-}
-
-.formGroup input, #sections input {
+/* ---------- INPUTS ---------- */
+input, select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   background: #fdfefe;
-  border: 1px solid #90caf9;
+  transition: background 0.3s, color 0.3s, border 0.3s;
 }
 
-.formGroup input:focus {
+input:focus {
   outline: none;
   border-color: #1565c0;
   box-shadow: 0 0 5px rgba(21,101,192,0.4);
 }
 
-/* ================= DARK MODE ================= */
-
+/* ---------- DARK MODE ---------- */
 body.dark {
   background: #121212;
   color: #f0f0f0;
@@ -241,7 +227,9 @@ body.dark #quoteText {
 }
 
 body.dark .card,
-body.dark .tableCard {
+body.dark .tableCard,
+body.dark #examCountdownCard,
+body.dark #analysisArea {
   background: #1e1e1e;
   color: #f0f0f0;
   box-shadow: 0 8px 25px rgba(0,0,0,0.5);
