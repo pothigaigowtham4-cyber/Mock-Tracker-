@@ -1,61 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mock Mark Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Disable favicon 404 -->
-  <link rel="icon" href="data:,">
-
+  <meta charset="UTF-8" />
+  <title>Mock Tracker</title>
+  <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<header class="header">
-  <div class="logoWrap">
-    <img src="emblem.png" class="logo" alt="Mock Mark Tracker">
+<header class="topbar">
+  <div class="logo">
+    <img src="emblem.png" class="emblem">
+    <h1>Mock Tracker</h1>
   </div>
-  <img src="flag.jpg" class="flag" alt="India">
+
+  <div class="top-actions">
+    <img src="flag.jpg" class="flag">
+    <button id="darkToggle">🌙</button>
+  </div>
 </header>
 
-<!-- TEST DETAILS -->
-<div class="card">
-  <h2>Test Details</h2>
-  <div class="grid">
-    <input id="examName" placeholder="Exam Name">
-    <input id="targetMarks" type="number" placeholder="Target Marks">
-    <input id="testName" placeholder="Test Name">
-    <input id="testDate" type="date">
-    <input id="platform" placeholder="Platform / Source">
-    <input id="negative" type="number" step="0.25" placeholder="Negative Mark / Wrong">
+<section class="quote-box">
+  <p id="quoteText"></p>
+</section>
+
+<section class="cards">
+
+  <div class="card">
+    <h3>Exam Date Countdown</h3>
+    <input type="text" id="examName" placeholder="Exam name">
+    <input type="date" id="examDate">
+    <button onclick="saveExamDate()">Save</button>
+    <p id="countdownText"></p>
   </div>
-  <button onclick="addTest()">Add Test</button>
-</div>
 
-<!-- SECTIONAL MARKS -->
-<div class="card">
-  <h2>Sectional Marks</h2>
-  <div id="sections"></div>
-  <button onclick="addSection()">Add Section</button>
-</div>
+  <div class="card">
+    <h3>Add Test</h3>
 
-<!-- COUNTDOWN -->
-<div class="card">
-  <h2>Exam Day Countdown</h2>
-  <div id="countdown">Select an exam</div>
-</div>
+    <input id="examInput" placeholder="Exam (CGL / NTPC)">
+    <input id="testNameInput" placeholder="Test Name">
+    <input id="scoreInput" type="number" placeholder="Marks">
+    <input id="negativeInput" type="number" placeholder="Negative Marks">
 
-<!-- FILTER -->
-<div class="card">
-  <select id="examFilter"></select>
-</div>
+    <button onclick="addOrUpdateTest()">Add / Update</button>
+  </div>
 
-<!-- TABLE -->
-<div class="card tableCard">
-  <table id="table"></table>
-</div>
+</section>
+
+<section id="tablesContainer"></section>
 
 <script src="script.js"></script>
 </body>
