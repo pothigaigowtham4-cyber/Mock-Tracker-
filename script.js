@@ -1,194 +1,134 @@
-/* ================= STORAGE ================= */
-let tests = [];
-try {
-  tests = JSON.parse(localStorage.getItem("tests")) || [];
-} catch {
-  tests = [];
-}
+/************* GLOBAL STATE *************/
+let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
+let editIndex = null;
 
-let sections = [];
-
-/* ================= SAVE ================= */
-function save() {
-  localStorage.setItem("tests", JSON.stringify(tests));
-}
-
-/* ================= QUOTES ================= */
+/************* QUOTES *************/
 const quotes = [
-  "While you are resting, someone else is working to take your spot.",
-  "Discipline beats motivation every single time.",
-  "You don't need more time, you need more focus.",
-  "Consistency today creates confidence tomorrow.",
-  "Average today is the enemy of success tomorrow.",
-  "The pain of study is temporary, regret lasts forever.",
-  "Small progress every day adds up to big results."
+  "Consistency beats intensity.",
+  "Mocks don't judge — they reveal.",
+  "Improve every test by 1%.",
+  "Discipline > Motivation."
+  "While you are resting, someone else is working to take your spot.",   "Discipline beats motivation every single time.",   "You don't need more time, you need more focus.",   "Consistency today creates confidence tomorrow.",   "Average today is the enemy of success tomorrow.",   "The pain of study is temporary, regret lasts forever.",   "Small progress every day adds up to big results."
 ];
 
-let quoteIndex = 0;
-
+let qIndex = 0;
 function rotateQuote() {
-  const el =
-    document.getElementById("quoteBox") ||
-    document.getElementById("quoteText");
-
-  if (!el) return;
-
-  el.innerText = quotes[quoteIndex];
-  quoteIndex = (quoteIndex + 1) % quotes.length;
+  document.getElementById("quoteText").innerText = quotes[qIndex];
+  qIndex = (qIndex + 1) % quotes.length;
 }
+setInterval(rotateQuote, 4000);
 
-setInterval(rotateQuote, 6000);
-rotateQuote();
-
-/* ================= SECTION ================= */
-function addSection() {
-  sections.push({
-    name: "",
-    marks: 0,
-    correct: 0,
-    wrong: 0,
-    unattempted: 0
-  });
-  renderSections();
+/************* DARK MODE *************/
+const toggle = document.getElementById("darkToggle");
+if (localStorage.getItem("dark") === "true") {
+  document.body.classList.add("dark");
 }
+toggle.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("dark", document.body.classList.contains("dark"));
+};
 
-function renderSections() {
-  const box = document.getElementById("sections");
-  box.innerHTML = "";
+/************* ADD / EDIT TEST *************/
+function addOrUpdateTest() {
+  const exam = examInput.value.trim();
+  const test = testNameInput.value.trim();
+  const score = +scoreInput.value;
+  const negative = +negativeInput.value || 0;
 
-  sections.forEach((s, i) => {
-    box.innerHTML += `
-      <div class="sectionBox">
-        <input placeholder="Section Name"
-               oninput="sections[${i}].name=this.value">
-        <input type="number" placeholder="Marks"
-               oninput="sections[${i}].marks=+this.value">
-        <input type="number" placeholder="Correct"
-               oninput="sections[${i}].correct=+this.value">
-        <input type="number" placeholder="Wrong"
-               oninput="sections[${i}].wrong=+this.value">
-        <input type="number" placeholder="Unattempted"
-               oninput="sections[${i}].unattempted=+this.value">
-      </div>
-    `;
-  });
-}
+  if (!exam || !test) return;
 
-/* ================= ADD TEST ================= */
-function addTest() {
-  const test = {
-    exam: examName.value.trim(),
-    target: +targetMarks.value || 0,
-    name: testName.value.trim(),
-    date: testDate.value,
-    platform: platform.value.trim(),
-    negative: +negative.value || 0,
-    sections: JSON.parse(JSON.stringify(sections))
-  };
+  const data = { exam, test, score, negative };
 
-  if (!test.exam || !test.name || !test.date) {
-    alert("Exam name, test name and date are required");
-    return;
+  if (editIndex !== null) {
+    tests[editIndex] = data;
+    editIndex = null;
+  } else {
+    tests.push(data);
   }
 
-  tests.push(test);
-  sections = [];
-  renderSections();
-  save();
-  renderAll();
+  localStorage.setItem("tests", JSON.stringify(tests));
+  clearInputs();
+  renderTables();
 }
 
-/* ================= FILTER ================= */
-function renderFilter() {
-  const f = document.getElementById("examFilter");
-  const exams = [...new Set(tests.map(t => t.exam))];
+function clearInputs() {
+  examInput.value = "";
+  testNameInput.value = "";
+  scoreInput.value = "";
+  negativeInput.value = "";
+}
 
-  f.innerHTML = "<option value=''>All Exams</option>";
-  exams.forEach(e => {
-    f.innerHTML += `<option value="${e}">${e}</option>`;
+/************* EDIT *************/
+function editTest(index) {
+  const t = tests[index];
+  examInput.value = t.exam;
+  testNameInput.value = t.test;
+  scoreInput.value = t.score;
+  negativeInput.value = t.negative;
+  editIndex = index;
+}
+
+/************* GROUPED TABLES *************/
+function renderTables() {
+  const container = document.getElementById("tablesContainer");
+  container.innerHTML = "";
+
+  const grouped = {};
+  tests.forEach(t => {
+    if (!grouped[t.exam]) grouped[t.exam] = [];
+    grouped[t.exam].push(t);
   });
+
+  for (let exam in grouped) {
+    const list = grouped[exam];
+    const scores = list.map(t => t.score);
+    const max = Math.max(...scores);
+    const min = Math.min(...scores);
+
+    let html = `<h2 style="text-align:center">${exam}</h2>`;
+    html += `<table><tr>
+      <th>Test</th><th>Score</th><th>Negative</th><th>Edit</th>
+    </tr>`;
+
+    list.forEach((t, i) => {
+      let cls = t.score === max ? "best" : t.score === min ? "worst" : "";
+      html += `<tr class="${cls}">
+        <td>${t.test}</td>
+        <td>${t.score}</td>
+        <td>${t.negative}</td>
+        <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
+      </tr>`;
+    });
+
+    html += "</table>";
+    container.innerHTML += html;
+  }
 }
 
-document.getElementById("examFilter").addEventListener("change", () => {
-  renderTable();
+/************* EXAM COUNTDOWN *************/
+function saveExamDate() {
+  const name = examName.value;
+  const date = examDate.value;
+  if (!name || !date) return;
+  examDates[name] = date;
+  localStorage.setItem("examDates", JSON.stringify(examDates));
   updateCountdown();
-});
-
-/* ================= TABLE ================= */
-function renderTable() {
-  const tbl = document.getElementById("table");
-  const filter = examFilter.value;
-
-  const rows = tests.filter(t => !filter || t.exam === filter);
-  if (!rows.length) {
-    tbl.innerHTML = "";
-    return;
-  }
-
-  const totals = rows.map(t => totalMarks(t));
-  const max = Math.max(...totals);
-  const min = Math.min(...totals);
-
-  tbl.innerHTML = `
-    <tr>
-      <th>Exam</th>
-      <th>Test</th>
-      <th>Date</th>
-      <th>Total</th>
-      <th>Average</th>
-    </tr>
-  `;
-
-  rows.forEach(t => {
-    const tot = totalMarks(t);
-    const avg = (tot / t.sections.length || 0).toFixed(1);
-    const cls = tot === max ? "best" : tot === min ? "worst" : "";
-
-    tbl.innerHTML += `
-      <tr class="${cls}">
-        <td>${t.exam}</td>
-        <td>${t.name}</td>
-        <td>${formatDate(t.date)}</td>
-        <td>${tot}</td>
-        <td>${avg}</td>
-      </tr>
-    `;
-  });
 }
 
-/* ================= HELPERS ================= */
-function totalMarks(t) {
-  return t.sections.reduce((a, s) => a + (+s.marks || 0), 0);
-}
-
-function formatDate(d) {
-  if (!d) return "";
-  const x = new Date(d);
-  return `${String(x.getDate()).padStart(2, "0")}-${String(
-    x.getMonth() + 1
-  ).padStart(2, "0")}-${x.getFullYear()}`;
-}
-
-/* ================= COUNTDOWN ================= */
 function updateCountdown() {
-  const exam = examFilter.value;
-  const t = tests.find(x => x.exam === exam && x.date);
+  const entries = Object.entries(examDates);
+  if (!entries.length) return;
 
-  const el = document.getElementById("countdown");
-  if (!t) {
-    el.innerText = "Select an exam";
-    return;
-  }
+  const [name, date] = entries[entries.length - 1];
+  const diff = Math.ceil(
+    (new Date(date) - new Date()) / (1000 * 60 * 60 * 24)
+  );
 
-  const days = Math.ceil((new Date(t.date) - new Date()) / 86400000);
-  el.innerText = days > 0 ? `${days} days remaining` : "Exam passed";
+  countdownText.innerText =
+    diff >= 0 ? `${name}: ${diff} days remaining` : `${name}: Exam over`;
 }
 
-/* ================= RENDER ================= */
-function renderAll() {
-  renderFilter();
-  renderTable();
-  updateCountdown();
-}
-
-renderAll();
+updateCountdown();
+rotateQuote();
+renderTables();
