@@ -1,262 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Mock Mark Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Mock Mark Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="icon" href="favicon.ico">
+  <!-- Disable favicon 404 -->
+  <link rel="icon" href="data:,">
 
-<style>
-/* ---------- BASE ---------- */
-body{
-  margin:0;
-  font-family: Arial, sans-serif;
-  background:#f2f2f2;
-  color:#111;
-}
-h2{ margin:0 0 10px; }
-
-/* ---------- HEADER ---------- */
-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 20px;
-  background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
-}
-.logoWrap{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-.logoWrap img{ height:80px; }
-.flag{ height:40px; }
-
-/* ---------- CARD ---------- */
-.card{
-  background:linear-gradient(135deg,#ffeaa7,#fdcb6e);
-  margin:20px;
-  padding:20px;
-  border-radius:18px;
-}
-.card.white{
-  background:#f8f9fa;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-}
-input,select,button{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-button{
-  background:#1565c0;
-  color:#fff;
-  cursor:pointer;
-}
-
-/* ---------- SECTION MARKS ---------- */
-.sectionBox{
-  border:1px dashed #444;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:10px;
-}
-
-/* ---------- TABLE ---------- */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #999;
-  padding:6px;
-  text-align:center;
-}
-.best{ background:#c8e6c9; }
-.worst{ background:#ffcdd2; }
-
-/* ---------- DARK MODE ---------- */
-body.dark{
-  background:#121212;
-  color:#eee;
-}
-body.dark .card.white{
-  background:#2a2a2a;
-}
-body.dark input,body.dark select{
-  background:#333;
-  color:#fff;
-}
-</style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header>
+<header class="header">
   <div class="logoWrap">
-    <img src="emblem.png" alt="">
-    <img src="logo.png" alt="Mock Mark Tracker">
+    <img src="emblem.png" class="logo" alt="Mock Mark Tracker">
   </div>
   <img src="flag.jpg" class="flag" alt="India">
 </header>
 
 <!-- TEST DETAILS -->
 <div class="card">
-<h2>Test Details</h2>
-<div class="grid">
-<input id="examName" placeholder="Exam Name">
-<input id="targetMarks" type="number" placeholder="Target Marks">
-<input id="testName" placeholder="Test Name">
-<input id="testDate" type="date">
-<input id="platform" placeholder="Platform">
-<input id="negative" type="number" step="0.25" placeholder="Negative / Wrong">
-</div>
-<button onclick="addTest()">Add Test</button>
+  <h2>Test Details</h2>
+  <div class="grid">
+    <input id="examName" placeholder="Exam Name">
+    <input id="targetMarks" type="number" placeholder="Target Marks">
+    <input id="testName" placeholder="Test Name">
+    <input id="testDate" type="date">
+    <input id="platform" placeholder="Platform / Source">
+    <input id="negative" type="number" step="0.25" placeholder="Negative Mark / Wrong">
+  </div>
+  <button onclick="addTest()">Add Test</button>
 </div>
 
-<!-- SECTION MARKS -->
+<!-- SECTIONAL MARKS -->
 <div class="card">
-<h2>Sectional Marks</h2>
-<div id="sections"></div>
-<button onclick="addSection()">Add Section</button>
+  <h2>Sectional Marks</h2>
+  <div id="sections"></div>
+  <button onclick="addSection()">Add Section</button>
 </div>
 
 <!-- COUNTDOWN -->
 <div class="card">
-<h2>Exam Day Countdown</h2>
-<div id="countdown">Select an exam</div>
+  <h2>Exam Day Countdown</h2>
+  <div id="countdown">Select an exam</div>
 </div>
 
 <!-- FILTER -->
 <div class="card">
-<select id="examFilter" onchange="renderTable()"></select>
-<button onclick="toggleGraph()">Graph</button>
+  <select id="examFilter"></select>
 </div>
 
 <!-- TABLE -->
-<div class="card white">
-<table id="table"></table>
+<div class="card tableCard">
+  <table id="table"></table>
 </div>
 
-<script>
-/* ---------- STORAGE ---------- */
-let tests = JSON.parse(localStorage.getItem("tests") || "[]");
-let sections = [];
-let showGraph=false;
-
-/* ---------- SAFE SAVE ---------- */
-function save(){
-  localStorage.setItem("tests",JSON.stringify(tests));
-}
-
-/* ---------- SECTION ---------- */
-function addSection(){
-  sections.push({name:"",marks:0,correct:0,wrong:0,unattempted:0});
-  renderSections();
-}
-
-function renderSections(){
-  const box=document.getElementById("sections");
-  box.innerHTML="";
-  sections.forEach((s,i)=>{
-    box.innerHTML+=`
-    <div class="sectionBox">
-      <input placeholder="Section" oninput="sections[${i}].name=this.value">
-      <input type="number" placeholder="Marks" oninput="sections[${i}].marks=+this.value">
-      <input type="number" placeholder="Correct" oninput="sections[${i}].correct=+this.value">
-      <input type="number" placeholder="Wrong" oninput="sections[${i}].wrong=+this.value">
-      <input type="number" placeholder="Unattempted" oninput="sections[${i}].unattempted=+this.value">
-    </div>`;
-  });
-}
-
-/* ---------- ADD TEST ---------- */
-function addTest(){
-  const t={
-    exam:examName.value,
-    target:+targetMarks.value,
-    name:testName.value,
-    date:testDate.value,
-    platform:platform.value,
-    negative:+negative.value,
-    sections:JSON.parse(JSON.stringify(sections))
-  };
-  tests.push(t);
-  sections=[];
-  renderSections();
-  save();
-  renderAll();
-}
-
-/* ---------- FILTER ---------- */
-function renderFilter(){
-  const f=document.getElementById("examFilter");
-  const exams=[...new Set(tests.map(t=>t.exam))];
-  f.innerHTML="<option value=''>All Exams</option>";
-  exams.forEach(e=>f.innerHTML+=`<option>${e}</option>`);
-}
-
-/* ---------- TABLE ---------- */
-function renderTable(){
-  const filter=examFilter.value;
-  const rows=tests.filter(t=>!filter||t.exam===filter);
-  const tbl=document.getElementById("table");
-  if(!rows.length){ tbl.innerHTML=""; return; }
-
-  let max=Math.max(...rows.map(t=>total(t)));
-  let min=Math.min(...rows.map(t=>total(t)));
-
-  tbl.innerHTML=`
-  <tr>
-    <th>Exam</th><th>Test</th><th>Date</th>
-    <th>Total</th><th>Avg</th>
-  </tr>`+
-  rows.map(t=>{
-    const tot=total(t);
-    return `<tr class="${tot===max?'best':tot===min?'worst':''}">
-      <td>${t.exam}</td>
-      <td>${t.name}</td>
-      <td>${formatDate(t.date)}</td>
-      <td>${tot}</td>
-      <td>${(tot/t.sections.length).toFixed(1)}</td>
-    </tr>`;
-  }).join("");
-}
-
-/* ---------- HELPERS ---------- */
-function total(t){ return t.sections.reduce((a,s)=>a+(+s.marks||0),0); }
-function formatDate(d){
-  if(!d) return "";
-  const x=new Date(d);
-  return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
-}
-
-/* ---------- COUNTDOWN ---------- */
-function updateCountdown(){
-  const f=examFilter.value;
-  const t=tests.find(x=>x.exam===f);
-  if(!t){ countdown.innerText=""; return; }
-  const d=Math.ceil((new Date(t.date)-new Date())/86400000);
-  countdown.innerText=d>0?`${d} days remaining`:"Exam passed";
-}
-
-/* ---------- GRAPH PLACEHOLDER ---------- */
-function toggleGraph(){ alert("Graph rendering is wired correctly."); }
-
-/* ---------- RENDER ALL ---------- */
-function renderAll(){
-  renderFilter();
-  renderTable();
-  updateCountdown();
-}
-
-renderAll();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
