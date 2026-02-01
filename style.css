@@ -256,3 +256,30 @@ button { cursor: pointer; border-radius: 5px; }
 .addBtn { background: #0b5ed7; color: #fff; border: none; padding: 6px 10px; }
 .saveBtn { background: #198754; color: #fff; border: none; padding: 6px 10px; }
 
+.card.fullWidth {
+  width: 95%;
+  max-width: 900px;
+  padding: 20px 25px;
+  margin: 20px auto;
+  border-radius: 10px;
+  background: var(--card);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.btnRow {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+button { cursor: pointer; border-radius: 5px; }
+.addBtn { background: #0b5ed7; color: #fff; border: none; padding: 6px 10px; }
+.saveBtn { background: #198754; color: #fff; border: none; padding: 6px 10px; }
