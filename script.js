@@ -10,7 +10,7 @@ let qIndex = Math.floor(Math.random()*quotes.length);
 let tests = JSON.parse(localStorage.getItem("tests"))||[];
 let editIndex=null;
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
-let examDates = JSON.parse(localStorage.getItem("examDates"))||{}; // New: exam date input
+let examDates = JSON.parse(localStorage.getItem("examDates"))||{}; // exam date input
 
 document.addEventListener("DOMContentLoaded",()=>{
   window.quoteEl=document.getElementById("quoteText");
@@ -27,15 +27,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.graph=document.getElementById("graph");
   window.darkModeBtn=document.getElementById("darkModeBtn");
 
-  // --- New elements for exam date counter
+  // --- Exam date counter card just above tables
   window.examCounterCard=document.createElement("div");
   examCounterCard.className="examCounterCard";
   examCounterCard.innerHTML=`<h3>Exam Date Counter</h3>
-    <input id="counterExamName" placeholder="Exam Name">
-    <input id="counterExamDate" type="date">
-    <button id="saveExamDateBtn">Save Date</button>
+    <div class="counterInputs">
+      <input id="counterExamName" placeholder="Exam Name">
+      <input id="counterExamDate" type="date">
+      <button id="saveExamDateBtn">Save Date</button>
+    </div>
     <p id="remainingDays">Remaining Days: -</p>`;
-  document.body.prepend(examCounterCard);
+  tablesArea.parentNode.insertBefore(examCounterCard, tablesArea);
 
   window.counterExamName=document.getElementById("counterExamName");
   window.counterExamDate=document.getElementById("counterExamDate");
@@ -53,8 +55,11 @@ document.addEventListener("DOMContentLoaded",()=>{
   darkModeBtn.onclick=()=>{ 
     document.body.classList.toggle("dark"); 
     darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode"; 
-    updateExamCounter(); // update counter text color
+    updateExamCounter();
   }
+
+  // --- Fix filter test dropdown
+  examFilter.addEventListener("change", renderAll);
 });
 
 function rotateQuotes(){ quoteEl.textContent=quotes[qIndex]; qIndex=(qIndex+1)%quotes.length; }
@@ -127,7 +132,8 @@ function renderDropdown(){
 }
 
 function renderTables(){
-  tablesArea.innerHTML="";
+  tablesArea.querySelectorAll(".examTableWrapper").forEach(e=>e.remove()); // remove old tables
+
   const selected=examFilter.value.trim();
   const grouped={};
 
@@ -181,6 +187,8 @@ function renderTables(){
     tableWrapper.appendChild(table);
     tablesArea.appendChild(tableWrapper);
   });
+
+  updateExamCounter(); // update counter when filter changes
 }
 
 /* ---------------- EXAM DATE COUNTER ---------------- */
