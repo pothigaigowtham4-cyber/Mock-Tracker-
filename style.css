@@ -10,6 +10,8 @@ body {
     linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
     url("bg.jpg") no-repeat center center fixed;
   background-size: cover;
+  color: #000;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ---------- HEADER ---------- */
@@ -20,6 +22,7 @@ body {
   justify-content:space-between;
   padding:10px 20px;
   background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
+  transition: background 0.3s;
 }
 
 .emblem{
@@ -37,7 +40,7 @@ body {
 }
 
 #quoteText {
-  transition: opacity 0.8s ease-in-out;
+  transition: opacity 0.8s ease-in-out, color 0.3s;
   opacity: 0;
   margin:0;
   font-size:15px;
@@ -60,6 +63,7 @@ body {
   padding: 20px;
   border-radius: 14px;
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transition: background 0.3s, color 0.3s;
 }
 
 .formGrid {
@@ -84,6 +88,8 @@ input, select {
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  background: #fdfefe;
+  transition: background 0.3s, color 0.3s, border 0.3s;
 }
 
 /* ---------- SECTIONS ---------- */
@@ -100,6 +106,7 @@ input, select {
   font-weight: bold;
   color: #1565c0;
   margin-bottom: 4px;
+  transition: color 0.3s;
 }
 
 .sectionRow {
@@ -107,6 +114,10 @@ input, select {
   grid-template-columns: 300px 80px 80px 80px 80px;
   gap: 8px;
   margin-bottom: 8px;
+  background: rgba(255,255,255,0.7);
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.3s, color 0.3s;
 }
 
 .sectionRow input.sectionName {
@@ -116,6 +127,14 @@ input, select {
 .sectionRow input.sectionMarks {
   width: 80px;
 }
+
+.sectionRow button {
+  background: #ef5350;
+  color: white;
+  transition: background 0.3s;
+}
+
+/* ---------- BUTTONS ---------- */
 
 .btnRow {
   margin-top: 12px;
@@ -128,10 +147,16 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .addBtn { background: #43a047; color: white; }
 .saveBtn { background: #1565c0; color: white; }
+
+button:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
 
 /* ---------- TABLE ---------- */
 
@@ -148,12 +173,14 @@ table {
   border-collapse: collapse;
   margin-top: 12px;
   background: white;
+  transition: background 0.3s, color 0.3s;
 }
 
 th, td {
   border: 1px solid #ccc;
   padding: 8px;
   text-align: center;
+  transition: background 0.3s, color 0.3s;
 }
 
 th {
@@ -181,7 +208,7 @@ tr:hover {
   text-align: center;
 }
 
-/* ===== COLORFUL DATA ENTRY UI ===== */
+/* ---------- DATA ENTRY UI ---------- */
 
 .card {
   background: linear-gradient(135deg,#ffffff,#e3f2fd);
@@ -198,19 +225,66 @@ tr:hover {
   box-shadow: 0 0 5px rgba(21,101,192,0.4);
 }
 
-.sectionRow {
-  background: rgba(255,255,255,0.7);
-  padding: 6px;
-  border-radius: 8px;
+/* ================= DARK MODE ================= */
+
+body.dark {
+  background: #121212;
+  color: #f0f0f0;
 }
 
-.sectionRow button {
+body.dark .topHeader {
+  background: #1f1f1f;
+}
+
+body.dark #quoteText {
+  color: #bb86fc;
+}
+
+body.dark .card,
+body.dark .tableCard {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+body.dark input,
+body.dark select {
+  background: #2a2a2a;
+  color: #f0f0f0;
+  border: 1px solid #555;
+}
+
+body.dark .sectionLabels {
+  color: #bb86fc;
+}
+
+body.dark .sectionRow {
+  background: #2c2c2c;
+}
+
+body.dark table {
+  background: #1e1e1e;
+  color: #f0f0f0;
+}
+
+body.dark th {
+  background: #333;
+  color: #f0f0f0;
+}
+
+body.dark tr:hover {
+  background: #3a3a3a;
+}
+
+body.dark .sectionRow button,
+body.dark .addBtn,
+body.dark .saveBtn {
+  color: #fff;
+}
+
+body.dark .sectionRow button {
   background: #ef5350;
-  color: white;
 }
 
-button:hover {
-  opacity: 0.9;
-  transform: scale(1.02);
-}
-
+body.dark .addBtn { background: #43a047; }
+body.dark .saveBtn { background: #1565c0; }
