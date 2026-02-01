@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Mock Tracker</title>
-  <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,38 +10,36 @@
 <header class="topbar">
   <div class="logo">
     <img src="emblem.png" class="emblem">
-    <h1>Mock Tracker</h1>
+    <h1>Mock Mark Tracker</h1>
   </div>
 
   <div class="top-actions">
     <img src="flag.jpg" class="flag">
-    <button id="darkToggle">🌙</button>
+    <button id="darkToggle">Dark</button>
   </div>
 </header>
 
 <section class="quote-box">
-  <p id="quoteText"></p>
+  <span id="quoteText"></span>
 </section>
 
 <section class="cards">
 
   <div class="card">
     <h3>Exam Date Countdown</h3>
-    <input type="text" id="examName" placeholder="Exam name">
-    <input type="date" id="examDate">
+    <input id="examName" placeholder="Exam Name">
+    <input id="examDate" type="date">
     <button onclick="saveExamDate()">Save</button>
     <p id="countdownText"></p>
   </div>
 
   <div class="card">
     <h3>Add Test</h3>
-
-    <input id="examInput" placeholder="Exam (CGL / NTPC)">
+    <input id="examInput" placeholder="Exam">
     <input id="testNameInput" placeholder="Test Name">
     <input id="scoreInput" type="number" placeholder="Marks">
     <input id="negativeInput" type="number" placeholder="Negative Marks">
-
-    <button onclick="addOrUpdateTest()">Add / Update</button>
+    <button onclick="addTest()">Add / Update</button>
   </div>
 
 </section>
