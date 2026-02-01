@@ -1,3 +1,4 @@
+/* ---------------- QUOTES ---------------- */
 const quotes = [
   "Don’t stop when you’re tired; stop when you are finally done.",
   "A mountain of books is just pages waiting to be turned.",
@@ -107,14 +108,14 @@ function renderDropdown(){
 
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected = examFilter.value.trim();
-tests.forEach(t=>{
-  if(selected==="ALL" || t.exam.trim() === selected){
-    if(!grouped[t.exam]) grouped[t.exam]=[];
-    grouped[t.exam].push(t);
-  }
-});
-
+  const selected=examFilter.value.trim();
+  const grouped={};
+  tests.forEach(t=>{
+    if(selected==="ALL" || t.exam.trim() === selected){
+      if(!grouped[t.exam]) grouped[t.exam]=[];
+      grouped[t.exam].push(t);
+    }
+  });
 
   Object.keys(grouped).forEach((exam,i)=>{
     const tableWrapper=document.createElement("div"); 
@@ -153,8 +154,7 @@ tests.forEach(t=>{
 
       tr.innerHTML=`<td>${t.test}</td><td>${dtStr}</td><td>${t.platform}</td><td>${t.total}</td><td>${t.accuracy}</td>
       ${sectionColumns}
-     <td><button onclick="toggleAnalysis(${tests.indexOf(t)}, this)">Show</button></td>
-
+      <td><button onclick="toggleAnalysis(${tests.indexOf(t)}, this)">Show</button></td>
       <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
       <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>`;
 
@@ -168,7 +168,7 @@ tests.forEach(t=>{
 
 /* ---------------- ANALYSIS ---------------- */
 function toggleAnalysis(idx, btn){
-  const t = tests[idx]; // get the correct test object
+  const t = tests[idx];
   const tr = btn.parentElement.parentElement;
 
   if(tr.nextElementSibling && tr.nextElementSibling.classList.contains("analysisRow")){
@@ -190,7 +190,6 @@ function toggleAnalysis(idx, btn){
   tr.parentNode.insertBefore(analysisRow,tr.nextSibling);
   btn.textContent="Hide";
 }
-
 
 /* -------- EDIT / DELETE -------- */
 function editTest(idx){ 
