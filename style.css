@@ -3,10 +3,8 @@
   --text: #111;
   --card: #ffffff;
   --primary: #0b5ed7;
-  --secondary: #ffc107;
-  --success: #28a745;
-  --danger: #dc3545;
-  --accent: #ff6f61;
+  --best: #fff176; /* Yellow */
+  --worst: #ff8a80; /* Red */
 }
 
 body.dark {
@@ -28,124 +26,56 @@ body {
   align-items: center;
   background: var(--primary);
   padding: 10px 20px;
-  color: #fff;
+  color: white;
   flex-wrap: wrap;
 }
 
-.logo img.emblem {
-  height: 135px;
-}
+.logo { height: 135px; }
 
 .quoteBox {
   flex: 1;
   text-align: center;
   font-style: italic;
-  font-size: 1.1rem;
-  margin: 10px 0;
 }
 
-.flagBox {
+.flagContainer {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 5px;
 }
 
-.flagBox img.flag {
-  height: 35px;
-}
+.flag { height: 100px; }
 
 #darkModeBtn {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background: var(--secondary);
-  color: #111;
-}
-
-.container {
-  padding: 20px;
-}
-
-.card.fullWidth {
-  width: 100%;
-  background: var(--card);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-  gap: 15px;
-}
-
-.formGroup label {
-  font-weight: bold;
-}
-
-input {
-  width: 100%;
-  padding: 6px;
-  margin-top: 4px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.btnRow {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-button {
-  cursor: pointer;
   padding: 6px 12px;
-  border-radius: 4px;
+  cursor: pointer;
   border: none;
-  background: var(--primary);
-  color: #fff;
+  border-radius: 4px;
 }
 
-button:hover {
-  opacity: 0.85;
-}
+.container { padding: 20px; }
 
-table {
-  width: 95%;
-  margin: 20px auto;
-  border-collapse: collapse;
-  background: var(--card);
-}
+.card.fullWidth { width: 100%; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: var(--card); }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-}
+.formGrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; }
 
-.examTableWrapper h3 {
-  margin: 15px 0 5px 10px;
-  color: var(--accent);
-}
+.formGroup label { display: block; margin-bottom: 4px; font-weight: bold; }
 
-.sectionRow input {
-  width: 60px;
-}
+input { width: 100%; padding: 6px; margin-bottom: 6px; }
 
-.analysisRow {
-  background: #e3f2fd;
-  text-align: left;
-  font-size: 0.9rem;
-  padding: 6px;
-}
+#sections { width: 100%; }
 
-.best {
-  background: #fff3cd; /* yellow */
-}
+.sectionLabels, .sectionRow { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.5fr; gap: 4px; margin-bottom: 4px; }
 
-.worst {
-  background: #f8d7da; /* red */
-}
+button { cursor: pointer; }
+
+table { width: 95%; margin: 20px auto; border-collapse: collapse; }
+
+th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+
+.best { background: var(--best); }
+
+.worst { background: var(--worst); }
+
+.analysisRow td { text-align: left; font-style: italic; background: #e0f7fa; }
