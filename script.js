@@ -27,14 +27,14 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.graph=document.getElementById("graph");
   window.darkModeBtn=document.getElementById("darkModeBtn");
 
-  // --- Exam date counter card just above tables
+  // --- Styled Exam date counter card above tables
   window.examCounterCard=document.createElement("div");
   examCounterCard.className="examCounterCard";
   examCounterCard.innerHTML=`<h3>Exam Date Counter</h3>
-    <div class="counterInputs">
+    <div class="counterRow">
       <input id="counterExamName" placeholder="Exam Name">
       <input id="counterExamDate" type="date">
-      <button id="saveExamDateBtn">Save Date</button>
+      <button id="saveExamDateBtn">Save</button>
     </div>
     <p id="remainingDays">Remaining Days: -</p>`;
   tablesArea.parentNode.insertBefore(examCounterCard, tablesArea);
