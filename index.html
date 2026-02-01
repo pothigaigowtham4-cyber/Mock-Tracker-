@@ -5,153 +5,78 @@
 <title>Mock Mark Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- STOP favicon.ico error -->
+<!-- prevent favicon error -->
 <link rel="icon" href="data:,">
 
-<!-- LIBRARIES -->
+<!-- libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:Segoe UI,Arial,sans-serif;
-  background:#f2f4f7;
-  color:#111;
-}
+body{margin:0;font-family:Segoe UI,Arial;background:#f2f4f7;color:#111}
 .dark body{background:#121212;color:#eee}
 
 header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 22px;
   background:linear-gradient(90deg,#ffb347,#4caf50);
 }
+.logoBox img{height:130px}
+.quote{flex:1;text-align:center;font-weight:600}
+.headerRight{display:flex;align-items:center;gap:16px}
+.headerRight img{height:42px}
 
-.logoBox{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.logoBox img{
-  height:120px; /* increased */
-}
+.darkBtn{padding:8px 14px;border:none;border-radius:8px;background:#fff;cursor:pointer}
 
-.quote{
-  flex:1;
-  text-align:center;
-  font-weight:600;
-  color:#083b0b;
-}
-
-.headerRight{
-  display:flex;
-  align-items:center;
-  gap:16px;
-}
-.headerRight img{height:40px}
-
-.darkBtn{
-  padding:8px 14px;
-  border:none;
-  border-radius:8px;
-  background:#fff;
-  cursor:pointer;
-}
-
-/* ===== LAYOUT ===== */
-.container{
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
+.container{padding:16px;display:flex;flex-direction:column;gap:18px}
 .card{
-  padding:16px;
-  border-radius:16px;
-  box-shadow:0 6px 16px rgba(0,0,0,.15);
+  padding:16px;border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.15)
 }
-
 .testCard{background:linear-gradient(135deg,#ffe259,#ffa751)}
 .sectionCard{background:linear-gradient(135deg,#c2ffd8,#465efb)}
 .countdownCard{background:linear-gradient(135deg,#fbc2eb,#a6c1ee)}
 .filterCard{background:linear-gradient(135deg,#d4fc79,#96e6a1)}
 .tableCard{background:#f9f9f9}
 
-.dark .card{
-  background:#1f1f1f !important;
-  color:#f1f1f1;
-}
+.dark .card{background:#1f1f1f !important;color:#f1f1f1}
 
 .formGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
+  gap:14px
 }
-.formGroup{
-  display:flex;
-  flex-direction:column;
-}
+.formGroup{display:flex;flex-direction:column}
 label{font-weight:600}
 input,select{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #999;
+  padding:8px;border-radius:6px;border:1px solid #999
 }
-
 .dark input,.dark select{
-  background:#2a2a2a;
-  color:#fff;
-  border:1px solid #555;
+  background:#2a2a2a;color:#fff;border:1px solid #555
 }
 
-.btn{
-  padding:8px 16px;
-  border:none;
-  border-radius:8px;
-  background:#1976d2;
-  color:#fff;
-  cursor:pointer;
-}
+.btn{padding:8px 16px;border:none;border-radius:8px;background:#1976d2;color:#fff;cursor:pointer}
 .btn.green{background:#2e7d32}
 .btn.red{background:#c62828}
 .btn.gray{background:#555}
 
-/* ===== SECTION ROW ===== */
 .sectionRow{
   display:grid;
   grid-template-columns:140px repeat(4,1fr) auto;
-  gap:8px;
-  margin-bottom:8px;
+  gap:8px;margin-bottom:8px
 }
 
-/* ===== TABLE ===== */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #ccc;
-  padding:6px;
-  text-align:center;
-}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
 th{background:#e6e6e6}
 .dark th{background:#333}
 
 .best{background:#c8e6c9 !important;font-weight:700}
 .worst{background:#ffcdd2 !important;font-weight:700}
 
-/* ===== GRAPH ===== */
 #graphWrap{display:none;height:280px}
-
-/* ===== COUNTDOWN ===== */
-.countBox{
-  font-size:26px;
-  font-weight:700;
-}
+.countBox{font-size:26px;font-weight:700}
 </style>
 </head>
 
@@ -159,7 +84,7 @@ th{background:#e6e6e6}
 
 <header>
   <div class="logoBox">
-    <img src="emblem.png" alt="Emblem">
+    <img src="emblem.png" alt="Logo">
   </div>
 
   <div class="quote">
@@ -179,32 +104,27 @@ th{background:#e6e6e6}
   <h3>Test Details</h3>
   <div class="formGrid">
     <div class="formGroup"><label>Exam Name</label><input id="examName"></div>
-    <div class="formGroup"><label>Target Marks</label><input id="targetMarks"></div>
+    <div class="formGroup"><label>Target Marks</label><input id="targetMarks" type="number"></div>
     <div class="formGroup"><label>Test Name</label><input id="testName"></div>
-    <div class="formGroup"><label>Test Date</label><input type="date" id="testDate"></div>
+    <div class="formGroup"><label>Test Date</label><input id="testDate" type="date"></div>
     <div class="formGroup"><label>Platform</label><input id="platform"></div>
+    <div class="formGroup"><label>Negative Mark / Wrong</label><input id="negativeMark" type="number" step="0.01"></div>
   </div>
   <br>
   <button class="btn green" onclick="saveTest()">Save Test</button>
 </div>
 
-<!-- SECTIONAL MARKS -->
+<!-- SECTIONAL -->
 <div class="card sectionCard">
   <h3>Sectional Marks</h3>
   <div id="sections"></div>
   <button class="btn green" onclick="addSection()">+ Add Section</button>
 </div>
 
-<!-- EXAM DAY COUNTDOWN -->
+<!-- COUNTDOWN -->
 <div class="card countdownCard">
   <h3>Exam Day Countdown</h3>
-  <div class="formGrid">
-    <div class="formGroup">
-      <label>Exam Date</label>
-      <input type="date" id="examDate">
-    </div>
-  </div>
-  <br>
+  <input type="date" id="examDate">
   <div class="countBox" id="countdownText">Set exam date</div>
 </div>
 
@@ -242,28 +162,59 @@ th{background:#e6e6e6}
 </div>
 
 <script>
+/* ================= STATE ================= */
 let tests=[];
-let chart;
+let sections=[];
+let chart=null;
 
-/* DARK MODE */
+/* ================= DARK ================= */
 function toggleDark(){
   document.documentElement.classList.toggle("dark");
 }
 
-/* SAVE TEST */
+/* ================= SECTIONS ================= */
+function addSection(){
+  sections.push({id:Date.now()});
+  renderSections();
+}
+function deleteSection(id){
+  sections=sections.filter(s=>s.id!==id);
+  renderSections();
+}
+function renderSections(){
+  const box=document.getElementById("sections");
+  box.innerHTML="";
+  sections.forEach(s=>{
+    box.innerHTML+=`
+      <div class="sectionRow">
+        <input placeholder="Section Name">
+        <input placeholder="Marks" type="number">
+        <input placeholder="Correct" type="number">
+        <input placeholder="Wrong" type="number">
+        <input placeholder="Unattempted" type="number">
+        <button class="btn red" onclick="deleteSection(${s.id})">✖</button>
+      </div>`;
+  });
+}
+
+/* ================= SAVE TEST ================= */
 function saveTest(){
   const t={
     exam:examName.value,
     test:testName.value,
     date:testDate.value,
-    total:Math.floor(Math.random()*100)+100
+    negative:+negativeMark.value||0,
+    total:sections.length
+      ? [...document.querySelectorAll(".sectionRow input:nth-child(2)")]
+          .reduce((a,i)=>a+(+i.value||0),0)
+      : 0
   };
   tests.push(t);
   renderFilter();
   renderTable();
 }
 
-/* FILTER */
+/* ================= FILTER ================= */
 function renderFilter(){
   examFilter.innerHTML='<option value="">All Exams</option>';
   [...new Set(tests.map(t=>t.exam))].forEach(e=>{
@@ -271,17 +222,20 @@ function renderFilter(){
   });
 }
 
-/* DATE FORMAT */
+/* ================= TABLE ================= */
 function formatDate(d){
   const x=new Date(d);
   return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
 }
 
-/* TABLE */
 function renderTable(){
   const f=examFilter.value;
   const list=f?tests.filter(t=>t.exam===f):tests;
-  if(!list.length)return;
+  if(!list.length){
+    tableBody.innerHTML="";
+    tableHeader.textContent="No records";
+    return;
+  }
 
   let avg=(list.reduce((a,b)=>a+b.total,0)/list.length).toFixed(1);
   tableHeader.textContent=`${f||"All Exams"} | Average: ${avg}`;
@@ -293,15 +247,15 @@ function renderTable(){
   list.forEach(t=>{
     let cls=t.total===max?"best":t.total===min?"worst":"";
     tableBody.innerHTML+=`
-    <tr class="${cls}">
-      <td>${t.test}</td>
-      <td>${formatDate(t.date)}</td>
-      <td>${t.total}</td>
-    </tr>`;
+      <tr class="${cls}">
+        <td>${t.test}</td>
+        <td>${formatDate(t.date)}</td>
+        <td>${t.total}</td>
+      </tr>`;
   });
 }
 
-/* GRAPH */
+/* ================= GRAPH ================= */
 function toggleGraph(){
   graphWrap.style.display=
     graphWrap.style.display==="none"?"block":"none";
@@ -309,7 +263,7 @@ function toggleGraph(){
 }
 function renderGraph(){
   if(chart)chart.destroy();
-  chart=new Chart(chart,{
+  chart=new Chart(document.getElementById("chart"),{
     type:"line",
     data:{
       labels:tests.map(t=>t.test),
@@ -318,14 +272,14 @@ function renderGraph(){
   });
 }
 
-/* COUNTDOWN */
+/* ================= COUNTDOWN ================= */
 setInterval(()=>{
   if(!examDate.value)return;
   const diff=Math.ceil((new Date(examDate.value)-new Date())/86400000);
   countdownText.textContent=diff>0?`${diff} Days Left`:"Exam Day!";
 },1000);
 
-/* EXPORT */
+/* ================= EXPORT ================= */
 function exportExcel(){
   const ws=XLSX.utils.json_to_sheet(tests);
   const wb=XLSX.utils.book_new();
