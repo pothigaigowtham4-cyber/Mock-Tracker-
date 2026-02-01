@@ -96,6 +96,7 @@ function renderAll(){
 }
 
 function renderDropdown(){
+  // --- FIXED FILTER: trim exam names for consistency
   const exams=["ALL",...new Set(tests.map(t=>t.exam.trim()))];
   examFilter.innerHTML="";
   exams.forEach(e=>{ 
@@ -108,12 +109,14 @@ function renderDropdown(){
 
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected=examFilter.value.trim();
+  const selected=examFilter.value.trim(); // trim to match keys
   const grouped={};
+
   tests.forEach(t=>{
-    if(selected==="ALL" || t.exam.trim() === selected){
-      if(!grouped[t.exam]) grouped[t.exam]=[];
-      grouped[t.exam].push(t);
+    const examKey = t.exam.trim(); // normalize exam name
+    if(selected==="ALL" || examKey === selected){
+      if(!grouped[examKey]) grouped[examKey]=[];
+      grouped[examKey].push(t);
     }
   });
 
