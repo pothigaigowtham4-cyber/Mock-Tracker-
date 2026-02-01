@@ -107,14 +107,14 @@ function renderDropdown(){
 
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected=examFilter.value.trim();
-  const grouped={};
-  tests.forEach(t=>{
-    if(selected==="ALL" || t.exam.trim() === selected){
-      if(!grouped[t.exam]) grouped[t.exam]=[];
-      grouped[t.exam].push(t);
-    }
-  });
+  const selected = examFilter.value.trim();
+tests.forEach(t=>{
+  if(selected==="ALL" || t.exam.trim() === selected){
+    if(!grouped[t.exam]) grouped[t.exam]=[];
+    grouped[t.exam].push(t);
+  }
+});
+
 
   Object.keys(grouped).forEach((exam,i)=>{
     const tableWrapper=document.createElement("div"); 
@@ -153,7 +153,8 @@ function renderTables(){
 
       tr.innerHTML=`<td>${t.test}</td><td>${dtStr}</td><td>${t.platform}</td><td>${t.total}</td><td>${t.accuracy}</td>
       ${sectionColumns}
-      <td><button onclick="toggleAnalysis(this)">Show</button></td>
+     <td><button onclick="toggleAnalysis(${tests.indexOf(t)}, this)">Show</button></td>
+
       <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
       <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>`;
 
@@ -166,24 +167,30 @@ function renderTables(){
 }
 
 /* ---------------- ANALYSIS ---------------- */
-function toggleAnalysis(btn){
-  const tr=btn.parentElement.parentElement;
+function toggleAnalysis(idx, btn){
+  const t = tests[idx]; // get the correct test object
+  const tr = btn.parentElement.parentElement;
+
   if(tr.nextElementSibling && tr.nextElementSibling.classList.contains("analysisRow")){
     tr.nextElementSibling.remove();
     btn.textContent="Show";
     return;
   }
-  const idx = tests.findIndex(t=>t.test===tr.children[0].textContent && t.exam===examFilter.value);
-  const t=tests[idx];
-  const weak=t.sections.reduce((a,b)=>a.marks>b.marks?b:a);
-  let sectionDetails="";
-  t.sections.forEach(s=>sectionDetails+=`${s.name}: Marks:${s.marks}, C:${s.c}, W:${s.w}, U:${s.u} | `);
-  const analysisRow=document.createElement("tr");
+
+  const weak = t.sections.reduce((a,b)=>a.marks>b.marks?b:a);
+  let sectionDetails = "";
+  t.sections.forEach(s => {
+    sectionDetails += `${s.name}: Marks:${s.marks}, C:${s.c}, W:${s.w}, U:${s.u} | `;
+  });
+
+  const analysisRow = document.createElement("tr");
   analysisRow.className="analysisRow"; 
   analysisRow.innerHTML=`<td colspan="${tr.children.length}">Weak Section: ${weak.name} | Neg Penalty: ${t.negLoss} | Details: ${sectionDetails}</td>`;
+
   tr.parentNode.insertBefore(analysisRow,tr.nextSibling);
   btn.textContent="Hide";
 }
+
 
 /* -------- EDIT / DELETE -------- */
 function editTest(idx){ 
