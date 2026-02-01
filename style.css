@@ -1,77 +1,86 @@
-body{
-  margin:0;
+:root {
+  --bg: #f4f6fa;
+  --text: #111;
+  --card: #fff;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #f5f5f5;
+  --card: #1e1e1e;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
   font-family: Arial, sans-serif;
-  background:#f2f2f2;
-  color:#111;
 }
 
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px 25px;
-  background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #0b5ed7;
+  color: #fff;
 }
 
-.logo{
-  height:90px;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.flag{
-  height:45px;
+.emblem {
+  height: 52px;
 }
 
-.card{
-  margin:20px;
-  padding:20px;
-  border-radius:18px;
-  background:linear-gradient(135deg,#ffeaa7,#fdcb6e);
+.flag {
+  height: 26px;
 }
 
-.tableCard{
-  background:#f8f9fa;
+.quote-box {
+  text-align: center;
+  padding: 12px;
+  font-style: italic;
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
+.cards {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
 }
 
-input,select,button{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #bbb;
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 8px;
+  width: 300px;
 }
 
-button{
-  background:#1565c0;
-  color:#fff;
-  cursor:pointer;
+.card input {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 6px;
 }
 
-.sectionBox{
-  margin-bottom:10px;
-  padding:10px;
-  border:1px dashed #444;
-  border-radius:10px;
+table {
+  width: 95%;
+  margin: 20px auto;
+  border-collapse: collapse;
 }
 
-table{
-  width:100%;
-  border-collapse:collapse;
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
 }
 
-th,td{
-  border:1px solid #999;
-  padding:6px;
-  text-align:center;
+.best {
+  background: #d4edda;
 }
 
-.best{
-  background:#c8e6c9;
-}
-
-.worst{
-  background:#ffcdd2;
+.worst {
+  background: #f8d7da;
 }
