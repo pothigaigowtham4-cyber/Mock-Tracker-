@@ -10,7 +10,7 @@ let qIndex = Math.floor(Math.random()*quotes.length);
 let tests = JSON.parse(localStorage.getItem("tests"))||[];
 let editIndex=null;
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
-let examDates = JSON.parse(localStorage.getItem("examDates"))||{}; // exam date input
+let examDates = JSON.parse(localStorage.getItem("examDates"))||{}; // exam date storage
 
 document.addEventListener("DOMContentLoaded",()=>{
   window.quoteEl=document.getElementById("quoteText");
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.graph=document.getElementById("graph");
   window.darkModeBtn=document.getElementById("darkModeBtn");
 
-  // --- Styled Exam date counter card above tables
+  // --- Exam date counter card
   window.examCounterCard=document.createElement("div");
   examCounterCard.className="examCounterCard";
   examCounterCard.innerHTML=`<h3>Exam Date Counter</h3>
@@ -44,6 +44,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.saveExamDateBtn=document.getElementById("saveExamDateBtn");
   window.remainingDays=document.getElementById("remainingDays");
 
+  // Load previous exam date if exists
+  counterExamName.value = Object.keys(examDates)[0] || "";
+  if(counterExamName.value) counterExamDate.value = examDates[counterExamName.value] || "";
+
   saveExamDateBtn.onclick=saveExamDate;
 
   rotateQuotes();
@@ -55,6 +59,11 @@ document.addEventListener("DOMContentLoaded",()=>{
   darkModeBtn.onclick=()=>{ 
     document.body.classList.toggle("dark"); 
     darkModeBtn.textContent = document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode"; 
+
+    document.querySelectorAll("table, th, td").forEach(el=>{
+      el.style.color = document.body.classList.contains("dark") ? "#eaeaea" : "#111";
+    });
+
     updateExamCounter();
   }
 
@@ -197,7 +206,7 @@ function saveExamDate(){
   const date = counterExamDate.value;
   if(!name || !date){ alert("Enter both Exam Name and Date"); return; }
   examDates[name]=date;
-  localStorage.setItem("examDates",JSON.stringify(examDates));
+  localStorage.setItem("examDates",JSON.stringify(examDates)); // persist to localStorage
   updateExamCounter();
 }
 
