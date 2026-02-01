@@ -5,23 +5,26 @@
 <title>Mock Mark Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Chart.js -->
+<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-/* ---------- GLOBAL ---------- */
+/* ================= GLOBAL ================= */
 body{
   margin:0;
-  font-family: Arial, sans-serif;
-  background:#f4f6f8;
+  font-family:Segoe UI, Arial, sans-serif;
+  background:#f2f4f7;
   color:#111;
-  transition:0.3s;
+  transition:.3s;
 }
-.dark body{background:#121212;color:#eaeaea;}
+.dark body{background:#121212;color:#eee}
 
+h3{margin-top:0}
 button{cursor:pointer}
 
-/* ---------- HEADER ---------- */
+/* ================= HEADER ================= */
 header{
   display:flex;
   align-items:center;
@@ -29,91 +32,101 @@ header{
   padding:12px 20px;
   background:linear-gradient(90deg,#ffb347,#4caf50);
 }
-.logo{
-  height:80px; /* increased size */
+.logoBox{
+  display:flex;
+  align-items:center;
+}
+.logoSvg{
+  width:110px;
 }
 .quote{
   flex:1;
   text-align:center;
-  font-weight:bold;
-  color:#003366;
+  font-weight:600;
+  color:#083b0b;
 }
 .headerRight{
   display:flex;
   align-items:center;
-  gap:15px;
+  gap:14px;
 }
-.flag{
-  font-size:32px; /* emoji flag */
-}
-.darkToggle{
+.flag{font-size:34px}
+.darkBtn{
   padding:8px 14px;
   border:none;
   border-radius:8px;
   background:#fff;
 }
 
-/* ---------- CONTAINER ---------- */
+/* ================= LAYOUT ================= */
 .container{
-  padding:15px;
+  padding:16px;
   display:flex;
   flex-direction:column;
   gap:18px;
 }
-
-/* ---------- CARDS ---------- */
 .card{
   padding:16px;
-  border-radius:14px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.15);
-}
-.testCard{background:linear-gradient(90deg,#ffe259,#ffa751);}
-.sectionCard{background:linear-gradient(90deg,#c2ffd8,#465efb);}
-.countdownCard{background:linear-gradient(90deg,#fbc2eb,#a6c1ee);}
-.filterCard{background:linear-gradient(90deg,#d4fc79,#96e6a1);}
-.tableCard{
-  background:#f9f9f9; /* ash white */
+  border-radius:16px;
+  box-shadow:0 6px 16px rgba(0,0,0,.15);
 }
 
-/* ---------- DARK MODE ---------- */
+/* colorful cards */
+.testCard{background:linear-gradient(135deg,#ffe259,#ffa751)}
+.sectionCard{background:linear-gradient(135deg,#c2ffd8,#465efb)}
+.countdownCard{background:linear-gradient(135deg,#fbc2eb,#a6c1ee)}
+.filterCard{background:linear-gradient(135deg,#d4fc79,#96e6a1)}
+.tableCard{background:#f9f9f9}
+
+/* dark mode cards */
 .dark .card{
-  background:#1e1e1e !important;
+  background:#1f1f1f !important;
   color:#f1f1f1;
+}
+
+/* ================= FORMS ================= */
+.formGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+.formGroup{
+  display:flex;
+  flex-direction:column;
+}
+label{font-weight:600;font-size:14px}
+input,select{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #999;
 }
 .dark input,.dark select{
   background:#2a2a2a;
   color:#fff;
   border:1px solid #555;
 }
-.dark table{color:#fff}
 
-/* ---------- FORM GRID ---------- */
-.formGrid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
-}
-.formGroup{
-  display:flex;
-  flex-direction:column;
-}
-input,select{
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #aaa;
-}
-
-/* ---------- BUTTONS ---------- */
-.primaryBtn{
+/* ================= BUTTONS ================= */
+.btn{
   padding:8px 16px;
-  background:#007bff;
-  color:#fff;
   border:none;
   border-radius:8px;
+  background:#1976d2;
+  color:#fff;
 }
-.successBtn{background:#28a745}
+.btn.green{background:#2e7d32}
+.btn.red{background:#c62828}
+.btn.gray{background:#555}
 
-/* ---------- TABLE ---------- */
+/* ================= SECTION ROW ================= */
+.sectionRow{
+  display:grid;
+  grid-template-columns:140px repeat(4,1fr) auto;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+/* ================= TABLE ================= */
 table{
   width:100%;
   border-collapse:collapse;
@@ -123,147 +136,148 @@ th,td{
   padding:6px;
   text-align:center;
 }
-th{background:#eaeaea}
+th{background:#e6e6e6}
 .dark th{background:#333}
 
-.best{
-  background:#c8f7c5 !important;
-  font-weight:bold;
-}
-.worst{
-  background:#f7c5c5 !important;
-  font-weight:bold;
-}
+.best{background:#c8e6c9 !important;font-weight:700}
+.worst{background:#ffcdd2 !important;font-weight:700}
 
-/* ---------- GRAPH ---------- */
-.graphBox{
-  height:260px;
-}
+/* ================= GRAPH ================= */
+#graphWrap{display:none;height:280px}
 
-/* ---------- ANALYSIS ---------- */
+/* ================= ANALYSIS ================= */
 .analysis{
+  margin-top:10px;
   background:#fff3cd;
-  padding:8px;
-  border-radius:8px;
-  margin-top:8px;
+  padding:10px;
+  border-radius:10px;
 }
-.dark .analysis{
-  background:#2b2b2b;
-}
+.dark .analysis{background:#2b2b2b}
 </style>
 </head>
 
 <body>
 <header>
-  <img src="logo.png" class="logo" alt="Mock Mark Tracker Logo">
+  <div class="logoBox">
+    <!-- INLINE SVG LOGO (no 404 ever) -->
+    <svg class="logoSvg" viewBox="0 0 300 120">
+      <rect width="300" height="120" rx="18" fill="#8b1c1c"/>
+      <text x="150" y="55" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">
+        MOCK MARK
+      </text>
+      <text x="150" y="90" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">
+        TRACKER
+      </text>
+    </svg>
+  </div>
+
   <div class="quote">While you are resting, someone else is working to take your spot.</div>
+
   <div class="headerRight">
     <div class="flag">🇮🇳</div>
-    <button class="darkToggle" onclick="toggleDark()">🌙 Dark Mode</button>
+    <button class="darkBtn" onclick="toggleDark()">🌙 Dark Mode</button>
   </div>
 </header>
 
 <div class="container">
 
-<!-- TEST DETAILS -->
+<!-- ================= TEST DETAILS ================= -->
 <div class="card testCard">
   <h3>Test Details</h3>
   <div class="formGrid">
-    <div class="formGroup"><label>Exam Name</label><input id="exam"></div>
-    <div class="formGroup"><label>Target Marks</label><input id="target"></div>
-    <div class="formGroup"><label>Test Name</label><input id="test"></div>
-    <div class="formGroup"><label>Test Date</label><input type="date" id="date"></div>
+    <div class="formGroup"><label>Exam Name</label><input id="examName"></div>
+    <div class="formGroup"><label>Target Marks</label><input id="targetMarks"></div>
+    <div class="formGroup"><label>Test Name</label><input id="testName"></div>
+    <div class="formGroup"><label>Test Date</label><input type="date" id="testDate"></div>
     <div class="formGroup"><label>Platform</label><input id="platform"></div>
   </div>
-  <br>
-  <button class="primaryBtn" onclick="saveTest()">Save Test</button>
 </div>
 
-<!-- SECTIONAL -->
+<!-- ================= SECTIONAL ================= -->
 <div class="card sectionCard">
   <h3>Sectional Marks</h3>
-  <div class="formGrid">
-    <div class="formGroup"><label>English</label><input id="eng"></div>
-    <div class="formGroup"><label>Maths</label><input id="math"></div>
-    <div class="formGroup"><label>Reasoning</label><input id="reason"></div>
-    <div class="formGroup"><label>GK</label><input id="gk"></div>
-  </div>
-  <br>
-  <button class="successBtn" onclick="addMarks()">Add Marks</button>
+  <div id="sections"></div>
+  <button class="btn green" onclick="addSection()">+ Add Section</button>
 </div>
 
-<!-- FILTER -->
+<!-- ================= FILTER + GRAPH ================= -->
 <div class="card filterCard">
-  <h3>Filter by Exam</h3>
-  <select id="examFilter" onchange="renderTable()"></select>
+  <h3>Filter</h3>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <select id="examFilter" onchange="renderTable()"></select>
+    <button class="btn gray" onclick="toggleGraph()">📊 Graph</button>
+    <button class="btn" onclick="exportExcel()">⬇ Excel</button>
+    <button class="btn" onclick="exportPDF()">⬇ PDF</button>
+  </div>
 </div>
 
-<!-- TABLE -->
+<!-- ================= TABLE ================= -->
 <div class="card tableCard">
-  <h3 id="examHeader">Test Records</h3>
+  <h3 id="tableHeader">Test Records</h3>
   <table>
     <thead>
-      <tr>
-        <th>Test</th>
-        <th>Date</th>
-        <th>Total</th>
-      </tr>
+      <tr id="tableHead"></tr>
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
 </div>
 
-<!-- GRAPH -->
-<div class="card tableCard">
-  <h3>Performance Trend</h3>
-  <div class="graphBox">
-    <canvas id="chart"></canvas>
-  </div>
+<!-- ================= GRAPH ================= -->
+<div class="card tableCard" id="graphWrap">
+  <canvas id="chart"></canvas>
 </div>
 
 </div>
 
 <script>
+/* ================= DATA ================= */
 let tests=[];
-let current=null;
+let sections=[];
 let chart;
 
+/* ================= DARK ================= */
 function toggleDark(){
   document.documentElement.classList.toggle("dark");
 }
 
-function saveTest(){
-  current={
-    exam:exam.value,
-    test:test.value,
-    date:date.value,
-    platform:platform.value,
-    marks:{}
-  };
+/* ================= SECTIONS ================= */
+function addSection(){
+  const id=Date.now();
+  sections.push({id,name:""});
+  renderSections();
 }
 
-function addMarks(){
-  current.marks={
-    eng:+eng.value,
-    math:+math.value,
-    reason:+reason.value,
-    gk:+gk.value
-  };
-  current.total=Object.values(current.marks).reduce((a,b)=>a+b,0);
-  tests.push(current);
-  current=null;
-  renderFilter();
-  renderTable();
-  renderChart();
+function deleteSection(id){
+  sections=sections.filter(s=>s.id!==id);
+  renderSections();
 }
 
-function renderFilter(){
-  examFilter.innerHTML=`<option value="">All</option>`;
-  [...new Set(tests.map(t=>t.exam))].forEach(e=>{
-    examFilter.innerHTML+=`<option>${e}</option>`;
+function renderSections(){
+  const box=document.getElementById("sections");
+  box.innerHTML="";
+  sections.forEach(s=>{
+    box.innerHTML+=`
+    <div class="sectionRow">
+      <input placeholder="Section" oninput="s.name=this.value">
+      <input placeholder="Marks">
+      <input placeholder="Correct">
+      <input placeholder="Wrong">
+      <input placeholder="Unattempted">
+      <button class="btn red" onclick="deleteSection(${s.id})">✖</button>
+    </div>`;
   });
 }
 
+/* ================= FILTER ================= */
+function renderFilter(){
+  const f=document.getElementById("examFilter");
+  f.innerHTML=`<option value="">All Exams</option>`;
+  [...new Set(tests.map(t=>t.exam))].forEach(e=>{
+    f.innerHTML+=`<option>${e}</option>`;
+  });
+}
+
+/* ================= TABLE ================= */
 function formatDate(d){
   const x=new Date(d);
   return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
@@ -271,40 +285,57 @@ function formatDate(d){
 
 function renderTable(){
   const f=examFilter.value;
-  let list=f?tests.filter(t=>t.exam===f):tests;
-  tableBody.innerHTML="";
-  if(!list.length) return;
+  const list=f?tests.filter(t=>t.exam===f):tests;
+  if(!list.length)return;
+
+  let avg=(list.reduce((a,b)=>a+b.total,0)/list.length).toFixed(1);
+  tableHeader.textContent=`${f||"All Exams"} | Average: ${avg}`;
 
   let max=Math.max(...list.map(t=>t.total));
   let min=Math.min(...list.map(t=>t.total));
-  let avg=(list.reduce((a,b)=>a+b.total,0)/list.length).toFixed(1);
 
-  examHeader.textContent=`${f||"All Exams"} | Average: ${avg}`;
-
+  tableBody.innerHTML="";
   list.forEach(t=>{
     let cls=t.total===max?"best":t.total===min?"worst":"";
     tableBody.innerHTML+=`
-      <tr class="${cls}">
-        <td>${t.test}</td>
-        <td>${formatDate(t.date)}</td>
-        <td>${t.total}</td>
-      </tr>`;
+    <tr class="${cls}">
+      <td>${t.test}</td>
+      <td>${formatDate(t.date)}</td>
+      <td>${t.total}</td>
+    </tr>`;
   });
 }
 
-function renderChart(){
-  if(chart) chart.destroy();
+/* ================= GRAPH ================= */
+function toggleGraph(){
+  const g=document.getElementById("graphWrap");
+  g.style.display=g.style.display==="none"?"block":"none";
+  if(g.style.display==="block")renderGraph();
+}
+function renderGraph(){
+  if(chart)chart.destroy();
   chart=new Chart(document.getElementById("chart"),{
     type:"line",
     data:{
       labels:tests.map(t=>t.test),
-      datasets:[{
-        label:"Total Marks",
-        data:tests.map(t=>t.total),
-        borderWidth:2
-      }]
+      datasets:[{label:"Total Marks",data:tests.map(t=>t.total)}]
     }
   });
+}
+
+/* ================= EXPORT ================= */
+function exportExcel(){
+  const ws=XLSX.utils.json_to_sheet(tests);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Tests");
+  XLSX.writeFile(wb,"MockTracker.xlsx");
+}
+function exportPDF(){
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF();
+  pdf.text("Mock Mark Tracker",10,10);
+  tests.forEach((t,i)=>pdf.text(`${i+1}. ${t.test} - ${t.total}`,10,20+i*8));
+  pdf.save("MockTracker.pdf");
 }
 </script>
 </body>
