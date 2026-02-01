@@ -4,91 +4,73 @@
   <meta charset="UTF-8">
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-  <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
-  
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- ================= HEADER ================= -->
-  <header class="topHeader">
-    <!-- Emblem -->
+  <!-- ---------- HEADER ---------- -->
+  <div class="topHeader">
     <img src="emblem.png" class="emblem" alt="Emblem">
-    
-    <!-- Quotes -->
     <div class="quoteBox">
       <p id="quoteText"></p>
     </div>
-    
-    <!-- Flag -->
-    <img src="flag.jpg" class="flag" alt="Flag">
-  </header>
+    <img src="flag.png" class="flag" alt="Flag">
+  </div>
 
-  <!-- ================= FORM ================= -->
+  <!-- ---------- MAIN CONTAINER ---------- -->
   <div class="container">
-    <div class="card">
-      <h3>Add / Edit Test</h3>
 
+    <!-- ---------- SECTION INPUTS & COUNTDOWN ---------- -->
+    <div class="card" id="sectionsWrapper">
+      <div id="sections"></div>
+    </div>
+    <div class="card" id="examCountdownCard"></div>
+
+    <!-- ---------- TEST DETAILS INPUT ---------- -->
+    <div class="card">
+      <h4>Add Test Details</h4>
       <div class="formGrid">
         <div class="formGroup">
           <label for="examName">Exam Name</label>
-          <input id="examName" placeholder="CGL / NTPC">
+          <input type="text" id="examName" placeholder="Enter exam name">
         </div>
-
         <div class="formGroup">
           <label for="testName">Test Name</label>
-          <input id="testName" placeholder="Mock 1">
+          <input type="text" id="testName" placeholder="Enter test name">
         </div>
-
         <div class="formGroup">
           <label for="testDate">Test Date</label>
-          <input id="testDate" type="date">
+          <input type="date" id="testDate">
         </div>
-
         <div class="formGroup">
-          <label for="platformName">Platform Name</label>
-          <input id="platformName" placeholder="OLIVEBOARD">
+          <label for="platformName">Platform</label>
+          <input type="text" id="platformName" placeholder="Platform/Source">
         </div>
-
         <div class="formGroup">
-          <label for="negativeMark">Negative Mark</label>
-          <input id="negativeMark" type="number" placeholder="0.25">
+          <label for="negativeMark">Negative Mark per Wrong</label>
+          <input type="number" id="negativeMark" value="0">
         </div>
       </div>
-
-      <h4>Sections</h4>
-      <div id="sections"></div>
-
       <div class="btnRow">
-        <button class="addBtn" onclick="addSection()">+ Add Section</button>
-        <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
+        <button class="saveBtn" onclick="saveTest()">Save Test</button>
       </div>
-
-      <h4>Filter Tests</h4>
-      <select id="examFilter" onchange="renderAll()">
-        <option value="ALL">All Exams</option>
-      </select>
-      <br><br>
-      <button onclick="showGraph()">Show Graph 📊</button>
     </div>
+
+    <!-- ---------- FILTER DROPDOWN ---------- -->
+    <div class="card">
+      <label for="examFilter">Filter by Exam:</label>
+      <select id="examFilter"></select>
+    </div>
+
+    <!-- ---------- TABLE AREA ---------- -->
+    <div id="tablesArea"></div>
+
+    <!-- ---------- ANALYSIS AREA ---------- -->
+    <div id="analysisArea"></div>
+
   </div>
 
-  <!-- ================= TABLES ================= -->
-  <div id="tablesArea"></div>
-
-  <!-- ================= GRAPH ================= -->
-  <div id="graphPage" style="display:none;">
-    <h3>Performance Graph</h3>
-    <canvas id="graph"></canvas>
-    <br>
-    <button onclick="hideGraph()">⬅ Back</button>
-  </div>
-
-  <!-- ================= SCRIPT ================= -->
+  <!-- ---------- SCRIPT ---------- -->
   <script src="script.js"></script>
-
 </body>
 </html>
