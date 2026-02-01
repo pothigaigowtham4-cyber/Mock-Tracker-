@@ -10,27 +10,20 @@
   
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- XLSX for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <!-- jsPDF for PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- SheetJS for Excel Export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
   <!-- ================= HEADER ================= -->
   <header class="topHeader">
-    <!-- Logo -->
-    <div class="logo">
-      <img src="emblem.png" class="emblem" alt="Emblem">
-    </div>
-    
-    <!-- Quotes -->
+    <img src="emblem.png" class="logo" alt="Emblem">
     <div class="quoteBox">
       <p id="quoteText"></p>
     </div>
-
-    <!-- Flag & Dark Mode -->
-    <div class="flagBox">
+    <div class="flagContainer">
       <img src="flag.jpg" class="flag" alt="Flag">
       <button id="darkModeBtn">🌙 Dark Mode</button>
     </div>
@@ -39,7 +32,8 @@
   <!-- ================= FORM ================= -->
   <div class="container">
     <div class="card fullWidth">
-      <h2>Test Tracker</h2>
+      <h3>Test Tracker</h3>
+
       <div class="formGrid">
         <div class="formGroup">
           <label for="examName">Exam Name</label>
@@ -102,7 +96,6 @@
     <button onclick="hideGraph()">⬅ Back</button>
   </div>
 
-  <!-- ================= SCRIPT ================= -->
   <script src="script.js"></script>
 </body>
 </html>
