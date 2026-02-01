@@ -216,7 +216,7 @@ function renderCountdowns(){
     });
 }
 
-/* ---------------- TABLES ---------------- */
+/* ---------------- TABLES & ANALYSIS ---------------- */
 function renderAll(){
     tablesArea.innerHTML="";
     const filter = examFilter.value;
@@ -257,9 +257,7 @@ function renderAll(){
     });
 }
 
-/* ---------------- ANALYSIS ROW ---------------- */
 function toggleAnalysisRow(tr,idx,exam){
-    const tables = tablesArea.querySelectorAll(".tableCard table");
     const t = tests.filter(t=>t.exam===exam)[idx];
     if(tr.nextElementSibling && tr.nextElementSibling.classList.contains("analysisRow")){
         tr.nextElementSibling.remove();
