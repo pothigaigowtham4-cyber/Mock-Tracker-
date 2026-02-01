@@ -37,9 +37,7 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 5px;
-    }
+    h1 { margin-bottom: 5px; }
 
     .top-bar {
       display: flex;
@@ -83,12 +81,6 @@
       cursor: pointer;
     }
 
-    button.secondary {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -107,7 +99,7 @@
 
     .good { color: var(--good); }
     .warn { color: var(--warn); }
-    .bad { color: var(--bad); }
+    .bad  { color: var(--bad); }
 
     .muted {
       color: var(--muted);
@@ -152,7 +144,7 @@
     <h3>Performance Overview</h3>
     <div class="grid">
       <div>
-        <strong>Consistency Score</strong>
+        <strong>Overall Consistency</strong>
         <div id="consistencyScore" class="muted"></div>
       </div>
       <div>
@@ -160,6 +152,19 @@
         <div id="strategyInsight" class="muted"></div>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <h3>Section-wise Consistency</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Section</th>
+          <th>Consistency</th>
+        </tr>
+      </thead>
+      <tbody id="sectionConsistency"></tbody>
+    </table>
   </div>
 
   <div class="card">
@@ -179,112 +184,134 @@
     </table>
   </div>
 
-  <script>
-    /* ---------------- CORE DATA ---------------- */
+<script>
+/* ---------------- CORE DATA ---------------- */
 
-    const EXAM_DATE = new Date("2026-03-15"); // <-- change only if exam date changes
-    let tests = JSON.parse(localStorage.getItem("mockTests")) || [];
+const EXAM_DATE = new Date("2026-03-15");
+let tests = JSON.parse(localStorage.getItem("mockTests")) || [];
 
-    /* ---------------- DARK MODE ---------------- */
+/* ---------------- DARK MODE ---------------- */
 
-    const darkToggle = document.getElementById("darkToggle");
-    if (localStorage.getItem("darkMode") === "on") {
-      document.body.classList.add("dark");
-      darkToggle.checked = true;
-    }
+const darkToggle = document.getElementById("darkToggle");
+if (localStorage.getItem("darkMode") === "on") {
+  document.body.classList.add("dark");
+  darkToggle.checked = true;
+}
 
-    darkToggle.addEventListener("change", () => {
-      document.body.classList.toggle("dark");
-      localStorage.setItem("darkMode", darkToggle.checked ? "on" : "off");
-    });
+darkToggle.addEventListener("change", () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("darkMode", darkToggle.checked ? "on" : "off");
+});
 
-    /* ---------------- COUNTDOWN ---------------- */
+/* ---------------- COUNTDOWN ---------------- */
 
-    function updateCountdown() {
-      const today = new Date();
-      const diff = Math.ceil((EXAM_DATE - today) / (1000 * 60 * 60 * 24));
-      document.getElementById("countdown").textContent =
-        diff >= 0 ? `⏳ ${diff} days to exam` : "Exam date passed";
-    }
+function updateCountdown() {
+  const today = new Date();
+  const diff = Math.ceil((EXAM_DATE - today) / (1000 * 60 * 60 * 24));
+  countdown.textContent = diff >= 0 ? `⏳ ${diff} days to exam` : "Exam date passed";
+}
 
-    /* ---------------- ADD TEST ---------------- */
+/* ---------------- ADD TEST ---------------- */
 
-    function addTest() {
-      const test = {
-        name: testName.value || `Test ${tests.length + 1}`,
-        eng: +english.value || 0,
-        maths: +maths.value || 0,
-        reason: +reasoning.value || 0,
-        ga: +ga.value || 0
-      };
+function addTest() {
+  const test = {
+    name: testName.value || `Test ${tests.length + 1}`,
+    eng: +english.value || 0,
+    maths: +maths.value || 0,
+    reason: +reasoning.value || 0,
+    ga: +ga.value || 0
+  };
 
-      tests.push(test);
-      localStorage.setItem("mockTests", JSON.stringify(tests));
-      render();
-    }
+  tests.push(test);
+  localStorage.setItem("mockTests", JSON.stringify(tests));
+  render();
+}
 
-    /* ---------------- CONSISTENCY SCORE ---------------- */
+/* ---------------- HELPERS ---------------- */
 
-    function calculateConsistency() {
-      if (tests.length < 2) return "Need more tests";
+function consistencyLabel(values) {
+  if (values.length < 2) return ["Need more data", "muted"];
 
-      const totals = tests.map(t => t.eng + t.maths + t.reason + t.ga);
-      const avg = totals.reduce((a,b) => a+b,0) / totals.length;
-      const variance = totals.reduce((a,b)=>a+(b-avg)**2,0)/totals.length;
-      const sd = Math.sqrt(variance);
+  const avg = values.reduce((a,b)=>a+b,0) / values.length;
+  const sd = Math.sqrt(values.reduce((a,b)=>a+(b-avg)**2,0)/values.length);
 
-      if (sd < 5) return "Excellent consistency";
-      if (sd < 10) return "Moderate consistency";
-      return "Unstable performance";
-    }
+  if (sd < 3) return ["Excellent", "good"];
+  if (sd < 7) return ["Moderate", "warn"];
+  return ["Unstable", "bad"];
+}
 
-    /* ---------------- STRATEGY INSIGHT ---------------- */
+/* ---------------- OVERALL CONSISTENCY ---------------- */
 
-    function strategyInsight() {
-      if (!tests.length) return "No data yet";
+function calculateOverallConsistency() {
+  const totals = tests.map(t => t.eng + t.maths + t.reason + t.ga);
+  return consistencyLabel(totals)[0];
+}
 
-      let weak = { eng:0, maths:0, reason:0, ga:0 };
+/* ---------------- SECTION CONSISTENCY ---------------- */
 
-      tests.forEach(t => {
-        weak.eng += t.eng;
-        weak.maths += t.maths;
-        weak.reason += t.reason;
-        weak.ga += t.ga;
-      });
+function renderSectionConsistency() {
+  sectionConsistency.innerHTML = "";
 
-      const avg = {};
-      for (let k in weak) avg[k] = weak[k] / tests.length;
+  const sections = {
+    English: tests.map(t => t.eng),
+    Maths: tests.map(t => t.maths),
+    Reasoning: tests.map(t => t.reason),
+    GA: tests.map(t => t.ga)
+  };
 
-      const minSection = Object.keys(avg).reduce((a,b)=>avg[a]<avg[b]?a:b);
+  for (let s in sections) {
+    const [label, cls] = consistencyLabel(sections[s]);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${s}</td><td class="${cls}">${label}</td>`;
+    sectionConsistency.appendChild(tr);
+  }
+}
 
-      return `Focus more attempts on ${minSection.toUpperCase()}`;
-    }
+/* ---------------- STRATEGY INSIGHT ---------------- */
 
-    /* ---------------- RENDER ---------------- */
+function strategyInsight() {
+  if (!tests.length) return "No data yet";
 
-    function render() {
-      tableBody.innerHTML = "";
+  const avg = {
+    ENG: tests.reduce((a,t)=>a+t.eng,0)/tests.length,
+    MATHS: tests.reduce((a,t)=>a+t.maths,0)/tests.length,
+    REASON: tests.reduce((a,t)=>a+t.reason,0)/tests.length,
+    GA: tests.reduce((a,t)=>a+t.ga,0)/tests.length
+  };
 
-      tests.forEach(t => {
-        const total = t.eng + t.maths + t.reason + t.ga;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${t.name}</td>
-          <td>${t.eng}</td>
-          <td>${t.maths}</td>
-          <td>${t.reason}</td>
-          <td>${t.ga}</td>
-          <td><strong>${total}</strong></td>
-        `;
-        tableBody.appendChild(tr);
-      });
+  const weakest = Object.keys(avg).reduce((a,b)=>avg[a]<avg[b]?a:b);
+  return `Increase attempts & accuracy in ${weakest}`;
+}
 
-      document.getElementById("consistencyScore").textContent = calculateConsistency();
-      document.getElementById("strategyInsight").textContent = strategyInsight();
-    }
+/* ---------------- RENDER ---------------- */
 
-    updateCountdown();
-    render();
-  </script>
+function render() {
+  tableBody.innerHTML = "";
+
+  tests.forEach(t => {
+    const total = t.eng + t.maths + t.reason + t.ga;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.name}</td>
+      <td>${t.eng}</td>
+      <td>${t.maths}</td>
+      <td>${t.reason}</td>
+      <td>${t.ga}</td>
+      <td><strong>${total}</strong></td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  consistencyScore.textContent = calculateOverallConsistency();
+  strategyInsightEl.textContent = strategyInsight();
+  renderSectionConsistency();
+}
+
+/* ---------------- INIT ---------------- */
+
+const strategyInsightEl = document.getElementById("strategyInsight");
+updateCountdown();
+render();
+</script>
 </body>
 </html>
