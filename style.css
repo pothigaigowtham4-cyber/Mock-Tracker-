@@ -2,6 +2,11 @@
   --bg: #f4f6fa;
   --text: #111;
   --card: #ffffff;
+  --primary: #0b5ed7;
+  --secondary: #ffc107;
+  --success: #28a745;
+  --danger: #dc3545;
+  --accent: #ff6f61;
 }
 
 body.dark {
@@ -17,58 +22,102 @@ body {
   font-family: Arial, sans-serif;
 }
 
-.topbar {
+.topHeader {
   display: flex;
   justify-content: space-between;
-  padding: 12px 20px;
-  background: #0b5ed7;
-  color: #fff;
-}
-
-.logo {
-  display: flex;
   align-items: center;
-  gap: 12px;
+  background: var(--primary);
+  padding: 10px 20px;
+  color: #fff;
+  flex-wrap: wrap;
 }
 
-.emblem {
-  height: 60px;
+.logo img.emblem {
+  height: 135px;
 }
 
-.flag {
-  height: 28px;
-}
-
-.quote-box {
+.quoteBox {
+  flex: 1;
   text-align: center;
-  padding: 10px;
   font-style: italic;
+  font-size: 1.1rem;
+  margin: 10px 0;
 }
 
-.cards {
+.flagBox {
   display: flex;
-  gap: 16px;
-  padding: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 }
 
-.card {
+.flagBox img.flag {
+  height: 35px;
+}
+
+#darkModeBtn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: var(--secondary);
+  color: #111;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card.fullWidth {
+  width: 100%;
   background: var(--card);
-  padding: 16px;
   border-radius: 8px;
-  width: 300px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+  gap: 15px;
+}
+
+.formGroup label {
+  font-weight: bold;
 }
 
 input {
   width: 100%;
-  margin-bottom: 8px;
   padding: 6px;
+  margin-top: 4px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+button {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.85;
 }
 
 table {
   width: 95%;
   margin: 20px auto;
   border-collapse: collapse;
-  background: #fdfdfd;
+  background: var(--card);
 }
 
 th, td {
@@ -77,10 +126,26 @@ th, td {
   text-align: center;
 }
 
+.examTableWrapper h3 {
+  margin: 15px 0 5px 10px;
+  color: var(--accent);
+}
+
+.sectionRow input {
+  width: 60px;
+}
+
+.analysisRow {
+  background: #e3f2fd;
+  text-align: left;
+  font-size: 0.9rem;
+  padding: 6px;
+}
+
 .best {
-  background: #d4edda;
+  background: #fff3cd; /* yellow */
 }
 
 .worst {
-  background: #f8d7da;
+  background: #f8d7da; /* red */
 }
