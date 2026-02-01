@@ -1,287 +1,55 @@
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+* { box-sizing:border-box; font-family: Arial, sans-serif; margin:0; padding:0; }
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
-    url("bg.jpg") no-repeat center center fixed;
+  min-height:100vh;
+  background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url("bg.jpg") no-repeat center center fixed;
   background-size: cover;
-  color: #000;
-  transition: background 0.3s, color 0.3s;
+  color:#000;
+  transition: background 0.3s,color 0.3s;
 }
 
-/* ---------- HEADER ---------- */
-.topHeader{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 20px;
-  background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
-  transition: background 0.3s;
-}
+/* HEADER */
+.topHeader{ display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:linear-gradient(90deg,#ff9933,#ffffff,#138808); }
+.emblem{ height:120px; }
+.flagDarkWrapper{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+.flag{ height:50px; }
+#quoteText{ opacity:0; font-weight:bold; color:#1a237e; font-size:15px; transition:opacity 0.8s; }
+#quoteText.show{ opacity:1; }
 
-.emblem{
-  height:120px;
-}
+/* CONTAINER */
+.container{ padding:20px; display:flex; flex-direction:column; gap:20px; }
 
-.flagDarkWrapper{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px;
-}
+/* CARDS */
+.card{ background:#fff; border-radius:15px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s; }
+.colorfulCard{ background: linear-gradient(135deg,#f6d365,#fda085); color:#000; }
+.card h3{ margin-bottom:15px; }
 
-.flag{
-  height:50px;
-}
+/* FORM GRID */
+.formGrid{ display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:15px; }
+.formGroup label{ display:block; margin-bottom:5px; font-weight:bold; }
+.formGroup input{ width:100%; padding:8px; border-radius:5px; border:1px solid #ccc; }
 
-.quoteBox{
-  flex:1;
-  text-align:center;
-  padding:0 15px;
-}
+/* BUTTONS */
+.btnRow, .filterGraphRow{ display:flex; gap:10px; margin-top:10px; }
+.saveBtn, .addBtn{ background:#1565c0; color:#fff; padding:8px 15px; border:none; border-radius:6px; cursor:pointer; transition:0.3s; }
+.saveBtn:hover, .addBtn:hover{ background:#0d47a1; }
 
-#quoteText {
-  transition: opacity 0.8s ease-in-out, color 0.3s;
-  opacity: 0;
-  margin:0;
-  font-size:15px;
-  font-weight:bold;
-  color:#1a237e;
-}
+/* SECTIONS */
+.sectionRow{ display:flex; gap:10px; margin-bottom:10px; }
+.sectionRow input{ flex:1; padding:5px; border-radius:5px; border:1px solid #ccc; }
 
-#quoteText.show {
-  opacity: 1;
-}
+/* TABLES */
+table{ width:100%; border-collapse:collapse; margin-top:15px; }
+table th, table td{ border:1px solid #000; padding:8px; text-align:center; }
+.best{ background:#c8e6c9; }
+.worst{ background:#ffcdd2; }
+.analysisRow td{ background:#eeeeee; }
+.analysisDiv{ text-align:left; padding:10px; }
 
-/* ---------- MAIN ---------- */
-.container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+/* GRAPH */
+#examGraph{ width:100%; height:300px; }
 
-/* ---------- CARDS ---------- */
-.card, .tableCard, #examCountdownCard {
-  background: rgba(255,255,255,0.97);
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  transition: background 0.3s, color 0.3s;
-}
-
-.horizontalCard {
-  display:flex;
-  gap:20px;
-}
-
-.colorfulCard {
-  background: linear-gradient(135deg,#fceabb,#f8b500);
-}
-
-/* ---------- SECTIONS ---------- */
-#sectionsWrapper {
-  flex:2;
-}
-
-#examCountdownCard {
-  flex:1;
-  min-width:220px;
-}
-
-/* ---------- SECTION INPUTS ---------- */
-#sections {
-  margin-top: 10px;
-}
-
-.sectionLabels {
-  display: grid;
-  grid-template-columns: 300px 80px 80px 80px 80px;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #1565c0;
-  margin-bottom: 4px;
-  transition: color 0.3s;
-}
-
-.sectionRow {
-  display: grid;
-  grid-template-columns: 300px 80px 80px 80px 80px;
-  gap: 8px;
-  margin-bottom: 8px;
-  background: rgba(255,255,255,0.7);
-  padding: 6px;
-  border-radius: 8px;
-  transition: background 0.3s, color 0.3s;
-}
-
-.sectionRow input.sectionName {
-  width: 300px;
-}
-
-.sectionRow input.sectionMarks {
-  width: 80px;
-}
-
-.sectionRow button {
-  background: #ef5350;
-  color: white;
-  transition: background 0.3s;
-}
-
-/* ---------- BUTTONS ---------- */
-.btnRow {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.addBtn { background: #43a047; color: white; }
-.saveBtn { background: #1565c0; color: white; }
-
-button:hover {
-  opacity: 0.9;
-  transform: scale(1.02);
-}
-
-/* ---------- TABLE ---------- */
-#tablesArea {
-  padding: 0 20px 40px;
-}
-
-.tableCard {
-  margin-top: 20px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-  background: white;
-  transition: background 0.3s, color 0.3s;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-  transition: background 0.3s, color 0.3s;
-}
-
-th {
-  background: #e3f2fd;
-  color: #0d47a1;
-}
-
-tr:hover {
-  background: #f1f8ff;
-}
-
-.best {
-  background: #ffeb3b !important;
-}
-
-.worst {
-  background: #e57373 !important;
-}
-
-/* ---------- ANALYSIS BELOW TEST ---------- */
-.analysisDiv{
-  padding:10px;
-  background:#f0f8ff;
-  border-radius:10px;
-}
-
-/* ---------- INPUTS ---------- */
-input, select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fdfefe;
-  transition: background 0.3s, color 0.3s, border 0.3s;
-}
-
-input:focus {
-  outline: none;
-  border-color: #1565c0;
-  box-shadow: 0 0 5px rgba(21,101,192,0.4);
-}
-
-/* ---------- DARK MODE ---------- */
-body.dark {
-  background: #121212;
-  color: #f0f0f0;
-}
-
-body.dark .topHeader {
-  background: #1f1f1f;
-}
-
-body.dark #quoteText {
-  color: #bb86fc;
-}
-
-body.dark .card,
-body.dark .tableCard,
-body.dark #examCountdownCard,
-body.dark #analysisArea {
-  background: #1e1e1e;
-  color: #f0f0f0;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-}
-
-body.dark input,
-body.dark select {
-  background: #2a2a2a;
-  color: #f0f0f0;
-  border: 1px solid #555;
-}
-
-body.dark .sectionLabels {
-  color: #bb86fc;
-}
-
-body.dark .sectionRow {
-  background: #2c2c2c;
-}
-
-body.dark table {
-  background: #1e1e1e;
-  color: #f0f0f0;
-}
-
-body.dark th {
-  background: #333;
-  color: #f0f0f0;
-}
-
-body.dark tr:hover {
-  background: #3a3a3a;
-}
-
-body.dark .sectionRow button,
-body.dark .addBtn,
-body.dark .saveBtn {
-  color: #fff;
-}
-
-body.dark .sectionRow button {
-  background: #ef5350;
-}
-
-body.dark .addBtn { background: #43a047; }
-body.dark .saveBtn { background: #1565c0; } 
+/* DARK MODE */
+body.dark{ background:#1e1e1e; color:#fff; }
+body.dark .card{ background:#2c2c2c; color:#fff; }
+body.dark input{ background:#444; color:#fff; border:1px solid #666; }
