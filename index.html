@@ -5,6 +5,7 @@
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -14,20 +15,26 @@
     <div class="quoteBox">
       <p id="quoteText"></p>
     </div>
-    <img src="flag.png" class="flag" alt="Flag">
+    <div class="flagDarkWrapper">
+      <img src="flag.png" class="flag" alt="Flag">
+      <button id="darkModeBtn">🌙 Dark Mode</button>
+    </div>
   </div>
 
   <!-- ---------- MAIN CONTAINER ---------- -->
   <div class="container">
 
     <!-- ---------- SECTION INPUTS & COUNTDOWN ---------- -->
-    <div class="card" id="sectionsWrapper">
-      <div id="sections"></div>
+    <div class="card horizontalCard">
+      <div id="sectionsWrapper">
+        <h4>Sectional Marks</h4>
+        <div id="sections"></div>
+      </div>
+      <div class="card colorfulCard" id="examCountdownCard"></div>
     </div>
-    <div class="card" id="examCountdownCard"></div>
 
     <!-- ---------- TEST DETAILS INPUT ---------- -->
-    <div class="card">
+    <div class="card colorfulCard">
       <h4>Add Test Details</h4>
       <div class="formGrid">
         <div class="formGroup">
@@ -57,7 +64,7 @@
     </div>
 
     <!-- ---------- FILTER DROPDOWN ---------- -->
-    <div class="card">
+    <div class="card colorfulCard">
       <label for="examFilter">Filter by Exam:</label>
       <select id="examFilter"></select>
     </div>
@@ -65,8 +72,10 @@
     <!-- ---------- TABLE AREA ---------- -->
     <div id="tablesArea"></div>
 
-    <!-- ---------- ANALYSIS AREA ---------- -->
-    <div id="analysisArea"></div>
+    <!-- ---------- GRAPH AREA ---------- -->
+    <div class="card colorfulCard">
+      <canvas id="examGraph"></canvas>
+    </div>
 
   </div>
 
