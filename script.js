@@ -27,6 +27,7 @@ let targets = parseJSON("targets", {});
 let feedbackHistory = parseJSON("feedbackHistory", {});
 let examCountdowns = parseJSON("examCountdowns", []);
 let darkMode = parseJSON("darkMode", false);
+let chartInstance = null;
 
 /* ---------------- DOM READY ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,13 +40,12 @@ document.addEventListener("DOMContentLoaded", () => {
     window.platformName = document.getElementById("platformName");
     window.negativeMark = document.getElementById("negativeMark");
     window.tablesArea = document.getElementById("tablesArea");
-    window.analysisArea = document.getElementById("analysisArea"); // New panel for clicked test
     window.countdownCard = document.getElementById("examCountdownCard");
+    window.graphCanvas = document.getElementById("examGraph");
 
     rotateQuotes();
     setInterval(rotateQuotes, 30000);
     init();
-    applyDarkMode();
 });
 
 /* ---------------- QUOTES ---------------- */
@@ -67,6 +67,7 @@ function init(){
     addTargetUI();
     addCountdownUI();
     addDarkModeToggle();
+    renderGraph();
 }
 
 /* ---------------- DARK MODE ---------------- */
@@ -79,16 +80,12 @@ function toggleDarkMode(){
     darkMode = !darkMode;
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
     applyDarkMode();
+    document.getElementById("darkModeBtn").innerHTML = darkMode ? "☀ Light Mode" : "🌙 Dark Mode";
 }
 
 function addDarkModeToggle(){
-    const btn = document.createElement("button");
-    btn.innerHTML = darkMode ? "☀ Light Mode" : "🌙 Dark Mode";
-    btn.onclick = () => { 
-        toggleDarkMode(); 
-        btn.innerHTML = darkMode ? "☀ Light Mode" : "🌙 Dark Mode"; 
-    };
-    document.querySelector(".topHeader").appendChild(btn);
+    const btn = document.getElementById("darkModeBtn");
+    btn.onclick = toggleDarkMode;
 }
 
 /* ---------------- TARGET UI ---------------- */
@@ -99,7 +96,7 @@ function addTargetUI(){
         <input id="targetInput" type="number" placeholder="Enter Target Marks">
         <button onclick="saveTarget()">Save Target</button>
     `;
-    document.querySelector(".card").appendChild(box);
+    document.querySelector(".container").prepend(box);
 }
 
 function saveTarget(){
@@ -179,56 +176,7 @@ function saveTest(){
     initSections();
     renderExamFilter();
     renderAll();
-}
-
-/* ---------------- SMART FEEDBACK ---------------- */
-function autoFeedback(t){
-    const examTests = tests.filter(x => x.exam === t.exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const idx = examTests.indexOf(t);
-    const prev = idx>0 ? examTests[idx-1] : null;
-    let feedbackPool=[];
-
-    if(!prev){ feedbackPool.push("🧪 First test for this exam. This becomes your baseline."); }
-    else{
-        if(t.total>prev.total) feedbackPool.push("📈 Score improved from previous test. Strategy is moving in right direction.");
-        else if(t.total<prev.total) feedbackPool.push("📉 Score dropped compared to last test. Analyse mistakes deeply.");
-        else feedbackPool.push("➖ Score stagnant. Push either attempts or accuracy consciously.");
-    }
-
-    if(t.accuracy<60) feedbackPool.push("🎯 Accuracy is risky. Reduce guesses and focus on concepts.");
-    else if(t.accuracy>80) feedbackPool.push("✅ Accuracy is strong. You can safely increase attempts.");
-    else feedbackPool.push("⚖ Accuracy balanced. Maintain same approach.");
-
-    if(t.negLoss>t.total*0.15) feedbackPool.push("❗ Negative marks are hurting your score badly.");
-    else feedbackPool.push("🛡 Negative marks are under control.");
-
-    const target = targets[t.exam];
-    if(target){
-        const diff = t.total - target;
-        if(diff>=10) feedbackPool.push("🔥 Well above target. Raise difficulty level.");
-        else if(diff>=0) feedbackPool.push("🎯 Target achieved. Focus on consistency.");
-        else if(diff>-10) feedbackPool.push("🟡 Very close to target. Minor corrections needed.");
-        else feedbackPool.push("🚨 Far below target. Revise basics before next mock.");
-    }
-
-    const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
-    feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first for quick gains.`);
-
-    const strategies = [
-        "You lose more from negatives than you gain from attempts. Attempt 6–8 fewer questions.",
-        "Focus on accuracy over attempts for better score.",
-        "Prioritize weak sections first; don’t spend too long on strong sections.",
-        "Adjust time allocation to reduce rushed mistakes.",
-        "Maintain consistency; skipping sections may hurt your overall trend."
-    ];
-    feedbackPool.push(strategies[Math.floor(Math.random()*strategies.length)]);
-
-    if(!feedbackHistory[t.exam]) feedbackHistory[t.exam]=[];
-    let finalFeedback = feedbackPool.find(f => !feedbackHistory[t.exam].includes(f)) || feedbackPool[0];
-    feedbackHistory[t.exam].push(finalFeedback);
-    if(feedbackHistory[t.exam].length>6) feedbackHistory[t.exam].shift();
-    localStorage.setItem("feedbackHistory", JSON.stringify(feedbackHistory));
-    return finalFeedback;
+    renderGraph();
 }
 
 /* ---------------- EXAM FILTER ---------------- */
@@ -237,7 +185,10 @@ function renderExamFilter(){
     let exams = Array.from(new Set(tests.map(t=>t.exam)));
     examFilter.innerHTML = `<option value="ALL">All Exams</option>` +
         exams.map(e=>`<option value="${e}">${e}</option>`).join("");
-    examFilter.onchange = renderAll;
+    examFilter.onchange = () => {
+        renderAll();
+        renderGraph();
+    };
 }
 
 /* ---------------- EXAM DAY COUNTDOWN CARD ---------------- */
@@ -297,7 +248,6 @@ function renderCountdowns(){
 function renderAll(){
     if(!tablesArea) return;
     tablesArea.innerHTML="";
-    analysisArea.innerHTML=""; // clear analysis
 
     const filter = examFilter.value;
     const examsToShow = filter==="ALL"? Array.from(new Set(tests.map(t=>t.exam))) : [filter];
@@ -306,7 +256,6 @@ function renderAll(){
         const examTests = tests.filter(t=>t.exam===exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
         if(examTests.length===0) return;
 
-        // calculate avg, best, worst
         const totalMarks = examTests.map(t=>t.total);
         const avg = (totalMarks.reduce((a,b)=>a+b,0)/totalMarks.length).toFixed(1);
         const best = Math.max(...totalMarks);
@@ -318,7 +267,8 @@ function renderAll(){
         const table = document.createElement("table");
         table.innerHTML=`
             <tr>
-                <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy %</th><th>Neg Loss</th>
+                <th>Test</th><th>Date</th><th>Platform</th><th>Total</th>
+                <th>Accuracy %</th><th>Neg Loss</th><th>Sections</th>
             </tr>
         `;
         examTests.forEach((t,idx)=>{
@@ -328,11 +278,12 @@ function renderAll(){
                 <td>${t.test}</td>
                 <td>${t.date}</td>
                 <td>${t.platform}</td>
-                <td>${t.total}</td>
+                <td class="${t.total===best?'best': t.total===worst?'worst':''}">${t.total}</td>
                 <td>${t.accuracy}</td>
                 <td>${t.negLoss}</td>
+                <td>${t.sections.map(s=>`${s.name}: ${s.marks}`).join(", ")}</td>
             `;
-            tr.onclick = ()=>showAnalysis(t);
+            tr.onclick = ()=>toggleAnalysis(tr,t);
             table.appendChild(tr);
         });
         div.appendChild(table);
@@ -340,21 +291,109 @@ function renderAll(){
     });
 }
 
-/* ---------------- SHOW ANALYSIS ---------------- */
-function showAnalysis(t){
-    if(!analysisArea) return;
-    const examTests = tests.filter(x => x.exam===t.exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const idx = examTests.indexOf(t);
-    const prevMarks = examTests.slice(0,idx).map(x=>x.total);
-    const feedback = autoFeedback(t);
-
-    analysisArea.innerHTML=`
-        <h4>Analysis for ${t.exam} - ${t.test}</h4>
-        <p>Previous Marks: ${prevMarks.length? prevMarks.join(" → ") : "No previous tests"}</p>
-        <p>Weakest Section: ${t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name}</p>
-        <p>Correct: ${t.tc} | Wrong: ${t.tw} | Unattempted: ${t.tu}</p>
-        <p>Negative marks lost: ${t.negLoss}</p>
-        <p>Accuracy: ${t.accuracy}%</p>
-        <p>Feedback & Insights: ${feedback}</p>
+/* ---------------- ANALYSIS BELOW TEST ---------------- */
+function toggleAnalysis(tr,t){
+    // Remove existing analysis
+    const existing = tr.nextElementSibling;
+    if(existing && existing.classList.contains("analysisRow")){
+        existing.remove();
+        return;
+    }
+    // Create analysis row
+    const row = document.createElement("tr");
+    row.className="analysisRow";
+    const td = document.createElement("td");
+    td.colSpan = 7;
+    td.innerHTML=`
+        <div class="analysisDiv">
+            <p>Correct: ${t.tc} | Wrong: ${t.tw} | Unattempted: ${t.tu}</p>
+            <p>Negative marks lost: ${t.negLoss}</p>
+            <p>Accuracy: ${t.accuracy}%</p>
+            <p>Weakest Section: ${t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name}</p>
+            <p>Feedback: ${autoFeedback(t)}</p>
+        </div>
     `;
+    row.appendChild(td);
+    tr.parentNode.insertBefore(row,tr.nextSibling);
+}
+
+/* ---------------- SMART FEEDBACK ---------------- */
+function autoFeedback(t){
+    const examTests = tests.filter(x => x.exam === t.exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const idx = examTests.indexOf(t);
+    const prev = idx>0 ? examTests[idx-1] : null;
+    let feedbackPool=[];
+
+    if(!prev){ feedbackPool.push("🧪 First test for this exam. This becomes your baseline."); }
+    else{
+        if(t.total>prev.total) feedbackPool.push("📈 Score improved from previous test. Strategy is moving in right direction.");
+        else if(t.total<prev.total) feedbackPool.push("📉 Score dropped compared to last test. Analyse mistakes deeply.");
+        else feedbackPool.push("➖ Score stagnant. Push either attempts or accuracy consciously.");
+    }
+
+    if(t.accuracy<60) feedbackPool.push("🎯 Accuracy is risky. Reduce guesses and focus on concepts.");
+    else if(t.accuracy>80) feedbackPool.push("✅ Accuracy is strong. You can safely increase attempts.");
+    else feedbackPool.push("⚖ Accuracy balanced. Maintain same approach.");
+
+    if(t.negLoss>t.total*0.15) feedbackPool.push("❗ Negative marks are hurting your score badly.");
+    else feedbackPool.push("🛡 Negative marks are under control.");
+
+    const target = targets[t.exam];
+    if(target){
+        const diff = t.total - target;
+        if(diff>=10) feedbackPool.push("🔥 Well above target. Raise difficulty level.");
+        else if(diff>=0) feedbackPool.push("🎯 Target achieved. Focus on consistency.");
+        else if(diff>-10) feedbackPool.push("🟡 Very close to target. Minor corrections needed.");
+        else feedbackPool.push("🚨 Far below target. Revise basics before next mock.");
+    }
+
+    const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
+    feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first for quick gains.`);
+
+    const strategies = [
+        "You lose more from negatives than you gain from attempts. Attempt 6–8 fewer questions.",
+        "Focus on accuracy over attempts for better score.",
+        "Prioritize weak sections first; don’t spend too long on strong sections.",
+        "Adjust time allocation to reduce rushed mistakes.",
+        "Maintain consistency; skipping sections may hurt your overall trend."
+    ];
+    feedbackPool.push(strategies[Math.floor(Math.random()*strategies.length)]);
+
+    if(!feedbackHistory[t.exam]) feedbackHistory[t.exam]=[];
+    let finalFeedback = feedbackPool.find(f => !feedbackHistory[t.exam].includes(f)) || feedbackPool[0];
+    feedbackHistory[t.exam].push(finalFeedback);
+    if(feedbackHistory[t.exam].length>6) feedbackHistory[t.exam].shift();
+    localStorage.setItem("feedbackHistory", JSON.stringify(feedbackHistory));
+    return finalFeedback;
+}
+
+/* ---------------- GRAPH ---------------- */
+function renderGraph(){
+    const filter = examFilter.value;
+    const examTests = filter==="ALL"? tests : tests.filter(t=>t.exam===filter);
+    if(!examTests.length) return;
+
+    const labels = examTests.map(t=>t.test);
+    const data = examTests.map(t=>t.total);
+
+    if(chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(graphCanvas,{
+        type:"line",
+        data:{
+            labels,
+            datasets:[{
+                label: filter==="ALL"?"All Exams":filter,
+                data,
+                borderColor:"#1565c0",
+                backgroundColor:"transparent",
+                tension:0.2,
+                fill:false,
+            }]
+        },
+        options:{
+            responsive:true,
+            plugins:{legend:{display:true}},
+            scales:{y:{beginAtZero:true}}
+        }
+    });
 }
