@@ -119,15 +119,15 @@ function renderTables(){
   Object.keys(grouped).forEach((exam,i)=>{
     const tableWrapper=document.createElement("div"); 
     tableWrapper.className="examTableWrapper";
-    tableWrapper.style.background= `hsl(${i*60}, 80%, 90%)`; // colorful card
+    tableWrapper.style.background= `hsl(${i*60}, 80%, 90%)`;
 
     const avg=Math.round(grouped[exam].reduce((a,b)=>a+b.total,0)/grouped[exam].length);
-    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"}</h3>`;
+    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"} <span class="examCountdown"></span></h3>`;
 
     const table=document.createElement("table");
-    const sectionCount=Math.max(...grouped[exam].map(t=>t.sections.length));
+    const sectionNames=grouped[exam][0].sections.map(s=>s.name);
     let sectionHeaders="";
-    for(let s=0;s<sectionCount;s++) sectionHeaders+=`<th>Sec ${s+1}</th>`;
+    sectionNames.forEach(name=>sectionHeaders+=`<th>${name}</th>`);
     table.innerHTML=`<tr>
       <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>${sectionHeaders}<th>Feedback</th><th>Edit</th><th>Delete</th>
     </tr>`;
@@ -140,16 +140,9 @@ function renderTables(){
       if(t.total===best) tr.classList.add("best");
       if(t.total===worst) tr.classList.add("worst");
 
-      let sectionData="";
-      t.sections.forEach(s=>sectionData+=`${s.name}:${s.marks} `);
-
       let sectionColumns="";
-      for(let s=0;s<sectionCount;s++){
-        const sec=t.sections[s];
-        sectionColumns+=`<td>${sec?sec.marks+" ("+sec.c+"/"+sec.w+"/"+sec.u+")":""}</td>`;
-      }
+      t.sections.forEach(sec=>sectionColumns+=`<td>${sec.marks} (${sec.c}/${sec.w}/${sec.u})</td>`);
 
-      // format date dd-mm-yyyy
       const dt=new Date(t.date);
       const dtStr = dt.getDate().toString().padStart(2,'0')+"-"+(dt.getMonth()+1).toString().padStart(2,'0')+"-"+dt.getFullYear();
 
@@ -164,6 +157,12 @@ function renderTables(){
 
     tableWrapper.appendChild(table);
     tablesArea.appendChild(tableWrapper);
+
+    // Countdown
+    const countdownEl = tableWrapper.querySelector(".examCountdown");
+    const examDate = new Date(grouped[exam][0].date);
+    const diff = Math.ceil((examDate - new Date())/(1000*60*60*24));
+    countdownEl.textContent = diff>=0?` | ${diff} days left`:" | Completed";
   });
 }
 
@@ -175,8 +174,7 @@ function toggleAnalysis(btn){
     btn.textContent="Show";
     return;
   }
-
-  const idx = Array.from(tr.parentNode.children).indexOf(tr) - 1; // exclude header
+  const idx = Array.from(tr.parentNode.children).indexOf(tr) - 1;
   const t=tests[idx];
   const weak=t.sections.reduce((a,b)=>a.marks>b.marks?b:a);
   const analysisRow=document.createElement("tr");
