@@ -13,7 +13,8 @@ const quotes = [
 "Greatness is built in silence."
 ];
 
-let qIndex = 0;
+let qIndex = Math.floor(Math.random() * quotes.length);
+
 
 /* ---------------- DATA ---------------- */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
@@ -41,7 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.graph = document.getElementById("graph");
 
   rotateQuotes();
-  setInterval(rotateQuotes, 60000);
+setInterval(rotateQuotes, 30000);
+
 
   init();
 });
