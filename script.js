@@ -5,7 +5,7 @@ function parseJSON(key, fallback){
     catch(e){ return fallback; }
 }
 
-/* ---------------- QUOTES ROTATION ---------------- */
+/* ---------------- QUOTES ---------------- */
 const quotes = [
     "Don’t stop when you’re tired; stop when you are finally done. The discipline you find today builds the freedom you enjoy tomorrow.",
     "A mountain of books is just a series of single pages waiting to be turned. Focus on the progress of the hour, not the pressure of the exam.",
@@ -28,10 +28,6 @@ let feedbackHistory = parseJSON("feedbackHistory", {});
 let examCountdowns = parseJSON("examCountdowns", []);
 let darkMode = parseJSON("darkMode", false);
 
-/* ===== FIXED SECTION ORDER ===== */
-const FIXED_ORDER = ["APTITUDE", "REASONING", "ENGLISH", "GENERAL AWARENESS"];
-function norm(s){ return s.trim().toUpperCase(); }
-
 /* ---------------- DOM READY ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
     window.quoteEl = document.getElementById("quoteText");
@@ -43,13 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
     window.platformName = document.getElementById("platformName");
     window.negativeMark = document.getElementById("negativeMark");
     window.tablesArea = document.getElementById("tablesArea");
-    window.graphPage = document.getElementById("graphPage");
-    window.graph = document.getElementById("graph");
+    window.analysisArea = document.getElementById("analysisArea"); // New panel for clicked test
+    window.countdownCard = document.getElementById("examCountdownCard");
 
     rotateQuotes();
-    setInterval(rotateQuotes, 30000); // 30 seconds
+    setInterval(rotateQuotes, 30000);
     init();
-    initCountdowns();
     applyDarkMode();
 });
 
@@ -67,14 +62,14 @@ function rotateQuotes(){
 /* ---------------- INIT ---------------- */
 function init(){
     initSections();
+    renderExamFilter();
     renderAll();
     addTargetUI();
-    addExportButtons?.();  // optional if you already have export buttons function
     addCountdownUI();
     addDarkModeToggle();
 }
 
-/* -------- DARK MODE -------- */
+/* ---------------- DARK MODE ---------------- */
 function applyDarkMode(){
     if(darkMode) document.body.classList.add("dark");
     else document.body.classList.remove("dark");
@@ -96,7 +91,7 @@ function addDarkModeToggle(){
     document.querySelector(".topHeader").appendChild(btn);
 }
 
-/* -------- TARGET PER EXAM -------- */
+/* ---------------- TARGET UI ---------------- */
 function addTargetUI(){
     const box = document.createElement("div");
     box.innerHTML = `
@@ -118,7 +113,7 @@ function saveTarget(){
     renderAll();
 }
 
-/* -------- SECTIONS -------- */
+/* ---------------- SECTIONS ---------------- */
 function initSections(){
     sections.innerHTML="";
     const labelRow = document.createElement("div");
@@ -150,7 +145,7 @@ function deleteSection(btn){
     btn.parentElement.remove();
 }
 
-/* -------- SAVE TEST -------- */
+/* ---------------- SAVE TEST ---------------- */
 function saveTest(){
     const exam=examName.value.trim();
     const test=testName.value.trim();
@@ -182,10 +177,11 @@ function saveTest(){
     localStorage.setItem("tests",JSON.stringify(tests));
     editIndex=null;
     initSections();
+    renderExamFilter();
     renderAll();
 }
 
-/* ================== SMART FEEDBACK ================== */
+/* ---------------- SMART FEEDBACK ---------------- */
 function autoFeedback(t){
     const examTests = tests.filter(x => x.exam === t.exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
     const idx = examTests.indexOf(t);
@@ -218,7 +214,6 @@ function autoFeedback(t){
     const weak = t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name;
     feedbackPool.push(`🧱 Weakest section: ${weak}. Fix this first for quick gains.`);
 
-    // Strategy insights (randomized)
     const strategies = [
         "You lose more from negatives than you gain from attempts. Attempt 6–8 fewer questions.",
         "Focus on accuracy over attempts for better score.",
@@ -236,18 +231,25 @@ function autoFeedback(t){
     return finalFeedback;
 }
 
-/* -------- EXAM COUNTDOWN FEATURE -------- */
+/* ---------------- EXAM FILTER ---------------- */
+function renderExamFilter(){
+    if(!examFilter) return;
+    let exams = Array.from(new Set(tests.map(t=>t.exam)));
+    examFilter.innerHTML = `<option value="ALL">All Exams</option>` +
+        exams.map(e=>`<option value="${e}">${e}</option>`).join("");
+    examFilter.onchange = renderAll;
+}
+
+/* ---------------- EXAM DAY COUNTDOWN CARD ---------------- */
 function addCountdownUI(){
-    const box = document.createElement("div");
-    box.id="examCountdownBox";
-    box.innerHTML=`
-        <h4>Exam Countdown ⏳</h4>
+    if(!countdownCard) return;
+    countdownCard.innerHTML=`
+        <h4>Exam Day Countdown ⏳</h4>
         <input id="countdownName" placeholder="Exam Name">
         <input id="countdownDate" type="date">
         <button onclick="addCountdown()">Add</button>
         <div id="countdownList"></div>
     `;
-    document.querySelector(".card").appendChild(box);
     renderCountdowns();
 }
 
@@ -291,80 +293,68 @@ function renderCountdowns(){
     });
 }
 
-/* -------- RENDER TABLE WITH FEEDBACK & COUNTDOWN -------- */
+/* ---------------- RENDER ALL TESTS ---------------- */
 function renderAll(){
     if(!tablesArea) return;
-    tablesArea.innerHTML = "";
+    tablesArea.innerHTML="";
+    analysisArea.innerHTML=""; // clear analysis
 
-    if(tests.length === 0){
-        tablesArea.innerHTML = "<p>No tests saved yet.</p>";
-        return;
-    }
+    const filter = examFilter.value;
+    const examsToShow = filter==="ALL"? Array.from(new Set(tests.map(t=>t.exam))) : [filter];
 
-    tests.forEach((t, idx) => {
+    examsToShow.forEach(exam=>{
+        const examTests = tests.filter(t=>t.exam===exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
+        if(examTests.length===0) return;
+
+        // calculate avg, best, worst
+        const totalMarks = examTests.map(t=>t.total);
+        const avg = (totalMarks.reduce((a,b)=>a+b,0)/totalMarks.length).toFixed(1);
+        const best = Math.max(...totalMarks);
+        const worst = Math.min(...totalMarks);
+
         const div = document.createElement("div");
-        div.className = "testCard";
-
-        // Get smart feedback
-        const feedback = autoFeedback(t);
-
-        // Days to exam (if countdown exists)
-        let countdownText = "";
-        const cd = examCountdowns.find(e => e.name === t.exam);
-        if(cd){
-            const days = Math.ceil((new Date(cd.date)-new Date())/(1000*60*60*24));
-            countdownText = days>=0 ? `${days} days left` : "Exam passed";
-        }
-
-        div.innerHTML = `
-            <h3>${t.exam} - ${t.test}</h3>
-            <p>Date: ${t.date} | Platform: ${t.platform} | Negative Marks: ${t.neg}</p>
-            <p>Total Marks: ${t.total} | Accuracy: ${t.accuracy}% | Neg Loss: ${t.negLoss}</p>
-            <p>📅 Countdown: ${countdownText}</p>
-            <p>💡 Feedback: ${feedback}</p>
-            <table border="1" cellspacing="0" cellpadding="4">
-                <tr>
-                    <th>Section</th><th>Marks</th><th>Correct</th><th>Wrong</th><th>Unattempted</th>
-                </tr>
-                ${t.sections.map(s => `<tr>
-                    <td>${s.name}</td>
-                    <td>${s.marks}</td>
-                    <td>${s.c}</td>
-                    <td>${s.w}</td>
-                    <td>${s.u}</td>
-                </tr>`).join("")}
-            </table>
-            <button onclick="editTest(${idx})">✏ Edit</button>
-            <button onclick="deleteTest(${idx})">🗑 Delete</button>
+        div.className="tableCard";
+        div.innerHTML=`<h3>${exam} (Avg: ${avg}, Best: ${best}, Worst: ${worst})</h3>`;
+        const table = document.createElement("table");
+        table.innerHTML=`
+            <tr>
+                <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy %</th><th>Neg Loss</th>
+            </tr>
         `;
+        examTests.forEach((t,idx)=>{
+            const tr = document.createElement("tr");
+            tr.style.cursor="pointer";
+            tr.innerHTML=`
+                <td>${t.test}</td>
+                <td>${t.date}</td>
+                <td>${t.platform}</td>
+                <td>${t.total}</td>
+                <td>${t.accuracy}</td>
+                <td>${t.negLoss}</td>
+            `;
+            tr.onclick = ()=>showAnalysis(t);
+            table.appendChild(tr);
+        });
+        div.appendChild(table);
         tablesArea.appendChild(div);
     });
 }
 
-/* -------- EDIT / DELETE TEST -------- */
-function editTest(idx){
-    const t = tests[idx];
-    editIndex = idx;
-    examName.value = t.exam;
-    testName.value = t.test;
-    testDate.value = t.date;
-    platformName.value = t.platform;
-    negativeMark.value = t.neg;
+/* ---------------- SHOW ANALYSIS ---------------- */
+function showAnalysis(t){
+    if(!analysisArea) return;
+    const examTests = tests.filter(x => x.exam===t.exam).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const idx = examTests.indexOf(t);
+    const prevMarks = examTests.slice(0,idx).map(x=>x.total);
+    const feedback = autoFeedback(t);
 
-    // Clear and rebuild sections
-    sections.innerHTML = "";
-    const labelRow = document.createElement("div");
-    labelRow.className="sectionLabels";
-    labelRow.innerHTML=`<span>Section</span><span>Marks</span><span>Correct</span><span>Wrong</span><span>Unattempted</span><span></span>`;
-    sections.appendChild(labelRow);
-
-    t.sections.forEach(s => addSection(s.name, s.marks, s.c, s.w, s.u));
-}
-
-function deleteTest(idx){
-    if(confirm("Delete this test?")){
-        tests.splice(idx,1);
-        localStorage.setItem("tests", JSON.stringify(tests));
-        renderAll();
-    }
+    analysisArea.innerHTML=`
+        <h4>Analysis for ${t.exam} - ${t.test}</h4>
+        <p>Previous Marks: ${prevMarks.length? prevMarks.join(" → ") : "No previous tests"}</p>
+        <p>Weakest Section: ${t.sections.reduce((a,b)=>a.marks<b.marks?a:b).name}</p>
+        <p>Correct: ${t.tc} | Wrong: ${t.tw} | Unattempted: ${t.tu}</p>
+        <p>Negative marks lost: ${t.negLoss}</p>
+        <p>Accuracy: ${t.accuracy}%</p>
+        <p>Feedback & Insights: ${feedback}</p>
+    `;
 }
