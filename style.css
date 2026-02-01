@@ -28,6 +28,13 @@ body {
   height:120px;
 }
 
+.flagDarkWrapper{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
 .flag{
   height:50px;
 }
@@ -68,19 +75,23 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
-.card, #sectionsWrapper {
-  display: flex;
-  gap: 20px;
+.horizontalCard {
+  display:flex;
+  gap:20px;
+}
+
+.colorfulCard {
+  background: linear-gradient(135deg,#fceabb,#f8b500);
 }
 
 /* ---------- SECTIONS ---------- */
 #sectionsWrapper {
-  flex: 2;
+  flex:2;
 }
 
 #examCountdownCard {
-  flex: 1;
-  min-width: 220px;
+  flex:1;
+  min-width:220px;
 }
 
 /* ---------- SECTION INPUTS ---------- */
@@ -181,20 +192,18 @@ tr:hover {
 }
 
 .best {
-  background: #ffeb3b;
+  background: #ffeb3b !important;
 }
 
 .worst {
-  background: #e57373;
+  background: #e57373 !important;
 }
 
-/* ---------- ANALYSIS AREA ---------- */
-#analysisArea {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 12px;
-  background: rgba(245,245,245,0.95);
-  transition: background 0.3s, color 0.3s;
+/* ---------- ANALYSIS BELOW TEST ---------- */
+.analysisDiv{
+  padding:10px;
+  background:#f0f8ff;
+  border-radius:10px;
 }
 
 /* ---------- INPUTS ---------- */
@@ -275,4 +284,4 @@ body.dark .sectionRow button {
 }
 
 body.dark .addBtn { background: #43a047; }
-body.dark .saveBtn { background: #1565c0; }
+body.dark .saveBtn { background: #1565c0; } 
