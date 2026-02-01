@@ -1,12 +1,11 @@
-/* ---------------- QUOTES ---------------- */
 const quotes = [
   "Don’t stop when you’re tired; stop when you are finally done.",
   "A mountain of books is just pages waiting to be turned.",
   "Be the person your future self will thank.",
   "Motivation gets you to the desk, habit keeps the pen moving."
 ];
-let qIndex = Math.floor(Math.random()*quotes.length);
 
+let qIndex = Math.floor(Math.random()*quotes.length);
 let tests = JSON.parse(localStorage.getItem("tests"))||[];
 let editIndex=null;
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
@@ -51,7 +50,8 @@ function addSectionHeader(){
   sections.prepend(header);
 }
 function addSection(name="",marks=0,c=0,w=0,u=0){
-  const d=document.createElement("div"); d.className="sectionRow";
+  const d=document.createElement("div"); 
+  d.className="sectionRow";
   d.innerHTML=`<input class="sectionName" value="${name}" placeholder="Section">
   <input type="number" class="sectionMarks" value="${marks}">
   <input type="number" value="${c}"><input type="number" value="${w}"><input type="number" value="${u}">
@@ -95,7 +95,7 @@ function renderAll(){
 }
 
 function renderDropdown(){
-  const exams=["ALL",...new Set(tests.map(t=>t.exam))];
+  const exams=["ALL",...new Set(tests.map(t=>t.exam.trim()))];
   examFilter.innerHTML="";
   exams.forEach(e=>{ 
     const opt=document.createElement("option"); 
@@ -107,10 +107,10 @@ function renderDropdown(){
 
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected=examFilter.value;
+  const selected=examFilter.value.trim();
   const grouped={};
   tests.forEach(t=>{
-    if(selected==="ALL" || t.exam===selected){
+    if(selected==="ALL" || t.exam.trim() === selected){
       if(!grouped[t.exam]) grouped[t.exam]=[];
       grouped[t.exam].push(t);
     }
@@ -121,8 +121,13 @@ function renderTables(){
     tableWrapper.className="examTableWrapper";
     tableWrapper.style.background= `hsl(${i*60}, 80%, 90%)`;
 
+    // Countdown
+    const examDate = new Date(grouped[exam][0].date);
+    const diff = Math.ceil((examDate - new Date())/(1000*60*60*24));
+    const countdown = diff>=0?` | ${diff} days left`:" | Completed";
+
     const avg=Math.round(grouped[exam].reduce((a,b)=>a+b.total,0)/grouped[exam].length);
-    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"} <span class="examCountdown"></span></h3>`;
+    tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg} / Target: ${targets[exam]||"-"} ${countdown}</h3>`;
 
     const table=document.createElement("table");
     const sectionNames=grouped[exam][0].sections.map(s=>s.name);
@@ -141,7 +146,7 @@ function renderTables(){
       if(t.total===worst) tr.classList.add("worst");
 
       let sectionColumns="";
-      t.sections.forEach(sec=>sectionColumns+=`<td>${sec.marks} (${sec.c}/${sec.w}/${sec.u})</td>`);
+      t.sections.forEach(sec=>sectionColumns+=`<td>${sec.marks}</td>`); // only marks
 
       const dt=new Date(t.date);
       const dtStr = dt.getDate().toString().padStart(2,'0')+"-"+(dt.getMonth()+1).toString().padStart(2,'0')+"-"+dt.getFullYear();
@@ -157,12 +162,6 @@ function renderTables(){
 
     tableWrapper.appendChild(table);
     tablesArea.appendChild(tableWrapper);
-
-    // Countdown
-    const countdownEl = tableWrapper.querySelector(".examCountdown");
-    const examDate = new Date(grouped[exam][0].date);
-    const diff = Math.ceil((examDate - new Date())/(1000*60*60*24));
-    countdownEl.textContent = diff>=0?` | ${diff} days left`:" | Completed";
   });
 }
 
@@ -174,12 +173,14 @@ function toggleAnalysis(btn){
     btn.textContent="Show";
     return;
   }
-  const idx = Array.from(tr.parentNode.children).indexOf(tr) - 1;
+  const idx = tests.findIndex(t=>t.test===tr.children[0].textContent && t.exam===examFilter.value);
   const t=tests[idx];
   const weak=t.sections.reduce((a,b)=>a.marks>b.marks?b:a);
+  let sectionDetails="";
+  t.sections.forEach(s=>sectionDetails+=`${s.name}: Marks:${s.marks}, C:${s.c}, W:${s.w}, U:${s.u} | `);
   const analysisRow=document.createElement("tr");
   analysisRow.className="analysisRow"; 
-  analysisRow.innerHTML=`<td colspan="${tr.children.length}">Weak Section: ${weak.name} | Neg Penalty: ${t.negLoss}</td>`;
+  analysisRow.innerHTML=`<td colspan="${tr.children.length}">Weak Section: ${weak.name} | Neg Penalty: ${t.negLoss} | Details: ${sectionDetails}</td>`;
   tr.parentNode.insertBefore(analysisRow,tr.nextSibling);
   btn.textContent="Hide";
 }
@@ -239,7 +240,7 @@ function exportExcel(){
     Platform:t.platform,
     Total:t.total,
     Accuracy:t.accuracy,
-    Sections:t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')
+    Sections:t.sections.map(s=>`${s.name}:${s.marks} C:${s.c} W:${s.w} U:${s.u}`).join(', ')
   })));
   const wb=XLSX.utils.book_new(); 
   XLSX.utils.book_append_sheet(wb,ws,"Tests"); 
@@ -253,7 +254,7 @@ function exportPDF(){
   tests.forEach(t=>{
     doc.text(`Exam: ${t.exam} | Test: ${t.test} | Date: ${t.date} | Total: ${t.total} | Accuracy: ${t.accuracy}`,10,y); 
     y+=7; 
-    doc.text(`Sections: ${t.sections.map(s=>`${s.name}:${s.marks}`).join(', ')}`,10,y); 
+    doc.text(`Sections: ${t.sections.map(s=>`${s.name}:${s.marks} C:${s.c} W:${s.w} U:${s.u}`).join(', ')}`,10,y); 
     y+=10; 
   }); 
   doc.save("MockTracker.pdf"); 
