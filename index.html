@@ -10,28 +10,36 @@
   
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- jsPDF for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
   <!-- ================= HEADER ================= -->
   <header class="topHeader">
-    <!-- Emblem -->
-    <img src="emblem.png" class="emblem" alt="Emblem">
+    <!-- Logo -->
+    <div class="logo">
+      <img src="emblem.png" class="emblem" alt="Emblem">
+    </div>
     
     <!-- Quotes -->
     <div class="quoteBox">
       <p id="quoteText"></p>
     </div>
-    
-    <!-- Flag -->
-    <img src="flag.jpg" class="flag" alt="Flag">
+
+    <!-- Flag & Dark Mode -->
+    <div class="flagBox">
+      <img src="flag.jpg" class="flag" alt="Flag">
+      <button id="darkModeBtn">🌙 Dark Mode</button>
+    </div>
   </header>
 
   <!-- ================= FORM ================= -->
   <div class="container">
-    <div class="card">
-      <h3>Add / Edit Test</h3>
-
+    <div class="card fullWidth">
+      <h2>Test Tracker</h2>
       <div class="formGrid">
         <div class="formGroup">
           <label for="examName">Exam Name</label>
@@ -57,6 +65,11 @@
           <label for="negativeMark">Negative Mark</label>
           <input id="negativeMark" type="number" placeholder="0.25">
         </div>
+
+        <div class="formGroup">
+          <label for="targetInput">Set Target 🎯</label>
+          <input id="targetInput" type="number" placeholder="Enter Target Marks">
+        </div>
       </div>
 
       <h4>Sections</h4>
@@ -73,6 +86,8 @@
       </select>
       <br><br>
       <button onclick="showGraph()">Show Graph 📊</button>
+      <button onclick="exportExcel()">Export Excel 📁</button>
+      <button onclick="exportPDF()">Export PDF 📄</button>
     </div>
   </div>
 
@@ -89,6 +104,5 @@
 
   <!-- ================= SCRIPT ================= -->
   <script src="script.js"></script>
-
 </body>
 </html>
