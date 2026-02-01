@@ -90,34 +90,59 @@ function renderDropdown(){
 }
 
 function renderTables(){
-  tablesArea.innerHTML=""; const selected=examFilter.value;
-  const grouped={}; tests.forEach(t=>{ if(selected==="ALL" || t.exam===selected){ if(!grouped[t.exam]) grouped[t.exam]=[]; grouped[t.exam].push(t); } });
+  tablesArea.innerHTML="";
+  const selected=examFilter.value;
+  const grouped={};
+  tests.forEach(t=>{
+    if(selected==="ALL" || t.exam===selected){
+      if(!grouped[t.exam]) grouped[t.exam]=[];
+      grouped[t.exam].push(t);
+    }
+  });
 
   Object.keys(grouped).forEach(exam=>{
     const tableWrapper=document.createElement("div"); tableWrapper.className="examTableWrapper";
     const avg=Math.round(grouped[exam].reduce((a,b)=>a+b.total,0)/grouped[exam].length);
     tableWrapper.innerHTML=`<h3>${exam} - Avg: ${avg}</h3>`;
+
     const table=document.createElement("table");
     table.innerHTML=`<tr>
       <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th><th>Sections</th><th>Feedback</th><th>Edit</th><th>Delete</th>
     </tr>`;
+
     const totals=grouped[exam].map(t=>t.total);
     const best=Math.max(...totals), worst=Math.min(...totals);
+
     grouped[exam].forEach(t=>{
       const tr=document.createElement("tr");
       if(t.total===best) tr.classList.add("best");
       if(t.total===worst) tr.classList.add("worst");
+
+      // Colorful sections
+      const sectionDiv=document.createElement("div");
+      sectionDiv.className="sectionColors";
+      t.sections.forEach((s,i)=>{
+        const span=document.createElement("span");
+        span.textContent=`${s.name}:${s.marks}`;
+        sectionDiv.appendChild(span);
+      });
+
       tr.innerHTML=`<td>${t.test}</td><td>${t.date}</td><td>${t.platform}</td><td>${t.total}</td><td>${t.accuracy}</td>
-      <td>${t.sections.map(s=>s.name+":"+s.marks).join(", ")}</td>
+      <td></td>
       <td><button onclick="toggleAnalysis(this)">Show</button></td>
       <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
       <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>`;
+      
+      tr.children[5].appendChild(sectionDiv); // add colorful sections
+
       table.appendChild(tr);
     });
+
     tableWrapper.appendChild(table);
     tablesArea.appendChild(tableWrapper);
   });
 }
+
 
 /* ---------------- ANALYSIS ---------------- */
 function toggleAnalysis(btn){
