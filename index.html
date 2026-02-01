@@ -5,6 +5,9 @@
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Prevent favicon.ico 404 -->
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
   <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
 
@@ -33,8 +36,8 @@
   <div class="container">
     <div class="card trackerCard">
       <h3>Test Tracker</h3>
-      <div class="formGrid">
 
+      <div class="formGrid">
         <div class="formGroup">
           <label for="examName">Exam Name</label>
           <input id="examName" placeholder="CGL / NTPC">
@@ -59,11 +62,11 @@
           <label for="targetInput">Set Target 🎯</label>
           <input id="targetInput" type="number" placeholder="Enter Target Marks">
         </div>
-
       </div>
 
       <h4>Sections</h4>
       <div id="sections"></div>
+
       <div class="btnRow">
         <button class="addBtn" onclick="addSection()">+ Add Section</button>
         <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
