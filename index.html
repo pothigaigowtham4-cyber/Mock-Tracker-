@@ -1,213 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Mock Tracker</title>
+  <meta charset="UTF-8">
+  <title>Mock Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- FAVICON REMOVED COMPLETELY -->
-<link rel="icon" href="data:,">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <link rel="stylesheet" href="style.css">
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  margin: 0;
-  padding: 20px;
-}
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.logo {
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.quote {
-  flex: 1;
-  text-align: center;
-  font-style: italic;
-  color: #555;
-}
-
-.flag {
-  width: 60px;
-}
-
-.card {
-  background: #fff;
-  padding: 18px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.08);
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-input, select, button {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-}
-
-.btn-primary { background:#0d6efd;color:#fff; }
-.btn-success { background:#198754;color:#fff; }
-.btn-light { background:#eee; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-
-.analysis {
-  display: none;
-  margin-top: 10px;
-  background: #f9fafb;
-  padding: 10px;
-  border-radius: 8px;
-}
-</style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
 
-<header>
-  <div class="logo">📘 MOCK TRACKER</div>
-
-  <div class="quote" id="quote"></div>
-
-  <!-- INLINE SVG INDIA FLAG (CANNOT FAIL) -->
-  <svg class="flag" viewBox="0 0 3 2">
-    <rect width="3" height="2" fill="#fff"/>
-    <rect width="3" height="0.66" y="0" fill="#FF9933"/>
-    <rect width="3" height="0.66" y="1.33" fill="#138808"/>
-    <circle cx="1.5" cy="1" r="0.2" fill="#000080"/>
-  </svg>
+<header class="topHeader">
+  <img src="emblem.png" class="logo">
+  <div class="quoteBox"><p id="quoteText"></p></div>
+  <div class="flagContainer">
+    <img src="flag.jpg" class="flag">
+    <button id="darkModeBtn">🌙 Dark Mode</button>
+  </div>
 </header>
 
-<div class="card">
-<h3>Test Tracker</h3>
-<div class="grid-2">
-  <input id="exam" placeholder="Exam">
-  <input id="test" placeholder="Test Name">
-  <input id="date" type="date">
-  <input id="platform" placeholder="Platform">
+<div class="container">
+  <div class="card trackerCard">
+    <h3>Test Tracker</h3>
+
+    <div class="formGrid">
+      <div class="formGroup"><label>Exam</label><input id="examName"></div>
+      <div class="formGroup"><label>Test</label><input id="testName"></div>
+      <div class="formGroup"><label>Date</label><input id="testDate" type="date"></div>
+      <div class="formGroup"><label>Platform</label><input id="platformName"></div>
+      <div class="formGroup"><label>Negative</label><input id="negativeMark" type="number"></div>
+      <div class="formGroup"><label>Target 🎯</label><input id="targetInput" type="number"></div>
+    </div>
+
+    <h4>Sections</h4>
+    <div id="sections"></div>
+
+    <div class="btnRow">
+      <button class="addBtn" onclick="addSection()">+ Add Section</button>
+      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
+    </div>
+
+    <!-- 🔹 NEW FILTER (clean rebuild) -->
+    <h4>View Exam</h4>
+    <select id="examFilter"></select>
+
+    <br><br>
+    <button onclick="showGraph()">Show Graph 📊</button>
+    <button onclick="exportExcel()">Export Excel 📁</button>
+    <button onclick="exportPDF()">Export PDF 📄</button>
+  </div>
 </div>
-<br>
-<div class="grid-2">
-  <input id="target" placeholder="Target">
-  <input id="negative" placeholder="Negative">
-</div>
-</div>
 
-<div class="card">
-<h3>Section Marks</h3>
-<table id="sectionTable">
-<thead>
-<tr><th>Section</th><th>Marks</th><th>C</th><th>W</th><th>U</th></tr>
-</thead>
-<tbody></tbody>
-</table>
-<br>
-<button class="btn-primary" onclick="addSection()">+ Add Section</button>
-<button class="btn-success" onclick="saveTest()">💾 Save Test</button>
+<div id="tablesArea"></div>
+
+<div id="graphPage" style="display:none;">
+  <h3>Performance Graph</h3>
+  <canvas id="graph"></canvas><br>
+  <button onclick="hideGraph()">⬅ Back</button>
 </div>
 
-<div class="card">
-<h3>Tests</h3>
-<table id="testTable"></table>
-</div>
-
-<script>
-const quotes = [
-  "Discipline beats motivation.",
-  "Consistency creates rank.",
-  "Mocks decide selection.",
-  "Accuracy > Attempts.",
-  "Today’s mock = tomorrow’s cutoff.",
-  "Small gains daily.",
-  "Analyse more than you attempt.",
-  "One exam can change your life.",
-  "Strong basics win prelims.",
-  "Trust the process."
-];
-
-let qi = 0;
-setInterval(() => {
-  document.getElementById("quote").innerText = quotes[qi++ % quotes.length];
-}, 3000);
-
-let data = JSON.parse(localStorage.getItem("mockData") || "[]");
-
-function addSection() {
-  document.querySelector("#sectionTable tbody").insertAdjacentHTML("beforeend", `
-  <tr>
-    <td><input></td>
-    <td><input type="number"></td>
-    <td><input type="number"></td>
-    <td><input type="number"></td>
-    <td><input type="number"></td>
-  </tr>`);
-}
-
-function saveTest() {
-  const sections = [...document.querySelectorAll("#sectionTable tbody tr")].map(r=>{
-    const i=r.querySelectorAll("input");
-    return {name:i[0].value,marks:+i[1].value,c:+i[2].value,w:+i[3].value,u:+i[4].value};
-  });
-
-  data.push({ exam:exam.value, test:test.value, date:date.value, sections });
-  localStorage.setItem("mockData", JSON.stringify(data));
-  renderTable();
-}
-
-function renderTable() {
-  const t = document.getElementById("testTable");
-  t.innerHTML = "<tr><th>Exam</th><th>Test</th><th>Date</th><th>Avg</th></tr>";
-
-  data.forEach((x,i)=>{
-    const avg=(x.sections.reduce((a,b)=>a+b.marks,0)/(x.sections.length||1)).toFixed(1);
-    t.innerHTML += `
-    <tr onclick="toggle(${i})">
-      <td>${x.exam}</td><td>${x.test}</td><td>${x.date}</td><td>${avg}</td>
-    </tr>
-    <tr><td colspan="4">
-      <div class="analysis" id="a${i}">
-        ${x.sections.map(s=>`${s.name}: C${s.c} W${s.w} U${s.u}`).join("<br>")}
-      </div>
-    </td></tr>`;
-  });
-}
-
-function toggle(i){
-  const d=document.getElementById("a"+i);
-  d.style.display=d.style.display==="block"?"none":"block";
-}
-
-addSection();
-renderTable();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
