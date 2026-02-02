@@ -6,7 +6,7 @@ const quotes=[
 
 let tests=JSON.parse(localStorage.getItem("tests"))||[];
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
-let examDates=JSON.parse(localStorage.getItem("examDates"))||{}; // 🔹 MULTI EXAM COUNTER
+let examDates=JSON.parse(localStorage.getItem("examDates"))||{};
 let editIndex=null;
 
 /* ---------------- INIT ---------------- */
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
   initSections();
   buildFilter();
-  renderExamCounters();   // 🔹 added
+  renderExamCounters();
   renderTables();
   darkModeBtn.onclick=toggleDark;
 });
@@ -25,7 +25,7 @@ function toggleDark(){
   darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
 }
 
-/* ---------------- SECTIONS ---------------- */
+/* ---------------- SECTIONS (SPACING IMPROVED) ---------------- */
 function initSections(){
   sections.innerHTML="";
   addSectionHeader();
@@ -34,21 +34,26 @@ function initSections(){
 
 function addSectionHeader(){
   sections.innerHTML+=`
-  <div class="sectionLabels">
+  <div class="sectionLabels" style="margin-bottom:8px;">
     <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
   </div>`;
 }
 
 function addSection(n="",m=0,c=0,w=0,u=0){
-  sections.innerHTML+=`
-  <div class="sectionRow">
+  const row=document.createElement("div");
+  row.className="sectionRow";
+  row.style.marginBottom="8px";      // vertical spacing
+  row.style.alignItems="center";     // horizontal alignment
+
+  row.innerHTML=`
     <input class="sectionName" value="${n}">
     <input class="sectionMarks" type="number" value="${m}">
     <input type="number" value="${c}">
     <input type="number" value="${w}">
     <input type="number" value="${u}">
     <button onclick="this.parentElement.remove()">🗑</button>
-  </div>`;
+  `;
+  sections.appendChild(row);
 }
 
 /* ---------------- SAVE TEST ---------------- */
@@ -115,7 +120,7 @@ function renderExamCounters(){
       <input id="counterExamDate" type="date">
       <button onclick="saveExamDate()">Save</button>
     </div>
-    <div id="examCountdownList"></div>
+    <div id="examCountdownList" style="margin-top:10px;"></div>
   `;
 
   tablesArea.parentNode.insertBefore(card,tablesArea);
@@ -134,28 +139,26 @@ function saveExamDate(){
 
 function updateExamCountdownList(){
   const list=document.getElementById("examCountdownList");
-  if(!list) return;
+  if(!list)return;
   list.innerHTML="";
 
   const today=new Date();
-
   Object.keys(examDates).forEach(name=>{
     const d=new Date(examDates[name]);
     const diff=Math.ceil((d-today)/(1000*60*60*24));
-
-    const row=document.createElement("p");
-    row.innerHTML=diff>=0
+    const p=document.createElement("p");
+    p.style.margin="6px 0";           // vertical spacing
+    p.innerHTML=diff>=0
       ? `<strong>${name}</strong> : ${diff} days remaining`
       : `<strong>${name}</strong> : Exam Passed`;
-
-    list.appendChild(row);
+    list.appendChild(p);
   });
 }
 
-/* ---------------- TABLES (BEST / WORST) ---------------- */
+/* ---------------- TABLES (AVG + BEST/WORST) ---------------- */
 function renderTables(){
   tablesArea.innerHTML="";
-  renderExamCounters(); // 🔹 ensure counters stay above tables
+  renderExamCounters();
 
   const selected=examFilter.value||"ALL";
   const grouped={};
@@ -170,14 +173,15 @@ function renderTables(){
   Object.keys(grouped).forEach(exam=>{
     const wrap=document.createElement("div");
     wrap.className="examTableWrapper";
-    wrap.innerHTML=`<h3>${exam} | Target: ${targets[exam]||"-"}</h3>`;
-
-    const table=document.createElement("table");
 
     const totals=grouped[exam].map(t=>t.total);
+    const avg=Math.round(totals.reduce((a,b)=>a+b,0)/totals.length);
     const best=Math.max(...totals);
     const worst=Math.min(...totals);
 
+    wrap.innerHTML=`<h3>${exam} | Avg: ${avg} | Target: ${targets[exam]||"-"}</h3>`;
+
+    const table=document.createElement("table");
     table.innerHTML=`<tr>
       <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
       ${grouped[exam][0].sections.map(s=>`<th>${s.name}</th>`).join("")}
