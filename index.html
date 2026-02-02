@@ -1,67 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mock Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Mock Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<link rel="stylesheet" href="style.css">
 
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-  <link rel="stylesheet" href="style.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
 
 <header class="topHeader">
-  <img src="emblem.png" class="logo">
-  <div class="quoteBox"><p id="quoteText"></p></div>
-  <div class="flagContainer">
-    <img src="flag.jpg" class="flag">
-    <button id="darkModeBtn">🌙 Dark Mode</button>
-  </div>
+  <h2>Mock Tracker</h2>
+  <p id="quoteText"></p>
+  <button id="darkModeBtn">🌙 Dark Mode</button>
 </header>
 
 <div class="container">
-  <div class="card trackerCard">
+
+  <!-- TEST TRACKER CARD -->
+  <div class="card">
     <h3>Test Tracker</h3>
+    <div class="trackerGrid">
+      <input id="examName" placeholder="Exam">
+      <input id="testName" placeholder="Test">
+      <input id="testDate" type="date">
 
-    <div class="formGrid">
-      <div class="formGroup"><label>Exam</label><input id="examName"></div>
-      <div class="formGroup"><label>Test</label><input id="testName"></div>
-      <div class="formGroup"><label>Date</label><input id="testDate" type="date"></div>
-      <div class="formGroup"><label>Platform</label><input id="platformName"></div>
-      <div class="formGroup"><label>Negative</label><input id="negativeMark" type="number"></div>
-      <div class="formGroup"><label>Target 🎯</label><input id="targetInput" type="number"></div>
+      <input id="platformName" placeholder="Platform">
+      <input id="negativeMark" type="number" placeholder="Negative">
+      <input id="targetInput" type="number" placeholder="Target">
     </div>
-
-    <h4>Sections</h4>
-    <div id="sections"></div>
-
-    <div class="btnRow">
-      <button class="addBtn" onclick="addSection()">+ Add Section</button>
-      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
-    </div>
-
-    <!-- 🔹 NEW FILTER (clean rebuild) -->
-    <h4>View Exam</h4>
-    <select id="examFilter"></select>
-
-    <br><br>
-    <button onclick="showGraph()">Show Graph 📊</button>
-    <button onclick="exportExcel()">Export Excel 📁</button>
-    <button onclick="exportPDF()">Export PDF 📄</button>
   </div>
-</div>
 
-<div id="tablesArea"></div>
+  <!-- SECTION MARKS CARD -->
+  <div class="card">
+    <h3>Section Marks</h3>
+    <div id="sections"></div>
+    <div class="btnRow">
+      <button onclick="addSection()">+ Add Section</button>
+      <button onclick="saveTest()">💾 Save Test</button>
+    </div>
+  </div>
 
-<div id="graphPage" style="display:none;">
-  <h3>Performance Graph</h3>
-  <canvas id="graph"></canvas><br>
-  <button onclick="hideGraph()">⬅ Back</button>
+  <!-- EXAM COUNTER -->
+  <div id="examCounterArea"></div>
+
+  <select id="examFilter"></select>
+
+  <div class="btnRow">
+    <button onclick="showGraph()">📊 Graph</button>
+    <button onclick="exportExcel()">📁 Excel</button>
+    <button onclick="exportPDF()">📄 PDF</button>
+  </div>
+
+  <div id="tablesArea"></div>
+
+  <div id="graphPage" style="display:none">
+    <canvas id="graph"></canvas>
+    <button onclick="hideGraph()">⬅ Back</button>
+  </div>
+
 </div>
 
 <script src="script.js"></script>
