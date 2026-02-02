@@ -6,7 +6,7 @@ const quotes=[
 
 let tests=JSON.parse(localStorage.getItem("tests"))||[];
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
-let examDates=JSON.parse(localStorage.getItem("examDates"))||{};
+let examDates=JSON.parse(localStorage.getItem("examDates"))||{}; // 🔹 MULTI EXAM COUNTER
 let editIndex=null;
 
 /* ---------------- INIT ---------------- */
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
   initSections();
   buildFilter();
+  renderExamCounters();   // 🔹 added
   renderTables();
   darkModeBtn.onclick=toggleDark;
 });
@@ -50,7 +51,7 @@ function addSection(n="",m=0,c=0,w=0,u=0){
   </div>`;
 }
 
-/* ---------------- SAVE ---------------- */
+/* ---------------- SAVE TEST ---------------- */
 function saveTest(){
   if(!examName.value||!testName.value||!testDate.value)return alert("Fill all fields");
 
@@ -101,12 +102,64 @@ function buildFilter(){
   examFilter.onchange=renderTables;
 }
 
-/* ---------------- TABLES (BEST / WORST FIXED) ---------------- */
+/* ---------------- EXAM DATE COUNTER ---------------- */
+function renderExamCounters(){
+  document.querySelectorAll(".examCounterCard").forEach(e=>e.remove());
+
+  const card=document.createElement("div");
+  card.className="examCounterCard";
+  card.innerHTML=`
+    <h3>📅 Exam Date Counter</h3>
+    <div class="counterRow">
+      <input id="counterExamName" placeholder="Exam Name">
+      <input id="counterExamDate" type="date">
+      <button onclick="saveExamDate()">Save</button>
+    </div>
+    <div id="examCountdownList"></div>
+  `;
+
+  tablesArea.parentNode.insertBefore(card,tablesArea);
+  updateExamCountdownList();
+}
+
+function saveExamDate(){
+  const name=document.getElementById("counterExamName").value.trim();
+  const date=document.getElementById("counterExamDate").value;
+  if(!name||!date)return alert("Enter exam name & date");
+
+  examDates[name]=date;
+  localStorage.setItem("examDates",JSON.stringify(examDates));
+  updateExamCountdownList();
+}
+
+function updateExamCountdownList(){
+  const list=document.getElementById("examCountdownList");
+  if(!list) return;
+  list.innerHTML="";
+
+  const today=new Date();
+
+  Object.keys(examDates).forEach(name=>{
+    const d=new Date(examDates[name]);
+    const diff=Math.ceil((d-today)/(1000*60*60*24));
+
+    const row=document.createElement("p");
+    row.innerHTML=diff>=0
+      ? `<strong>${name}</strong> : ${diff} days remaining`
+      : `<strong>${name}</strong> : Exam Passed`;
+
+    list.appendChild(row);
+  });
+}
+
+/* ---------------- TABLES (BEST / WORST) ---------------- */
 function renderTables(){
   tablesArea.innerHTML="";
-  const selected=examFilter.value||"ALL";
+  renderExamCounters(); // 🔹 ensure counters stay above tables
 
+  const selected=examFilter.value||"ALL";
   const grouped={};
+
   tests.forEach(t=>{
     if(selected==="ALL"||t.exam===selected){
       grouped[t.exam]=grouped[t.exam]||[];
@@ -121,9 +174,9 @@ function renderTables(){
 
     const table=document.createElement("table");
 
-    const totals = grouped[exam].map(t=>t.total);
-    const best = Math.max(...totals);
-    const worst = Math.min(...totals);
+    const totals=grouped[exam].map(t=>t.total);
+    const best=Math.max(...totals);
+    const worst=Math.min(...totals);
 
     table.innerHTML=`<tr>
       <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
@@ -133,7 +186,6 @@ function renderTables(){
 
     grouped[exam].forEach(t=>{
       const tr=document.createElement("tr");
-
       if(t.total===best) tr.classList.add("best");
       if(t.total===worst) tr.classList.add("worst");
 
