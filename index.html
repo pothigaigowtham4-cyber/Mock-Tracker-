@@ -5,95 +5,65 @@
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Prevent favicon.ico 404 -->
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-
-  <!-- Custom Stylesheet -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- XLSX for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <!-- jsPDF for PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
+
 <body>
 
-  <!-- ================= HEADER ================= -->
-  <header class="topHeader">
-    <img src="emblem.png" class="logo" alt="Emblem">
-    <div class="quoteBox">
-      <p id="quoteText"></p>
-    </div>
-    <div class="flagContainer">
-      <img src="flag.jpg" class="flag" alt="Flag">
-      <button id="darkModeBtn">🌙 Dark Mode</button>
-    </div>
-  </header>
-
-  <!-- ================= FORM ================= -->
-  <div class="container">
-    <div class="card trackerCard">
-      <h3>Test Tracker</h3>
-
-      <div class="formGrid">
-        <div class="formGroup">
-          <label for="examName">Exam Name</label>
-          <input id="examName" placeholder="CGL / NTPC">
-        </div>
-        <div class="formGroup">
-          <label for="testName">Test Name</label>
-          <input id="testName" placeholder="Mock 1">
-        </div>
-        <div class="formGroup">
-          <label for="testDate">Test Date</label>
-          <input id="testDate" type="date">
-        </div>
-        <div class="formGroup">
-          <label for="platformName">Platform Name</label>
-          <input id="platformName" placeholder="OLIVEBOARD">
-        </div>
-        <div class="formGroup">
-          <label for="negativeMark">Negative Mark</label>
-          <input id="negativeMark" type="number" placeholder="0.25">
-        </div>
-        <div class="formGroup">
-          <label for="targetInput">Set Target 🎯</label>
-          <input id="targetInput" type="number" placeholder="Enter Target Marks">
-        </div>
-      </div>
-
-      <h4>Sections</h4>
-      <div id="sections"></div>
-
-      <div class="btnRow">
-        <button class="addBtn" onclick="addSection()">+ Add Section</button>
-        <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
-      </div>
-
-      <h4>Filter Tests</h4>
-      <select id="examFilter" onchange="renderAll()">
-        <option value="ALL">All Exams</option>
-      </select>
-      <br><br>
-      <button onclick="showGraph()">Show Graph 📊</button>
-      <button onclick="exportExcel()">Export Excel 📁</button>
-      <button onclick="exportPDF()">Export PDF 📄</button>
-    </div>
+<header class="topHeader">
+  <img src="emblem.png" class="logo">
+  <div class="quoteBox"><p id="quoteText"></p></div>
+  <div class="flagContainer">
+    <img src="flag.jpg" class="flag">
+    <button id="darkModeBtn">🌙 Dark Mode</button>
   </div>
+</header>
 
-  <!-- ================= TABLES ================= -->
-  <div id="tablesArea"></div>
+<div class="container">
+  <div class="card trackerCard">
+    <h3>Test Tracker</h3>
 
-  <!-- ================= GRAPH ================= -->
-  <div id="graphPage" style="display:none;">
-    <h3>Performance Graph</h3>
-    <canvas id="graph"></canvas>
-    <br>
-    <button onclick="hideGraph()">⬅ Back</button>
+    <div class="formGrid">
+      <div class="formGroup"><label>Exam</label><input id="examName"></div>
+      <div class="formGroup"><label>Test</label><input id="testName"></div>
+      <div class="formGroup"><label>Date</label><input id="testDate" type="date"></div>
+      <div class="formGroup"><label>Platform</label><input id="platformName"></div>
+      <div class="formGroup"><label>Negative</label><input id="negativeMark" type="number"></div>
+      <div class="formGroup"><label>Target 🎯</label><input id="targetInput" type="number"></div>
+    </div>
+
+    <h4>Sections</h4>
+    <div id="sections"></div>
+
+    <div class="btnRow">
+      <button class="addBtn" onclick="addSection()">+ Add Section</button>
+      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
+    </div>
+
+    <!-- 🔹 NEW FILTER (clean rebuild) -->
+    <h4>View Exam</h4>
+    <select id="examFilter"></select>
+
+    <br><br>
+    <button onclick="showGraph()">Show Graph 📊</button>
+    <button onclick="exportExcel()">Export Excel 📁</button>
+    <button onclick="exportPDF()">Export PDF 📄</button>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<div id="tablesArea"></div>
+
+<div id="graphPage" style="display:none;">
+  <h3>Performance Graph</h3>
+  <canvas id="graph"></canvas><br>
+  <button onclick="hideGraph()">⬅ Back</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
