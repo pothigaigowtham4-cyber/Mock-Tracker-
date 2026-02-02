@@ -44,19 +44,26 @@ function toggleDark(){
   darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
 }
 
-/* ---------------- SECTIONS ---------------- */
+/* ---------------- SECTIONS (2 ROW LAYOUT FIX) ---------------- */
 function initSections(){
   sections.innerHTML="";
+  sections.style.display="grid";
+  sections.style.gridTemplateColumns="1fr 1fr";
+  sections.style.gap="12px";
+
   sections.innerHTML+=`
-    <div class="sectionLabels">
+    <div class="sectionLabels" style="grid-column:1/-1">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
     </div>`;
+
   for(let i=0;i<4;i++) addSection();
 }
 
 function addSection(n="",m=0,c=0,w=0,u=0){
   const r=document.createElement("div");
   r.className="sectionRow";
+  r.style.display="flex";
+  r.style.gap="6px";
   r.innerHTML=`
     <input value="${n}">
     <input type="number" value="${m}">
@@ -164,22 +171,32 @@ function renderTables(){
   });
 }
 
-/* ---------------- ANALYSIS PANEL ---------------- */
+/* ---------------- ANALYSIS (FIXED TOGGLE + INSIGHTS) ---------------- */
 function toggleAnalysis(row,test,examTests,index){
-  if(openAnalysisRow){ openAnalysisRow.remove(); openAnalysisRow=null; }
-  if(row.nextSibling && row.nextSibling.className==="analysisRow") return;
+  if(openAnalysisRow){
+    if(openAnalysisRow.previousSibling===row){
+      openAnalysisRow.remove();
+      openAnalysisRow=null;
+      return;
+    }
+    openAnalysisRow.remove();
+    openAnalysisRow=null;
+  }
 
   const negLost=test.tw*test.neg;
-  const prevAvg=index?Math.round(examTests.slice(0,index).reduce((a,b)=>a+b.total,0)/index):test.total;
-  const target=targets[test.exam];
-  const insight=insightBank[(test.total+index)%insightBank.length];
+  const prevAvg=index
+    ? Math.round(examTests.slice(0,index).reduce((a,b)=>a+b.total,0)/index)
+    : test.total;
+
+  const insightIndex=Math.abs((test.total+index)%insightBank.length);
+  const insightText=insightBank[insightIndex];
 
   const a=document.createElement("tr");
   a.className="analysisRow";
   a.innerHTML=`
     <td colspan="${4+test.sections.length}">
-      <div style="text-align:left;padding:10px">
-        <strong>Section-wise Analysis</strong>
+      <div style="text-align:left;padding:12px">
+        <strong>Section-wise</strong>
         <ul>${test.sections.map(s=>
           `<li>${s.name}: C ${s.c}, W ${s.w}, U ${s.u}</li>`).join("")}</ul>
 
@@ -188,8 +205,8 @@ function toggleAnalysis(row,test,examTests,index){
         <p>Negative Marks Lost: ${negLost}</p>
 
         <strong>Insight</strong>
-        <p>${insight}</p>
-        ${target?`<p>Target Gap: ${test.total-target}</p>`:""}
+        <p>${insightText}</p>
+        ${targets[test.exam]?`<p>Target Gap: ${test.total-targets[test.exam]}</p>`:""}
         <p>Previous Avg: ${prevAvg}</p>
       </div>
     </td>`;
@@ -198,5 +215,5 @@ function toggleAnalysis(row,test,examTests,index){
   openAnalysisRow=a;
 }
 
-/* ---------------- EXAM COUNTER (UNCHANGED) ---------------- */
-function renderExamCounters(){/* unchanged from previous version */}
+/* ---------------- EXAM COUNTER ---------------- */
+function renderExamCounters(){/* unchanged */}
