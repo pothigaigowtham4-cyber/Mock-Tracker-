@@ -92,7 +92,7 @@ function saveTest(){
   renderTables();
 }
 
-/* ---------------- FILTER (REBUILT CLEAN) ---------------- */
+/* ---------------- FILTER ---------------- */
 function buildFilter(){
   examFilter.innerHTML="";
   const exams=[...new Set(tests.map(t=>t.exam))];
@@ -101,7 +101,7 @@ function buildFilter(){
   examFilter.onchange=renderTables;
 }
 
-/* ---------------- TABLES ---------------- */
+/* ---------------- TABLES (BEST / WORST FIXED) ---------------- */
 function renderTables(){
   tablesArea.innerHTML="";
   const selected=examFilter.value||"ALL";
@@ -120,15 +120,24 @@ function renderTables(){
     wrap.innerHTML=`<h3>${exam} | Target: ${targets[exam]||"-"}</h3>`;
 
     const table=document.createElement("table");
+
+    const totals = grouped[exam].map(t=>t.total);
+    const best = Math.max(...totals);
+    const worst = Math.min(...totals);
+
     table.innerHTML=`<tr>
       <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
       ${grouped[exam][0].sections.map(s=>`<th>${s.name}</th>`).join("")}
       <th>Edit</th><th>Delete</th>
     </tr>`;
 
-    grouped[exam].forEach((t,i)=>{
-      table.innerHTML+=`
-      <tr>
+    grouped[exam].forEach(t=>{
+      const tr=document.createElement("tr");
+
+      if(t.total===best) tr.classList.add("best");
+      if(t.total===worst) tr.classList.add("worst");
+
+      tr.innerHTML=`
         <td>${t.test}</td>
         <td>${t.date}</td>
         <td>${t.platform}</td>
@@ -137,7 +146,8 @@ function renderTables(){
         ${t.sections.map(s=>`<td>${s.marks}</td>`).join("")}
         <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
         <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>
-      </tr>`;
+      `;
+      table.appendChild(tr);
     });
 
     wrap.appendChild(table);
