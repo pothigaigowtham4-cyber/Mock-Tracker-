@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Mock Tracker</title>
+
+<!-- FAVICON REMOVED COMPLETELY -->
+<link rel="icon" href="data:,">
+
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -14,12 +18,25 @@ body {
 header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
-header img {
-  height: 40px;
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.quote {
+  flex: 1;
+  text-align: center;
+  font-style: italic;
+  color: #555;
+}
+
+.flag {
+  width: 60px;
 }
 
 .card {
@@ -34,12 +51,6 @@ header img {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
-}
-
-.grid-5 {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
 }
 
 input, select, button {
@@ -71,9 +82,9 @@ th, td {
 
 .analysis {
   display: none;
-  margin-top: 12px;
+  margin-top: 10px;
   background: #f9fafb;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
 }
 </style>
@@ -82,134 +93,117 @@ th, td {
 <body>
 
 <header>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2e/Flag_of_India.svg">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo_TV_2015.png">
-  <h2>Mock Test Tracker</h2>
+  <div class="logo">📘 MOCK TRACKER</div>
+
+  <div class="quote" id="quote"></div>
+
+  <!-- INLINE SVG INDIA FLAG (CANNOT FAIL) -->
+  <svg class="flag" viewBox="0 0 3 2">
+    <rect width="3" height="2" fill="#fff"/>
+    <rect width="3" height="0.66" y="0" fill="#FF9933"/>
+    <rect width="3" height="0.66" y="1.33" fill="#138808"/>
+    <circle cx="1.5" cy="1" r="0.2" fill="#000080"/>
+  </svg>
 </header>
 
-<!-- TEST TRACKER -->
 <div class="card">
 <h3>Test Tracker</h3>
-
 <div class="grid-2">
   <input id="exam" placeholder="Exam">
   <input id="test" placeholder="Test Name">
   <input id="date" type="date">
   <input id="platform" placeholder="Platform">
 </div>
-
 <br>
-
 <div class="grid-2">
-  <input id="target" placeholder="Target Score">
-  <input id="negative" placeholder="Negative Marks">
+  <input id="target" placeholder="Target">
+  <input id="negative" placeholder="Negative">
+</div>
 </div>
 
-</div>
-
-<!-- SECTION MARKS -->
 <div class="card">
 <h3>Section Marks</h3>
-
 <table id="sectionTable">
 <thead>
-<tr>
-<th>Section</th><th>Marks</th><th>C</th><th>W</th><th>U</th>
-</tr>
+<tr><th>Section</th><th>Marks</th><th>C</th><th>W</th><th>U</th></tr>
 </thead>
 <tbody></tbody>
 </table>
-
 <br>
 <button class="btn-primary" onclick="addSection()">+ Add Section</button>
 <button class="btn-success" onclick="saveTest()">💾 Save Test</button>
 </div>
 
-<!-- VIEW -->
 <div class="card">
-<select id="examFilter" onchange="renderTable()">
-<option>All Exams</option>
-</select>
-
-<br><br>
-
-<button class="btn-light" onclick="showGraph()">📊 Show Graph</button>
-<button class="btn-light" onclick="exportExcel()">📁 Export Excel</button>
-<button class="btn-light" onclick="exportPDF()">📄 Export PDF</button>
-
+<h3>Tests</h3>
 <table id="testTable"></table>
 </div>
 
 <script>
+const quotes = [
+  "Discipline beats motivation.",
+  "Consistency creates rank.",
+  "Mocks decide selection.",
+  "Accuracy > Attempts.",
+  "Today’s mock = tomorrow’s cutoff.",
+  "Small gains daily.",
+  "Analyse more than you attempt.",
+  "One exam can change your life.",
+  "Strong basics win prelims.",
+  "Trust the process."
+];
+
+let qi = 0;
+setInterval(() => {
+  document.getElementById("quote").innerText = quotes[qi++ % quotes.length];
+}, 3000);
+
 let data = JSON.parse(localStorage.getItem("mockData") || "[]");
 
 function addSection() {
-  const row = `
+  document.querySelector("#sectionTable tbody").insertAdjacentHTML("beforeend", `
   <tr>
     <td><input></td>
     <td><input type="number"></td>
     <td><input type="number"></td>
     <td><input type="number"></td>
     <td><input type="number"></td>
-  </tr>`;
-  document.querySelector("#sectionTable tbody").insertAdjacentHTML("beforeend", row);
+  </tr>`);
 }
 
 function saveTest() {
   const sections = [...document.querySelectorAll("#sectionTable tbody tr")].map(r=>{
     const i=r.querySelectorAll("input");
-    return {
-      name:i[0].value,
-      marks:+i[1].value,
-      c:+i[2].value,
-      w:+i[3].value,
-      u:+i[4].value
-    }
+    return {name:i[0].value,marks:+i[1].value,c:+i[2].value,w:+i[3].value,u:+i[4].value};
   });
 
-  const test = {
-    exam: exam.value,
-    test: test.value,
-    date: date.value,
-    platform: platform.value,
-    target: target.value,
-    negative: negative.value,
-    sections
-  };
-
-  data.push(test);
+  data.push({ exam:exam.value, test:test.value, date:date.value, sections });
   localStorage.setItem("mockData", JSON.stringify(data));
   renderTable();
 }
 
 function renderTable() {
-  const table = document.getElementById("testTable");
-  table.innerHTML = `
-  <tr><th>Exam</th><th>Test</th><th>Date</th><th>Avg</th></tr>`;
+  const t = document.getElementById("testTable");
+  t.innerHTML = "<tr><th>Exam</th><th>Test</th><th>Date</th><th>Avg</th></tr>";
 
-  data.forEach((t,i)=>{
-    const avg = (t.sections.reduce((a,b)=>a+b.marks,0)/t.sections.length).toFixed(1);
-    table.innerHTML += `
-    <tr onclick="toggleAnalysis(${i})">
-      <td>${t.exam}</td><td>${t.test}</td><td>${t.date}</td><td>${avg}</td>
+  data.forEach((x,i)=>{
+    const avg=(x.sections.reduce((a,b)=>a+b.marks,0)/(x.sections.length||1)).toFixed(1);
+    t.innerHTML += `
+    <tr onclick="toggle(${i})">
+      <td>${x.exam}</td><td>${x.test}</td><td>${x.date}</td><td>${avg}</td>
     </tr>
     <tr><td colspan="4">
-      <div id="a${i}" class="analysis">
-        ${t.sections.map(s=>`
-          <b>${s.name}</b> → C:${s.c} W:${s.w} U:${s.u}<br>`).join("")}
+      <div class="analysis" id="a${i}">
+        ${x.sections.map(s=>`${s.name}: C${s.c} W${s.w} U${s.u}`).join("<br>")}
       </div>
     </td></tr>`;
   });
 }
 
-function toggleAnalysis(i){
-  const el=document.getElementById("a"+i);
-  el.style.display = el.style.display==="block"?"none":"block";
+function toggle(i){
+  const d=document.getElementById("a"+i);
+  d.style.display=d.style.display==="block"?"none":"block";
 }
-
-function showGraph(){ alert("Graph placeholder"); }
-function exportExcel(){ alert("Excel placeholder"); }
-function exportPDF(){ alert("PDF placeholder"); }
 
 addSection();
 renderTable();
