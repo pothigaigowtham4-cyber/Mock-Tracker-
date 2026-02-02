@@ -1,179 +1,213 @@
+/* ---------------- GLOBAL ---------------- */
 const quotes=[
- "Discipline beats motivation.",
- "Accuracy before speed.",
- "Mocks are mirrors, not judges.",
- "Consistency compounds.",
- "Today’s effort decides tomorrow’s rank.",
- "Mistakes are data.",
- "Pressure reveals preparation.",
- "One question at a time.",
- "Progress > perfection.",
- "Trust the process."
-];
-
-const insightBank=[
- "Accuracy improved compared to previous test.",
- "Negative marks increased – tighten attempt control.",
- "Score dipped but section balance improved.",
- "Target is close – small refinement needed.",
- "Good recovery after last performance.",
- "Speed increased without hurting accuracy.",
- "Attempts rose but precision dropped slightly.",
- "Section prioritization worked better.",
- "Risk management improved.",
- "Consistency trend is stabilizing.",
- "Strong fundamentals visible.",
- "Careless mistakes reduced.",
- "Better time distribution.",
- "Weak section impact reduced.",
- "Positive momentum building."
+ "Don’t stop when you’re tired; stop when you are finally done.",
+ "Be the person your future self will thank."
 ];
 
 let tests=JSON.parse(localStorage.getItem("tests"))||[];
 let targets=JSON.parse(localStorage.getItem("targets"))||{};
-let openAnalysis=null;
+let examDates=JSON.parse(localStorage.getItem("examDates"))||{};
+let editIndex=null;
 
-quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
+/* ---------------- INIT ---------------- */
+document.addEventListener("DOMContentLoaded",()=>{
+  quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
+  initSections();
+  buildFilter();
+  renderTables();
+  darkModeBtn.onclick=toggleDark;
+});
 
-darkModeBtn.onclick=()=>{
- document.body.classList.toggle("dark");
- darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light":"🌙 Dark";
-};
+/* ---------------- DARK MODE ---------------- */
+function toggleDark(){
+  document.body.classList.toggle("dark");
+  darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
+}
 
+/* ---------------- SECTIONS ---------------- */
 function initSections(){
- sections.innerHTML=`
- <div class="sectionLabels">
-  <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
- </div>`;
- for(let i=0;i<4;i++) addSection();
-}
-initSections();
-
-function addSection(){
- const r=document.createElement("div");
- r.className="sectionRow";
- r.innerHTML=`
- <input>
- <input type="number" value="0">
- <input type="number" value="0">
- <input type="number" value="0">
- <input type="number" value="0">
- <button onclick="this.parentElement.remove()">🗑</button>`;
- sections.appendChild(r);
+  sections.innerHTML="";
+  addSectionHeader();
+  for(let i=0;i<4;i++) addSection();
 }
 
+function addSectionHeader(){
+  sections.innerHTML+=`
+  <div class="sectionLabels">
+    <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
+  </div>`;
+}
+
+function addSection(n="",m=0,c=0,w=0,u=0){
+  sections.innerHTML+=`
+  <div class="sectionRow">
+    <input class="sectionName" value="${n}">
+    <input class="sectionMarks" type="number" value="${m}">
+    <input type="number" value="${c}">
+    <input type="number" value="${w}">
+    <input type="number" value="${u}">
+    <button onclick="this.parentElement.remove()">🗑</button>
+  </div>`;
+}
+
+/* ---------------- SAVE ---------------- */
 function saveTest(){
- let secs=[],total=0,tc=0,tw=0,tu=0;
- document.querySelectorAll(".sectionRow").forEach(r=>{
-  const s={
-   name:r.children[0].value||"Sec",
-   marks:+r.children[1].value||0,
-   c:+r.children[2].value||0,
-   w:+r.children[3].value||0,
-   u:+r.children[4].value||0
-  };
-  total+=s.marks; tc+=s.c; tw+=s.w; tu+=s.u;
-  secs.push(s);
- });
+  if(!examName.value||!testName.value||!testDate.value)return alert("Fill all fields");
 
- const t={
-  exam:examName.value,
-  test:testName.value,
-  date:testDate.value,
-  platform:platformName.value,
-  neg:+negativeMark.value||0,
-  total,tc,tw,tu,
-  accuracy:(tc+tw)?((tc/(tc+tw))*100).toFixed(1):0,
-  sections:secs
- };
-
- if(targetInput.value) targets[t.exam]=+targetInput.value;
- tests.push(t);
-
- localStorage.setItem("tests",JSON.stringify(tests));
- localStorage.setItem("targets",JSON.stringify(targets));
-
- initSections();
- renderTables();
-}
-
-function renderTables(){
- tablesArea.innerHTML="";
- examFilter.innerHTML=`<option value="ALL">All Exams</option>`;
- [...new Set(tests.map(t=>t.exam))].forEach(e=>{
-  examFilter.innerHTML+=`<option>${e}</option>`;
- });
-
- const sel=examFilter.value||"ALL";
- const groups={};
-
- tests.forEach(t=>{
-  if(sel==="ALL"||t.exam===sel){
-   groups[t.exam]=groups[t.exam]||[];
-   groups[t.exam].push(t);
-  }
- });
-
- Object.keys(groups).forEach(exam=>{
-  const arr=groups[exam];
-  const totals=arr.map(t=>t.total);
-  const avg=Math.round(totals.reduce((a,b)=>a+b,0)/arr.length);
-  const best=Math.max(...totals), worst=Math.min(...totals);
-
-  const wrap=document.createElement("div");
-  wrap.innerHTML=`<h3>${exam} | Avg:${avg} | Target:${targets[exam]||"-"}</h3>`;
-
-  const table=document.createElement("table");
-  table.innerHTML=`<tr>
-   <th>Test</th><th>Date</th><th>Total</th><th>Acc</th>
-   ${arr[0].sections.map(s=>`<th>${s.name}</th>`).join("")}
-  </tr>`;
-
-  arr.forEach((t,i)=>{
-   const tr=document.createElement("tr");
-   if(t.total===best) tr.classList.add("best");
-   if(t.total===worst) tr.classList.add("worst");
-
-   tr.onclick=()=>toggleAnalysis(tr,t,exam,i);
-
-   tr.innerHTML=`
-   <td>${t.test}</td>
-   <td>${t.date}</td>
-   <td>${t.total}</td>
-   <td>${t.accuracy}</td>
-   ${t.sections.map(s=>`<td>${s.marks}</td>`).join("")}
-   `;
-   table.appendChild(tr);
+  const secs=[];
+  let total=0,tc=0,tw=0,tu=0;
+  document.querySelectorAll(".sectionRow").forEach(r=>{
+    const s={
+      name:r.children[0].value,
+      marks:+r.children[1].value||0,
+      c:+r.children[2].value||0,
+      w:+r.children[3].value||0,
+      u:+r.children[4].value||0
+    };
+    total+=s.marks; tc+=s.c; tw+=s.w; tu+=s.u;
+    secs.push(s);
   });
 
-  wrap.appendChild(table);
-  tablesArea.appendChild(wrap);
- });
+  const t={
+    exam:examName.value,
+    test:testName.value,
+    date:testDate.value,
+    platform:platformName.value,
+    neg:+negativeMark.value||0,
+    total,
+    accuracy:tc+tw?((tc/(tc+tw))*100).toFixed(1):0,
+    sections:secs
+  };
+
+  if(targetInput.value) targets[t.exam]=+targetInput.value;
+
+  editIndex===null?tests.push(t):tests[editIndex]=t;
+  editIndex=null;
+
+  localStorage.setItem("tests",JSON.stringify(tests));
+  localStorage.setItem("targets",JSON.stringify(targets));
+
+  initSections();
+  buildFilter();
+  renderTables();
 }
 
-function toggleAnalysis(row,t,exam,i){
- if(openAnalysis){
-  if(openAnalysis.previousSibling===row){
-   openAnalysis.remove(); openAnalysis=null; return;
+/* ---------------- FILTER (REBUILT CLEAN) ---------------- */
+function buildFilter(){
+  examFilter.innerHTML="";
+  const exams=[...new Set(tests.map(t=>t.exam))];
+  examFilter.innerHTML+=`<option value="ALL">All Exams</option>`;
+  exams.forEach(e=>examFilter.innerHTML+=`<option value="${e}">${e}</option>`);
+  examFilter.onchange=renderTables;
+}
+
+/* ---------------- TABLES ---------------- */
+function renderTables(){
+  tablesArea.innerHTML="";
+  const selected=examFilter.value||"ALL";
+
+  const grouped={};
+  tests.forEach(t=>{
+    if(selected==="ALL"||t.exam===selected){
+      grouped[t.exam]=grouped[t.exam]||[];
+      grouped[t.exam].push(t);
+    }
+  });
+
+  Object.keys(grouped).forEach(exam=>{
+    const wrap=document.createElement("div");
+    wrap.className="examTableWrapper";
+    wrap.innerHTML=`<h3>${exam} | Target: ${targets[exam]||"-"}</h3>`;
+
+    const table=document.createElement("table");
+    table.innerHTML=`<tr>
+      <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
+      ${grouped[exam][0].sections.map(s=>`<th>${s.name}</th>`).join("")}
+      <th>Edit</th><th>Delete</th>
+    </tr>`;
+
+    grouped[exam].forEach((t,i)=>{
+      table.innerHTML+=`
+      <tr>
+        <td>${t.test}</td>
+        <td>${t.date}</td>
+        <td>${t.platform}</td>
+        <td>${t.total}</td>
+        <td>${t.accuracy}</td>
+        ${t.sections.map(s=>`<td>${s.marks}</td>`).join("")}
+        <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
+        <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>
+      </tr>`;
+    });
+
+    wrap.appendChild(table);
+    tablesArea.appendChild(wrap);
+  });
+}
+
+/* ---------------- EDIT / DELETE ---------------- */
+function editTest(i){
+  const t=tests[i]; editIndex=i;
+  examName.value=t.exam;
+  testName.value=t.test;
+  testDate.value=t.date;
+  platformName.value=t.platform;
+  negativeMark.value=t.neg||0;
+  targetInput.value=targets[t.exam]||"";
+  initSections();
+  t.sections.forEach((s,i)=>{
+    const r=document.querySelectorAll(".sectionRow")[i];
+    r.children[0].value=s.name;
+    r.children[1].value=s.marks;
+    r.children[2].value=s.c;
+    r.children[3].value=s.w;
+    r.children[4].value=s.u;
+  });
+}
+
+function deleteTest(i){
+  if(confirm("Delete test?")){
+    tests.splice(i,1);
+    localStorage.setItem("tests",JSON.stringify(tests));
+    buildFilter();
+    renderTables();
   }
-  openAnalysis.remove(); openAnalysis=null;
- }
+}
 
- const sec=t.sections.map(s=>
-  `${s.name} → C:${s.c}, W:${s.w}, U:${s.u}`
- ).join("<br>");
+/* ---------------- GRAPH ---------------- */
+function showGraph(){
+  if(examFilter.value==="ALL")return alert("Select an exam");
+  graphPage.style.display="block";
+  tablesArea.style.display="none";
 
- const a=document.createElement("tr");
- a.className="analysisRow";
- a.innerHTML=`
- <td colspan="${4+t.sections.length}">
-  <strong>Section-wise</strong><br>${sec}<br><br>
-  <strong>Total</strong><br>
-  C:${t.tc} | W:${t.tw} | U:${t.tu}<br>
-  Negative Lost: ${t.tw*t.neg}<br><br>
-  <strong>Insight</strong><br>
-  ${insightBank[(t.total+i)%insightBank.length]}
- </td>`;
- row.after(a);
- openAnalysis=a;
+  const data=tests.filter(t=>t.exam===examFilter.value);
+  const ctx=graph.getContext("2d");
+  if(window.g)window.g.destroy();
+  window.g=new Chart(ctx,{
+    type:"line",
+    data:{labels:data.map(t=>t.test),datasets:[{label:"Marks",data:data.map(t=>t.total)}]}
+  });
+}
+
+function hideGraph(){
+  graphPage.style.display="none";
+  tablesArea.style.display="block";
+}
+
+/* ---------------- EXPORT ---------------- */
+function exportExcel(){
+  const ws=XLSX.utils.json_to_sheet(tests);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Tests");
+  XLSX.writeFile(wb,"MockTracker.xlsx");
+}
+
+function exportPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=10;
+  tests.forEach(t=>{
+    doc.text(`${t.exam} - ${t.test} : ${t.total}`,10,y); y+=8;
+  });
+  doc.save("MockTracker.pdf");
 }
