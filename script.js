@@ -1,7 +1,15 @@
 /* ---------------- GLOBAL ---------------- */
 const quotes=[
- "Don’t stop when you’re tired; stop when you are finally done.",
- "Be the person your future self will thank."
+ "Don’t stop when you’re tired; stop when you are done.",
+ "Be the person your future self will thank.",
+ "Discipline beats motivation every single day.",
+ "Small progress is still progress.",
+ "You don’t need to be extreme, just consistent.",
+ "Success is the sum of small efforts repeated daily.",
+ "Focus on accuracy, speed will follow.",
+ "Every mock is feedback, not judgment.",
+ "One good decision per question is enough.",
+ "Your competition is yesterday’s version of you."
 ];
 
 const insightBank=[
@@ -31,6 +39,7 @@ let openAnalysisRow=null;
 /* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded",()=>{
   quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
+  setupTestTrackerLayout();
   initSections();
   buildFilter();
   renderExamCounters();
@@ -38,32 +47,45 @@ document.addEventListener("DOMContentLoaded",()=>{
   darkModeBtn.onclick=toggleDark;
 });
 
+/* ---------------- TEST TRACKER → TWO ROW CARD ---------------- */
+function setupTestTrackerLayout(){
+  const tracker=document.getElementById("testTrackerCard");
+  if(!tracker) return;
+
+  tracker.style.display="grid";
+  tracker.style.gridTemplateColumns="1fr 1fr 1fr";
+  tracker.style.gap="12px";
+
+  examName.style.gridColumn="1";
+  testName.style.gridColumn="2";
+  testDate.style.gridColumn="3";
+
+  platformName.style.gridColumn="1";
+  negativeMark.style.gridColumn="2";
+  targetInput.style.gridColumn="3";
+}
+
 /* ---------------- DARK MODE ---------------- */
 function toggleDark(){
   document.body.classList.toggle("dark");
-  darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
+  darkModeBtn.textContent=document.body.classList.contains("dark")
+    ? "☀ Light Mode"
+    : "🌙 Dark Mode";
 }
 
-/* ---------------- SECTIONS (2 ROW LAYOUT FIX) ---------------- */
+/* ---------------- SECTIONS (REVERTED TO ORIGINAL) ---------------- */
 function initSections(){
   sections.innerHTML="";
-  sections.style.display="grid";
-  sections.style.gridTemplateColumns="1fr 1fr";
-  sections.style.gap="12px";
-
   sections.innerHTML+=`
-    <div class="sectionLabels" style="grid-column:1/-1">
+    <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
     </div>`;
-
   for(let i=0;i<4;i++) addSection();
 }
 
 function addSection(n="",m=0,c=0,w=0,u=0){
   const r=document.createElement("div");
   r.className="sectionRow";
-  r.style.display="flex";
-  r.style.gap="6px";
   r.innerHTML=`
     <input value="${n}">
     <input type="number" value="${m}">
@@ -76,7 +98,8 @@ function addSection(n="",m=0,c=0,w=0,u=0){
 
 /* ---------------- SAVE TEST ---------------- */
 function saveTest(){
-  if(!examName.value||!testName.value||!testDate.value)return alert("Fill all fields");
+  if(!examName.value||!testName.value||!testDate.value)
+    return alert("Fill all fields");
 
   let secs=[],total=0,tc=0,tw=0,tu=0;
   document.querySelectorAll(".sectionRow").forEach(r=>{
@@ -103,11 +126,13 @@ function saveTest(){
   };
 
   if(targetInput.value) targets[t.exam]=+targetInput.value;
+
   editIndex===null?tests.push(t):tests[editIndex]=t;
   editIndex=null;
 
   localStorage.setItem("tests",JSON.stringify(tests));
   localStorage.setItem("targets",JSON.stringify(targets));
+
   initSections(); buildFilter(); renderTables();
 }
 
@@ -153,7 +178,6 @@ function renderTables(){
       const tr=document.createElement("tr");
       if(t.total===best) tr.classList.add("best");
       if(t.total===worst) tr.classList.add("worst");
-
       tr.onclick=()=>toggleAnalysis(tr,t,grouped[exam],idx);
 
       tr.innerHTML=`
@@ -171,43 +195,28 @@ function renderTables(){
   });
 }
 
-/* ---------------- ANALYSIS (FIXED TOGGLE + INSIGHTS) ---------------- */
+/* ---------------- ANALYSIS (FIXED, NO UNDEFINED) ---------------- */
 function toggleAnalysis(row,test,examTests,index){
   if(openAnalysisRow){
     if(openAnalysisRow.previousSibling===row){
-      openAnalysisRow.remove();
-      openAnalysisRow=null;
-      return;
+      openAnalysisRow.remove(); openAnalysisRow=null; return;
     }
-    openAnalysisRow.remove();
-    openAnalysisRow=null;
+    openAnalysisRow.remove(); openAnalysisRow=null;
   }
 
-  const negLost=test.tw*test.neg;
-  const prevAvg=index
-    ? Math.round(examTests.slice(0,index).reduce((a,b)=>a+b.total,0)/index)
-    : test.total;
-
-  const insightIndex=Math.abs((test.total+index)%insightBank.length);
-  const insightText=insightBank[insightIndex];
+  const insightText =
+    insightBank[(Math.abs(test.total+index)) % insightBank.length] || insightBank[0];
 
   const a=document.createElement("tr");
   a.className="analysisRow";
   a.innerHTML=`
     <td colspan="${4+test.sections.length}">
       <div style="text-align:left;padding:12px">
-        <strong>Section-wise</strong>
-        <ul>${test.sections.map(s=>
-          `<li>${s.name}: C ${s.c}, W ${s.w}, U ${s.u}</li>`).join("")}</ul>
-
         <strong>Overall</strong>
         <p>Correct: ${test.tc}, Wrong: ${test.tw}, Unattempted: ${test.tu}</p>
-        <p>Negative Marks Lost: ${negLost}</p>
-
+        <p>Negative Marks Lost: ${test.tw*test.neg}</p>
         <strong>Insight</strong>
         <p>${insightText}</p>
-        ${targets[test.exam]?`<p>Target Gap: ${test.total-targets[test.exam]}</p>`:""}
-        <p>Previous Avg: ${prevAvg}</p>
       </div>
     </td>`;
 
