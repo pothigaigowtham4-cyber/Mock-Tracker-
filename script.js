@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   initSections();
   buildFilter();
   renderTables();
+  renderExamDates();
   darkModeBtn.onclick=toggleDark;
 });
 
@@ -92,7 +93,7 @@ function saveTest(){
   renderTables();
 }
 
-/* ---------------- FILTER (REBUILT CLEAN) ---------------- */
+/* ---------------- FILTER ---------------- */
 function buildFilter(){
   examFilter.innerHTML="";
   const exams=[...new Set(tests.map(t=>t.exam))];
@@ -210,4 +211,35 @@ function exportPDF(){
     doc.text(`${t.exam} - ${t.test} : ${t.total}`,10,y); y+=8;
   });
   doc.save("MockTracker.pdf");
+}
+
+/* ---------------- EXAM DATE COUNTER ---------------- */
+function saveExamDate(){
+  if(!examCounterName.value||!examCounterDate.value)return;
+  examDates[examCounterName.value]=examCounterDate.value;
+  localStorage.setItem("examDates",JSON.stringify(examDates));
+  examCounterName.value="";
+  examCounterDate.value="";
+  renderExamDates();
+}
+
+function renderExamDates(){
+  examCounterList.innerHTML="";
+  const today=new Date();
+  Object.keys(examDates).forEach(exam=>{
+    const d=new Date(examDates[exam]);
+    const days=Math.ceil((d-today)/(1000*60*60*24));
+    const div=document.createElement("div");
+    div.innerHTML=`
+      <b>${exam}</b> : ${days>=0?days+" days left":"Expired"}
+      <button onclick="deleteExamDate('${exam}')">🗑</button>
+    `;
+    examCounterList.appendChild(div);
+  });
+}
+
+function deleteExamDate(exam){
+  delete examDates[exam];
+  localStorage.setItem("examDates",JSON.stringify(examDates));
+  renderExamDates();
 }
