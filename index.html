@@ -17,7 +17,12 @@
 
 <header class="topHeader">
   <img src="emblem.png" class="logo">
-  <div class="quoteBox"><p id="quoteText"></p></div>
+
+  <!-- 🔹 FIXED QUOTE VISIBILITY -->
+  <div class="quoteBox">
+    <p id="quoteText"></p>
+  </div>
+
   <div class="flagContainer">
     <img src="flag.jpg" class="flag">
     <button id="darkModeBtn">🌙 Dark Mode</button>
@@ -45,7 +50,6 @@
       <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
     </div>
 
-    <!-- 🔹 NEW FILTER (clean rebuild) -->
     <h4>View Exam</h4>
     <select id="examFilter"></select>
 
@@ -54,6 +58,17 @@
     <button onclick="exportExcel()">Export Excel 📁</button>
     <button onclick="exportPDF()">Export PDF 📄</button>
   </div>
+</div>
+
+<!-- 🔹 NEW EXAM DATE COUNTER CARD -->
+<div class="examCounterCard">
+  <h3>📅 Exam Countdown</h3>
+  <div class="counterRow">
+    <input id="examCounterName" placeholder="Exam Name">
+    <input id="examCounterDate" type="date">
+    <button onclick="saveExamDate()">Save</button>
+  </div>
+  <div id="examCounterList"></div>
 </div>
 
 <div id="tablesArea"></div>
