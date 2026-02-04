@@ -22,6 +22,11 @@ const quotes = [
   "Results follow discipline.",
   "Future you is watching."
 ];
+function formatDateDMY(dateStr) {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-");
+  return `${d}-${m}-${y}`;
+}
 
 let quoteIndex = 0;
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
