@@ -11,33 +11,31 @@ let editIndex = null;
 
 /* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  document.body.classList.add("dark"); // force dark mode
   quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
   initSections();
   buildFilter();
-  renderExamCounter();
-  renderTables();
+  renderTables(); // ✅ render immediately
 });
 
 /* ---------------- SECTIONS ---------------- */
 function initSections() {
-  sections.innerHTML = "";
-  addSectionHeader();
-  for (let i = 0; i < 4; i++) addSection();
-}
-
-function addSectionHeader() {
-  sections.innerHTML += `
+  sections.innerHTML = `
     <div class="sectionLabels">
-      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
+      <span>Section</span>
+      <span>Marks</span>
+      <span>Correct</span>
+      <span>Wrong</span>
+      <span>Unattempted</span>
+      <span></span>
     </div>`;
+  for (let i = 0; i < 4; i++) addSection();
 }
 
 function addSection(n = "", m = 0, c = 0, w = 0, u = 0) {
   sections.innerHTML += `
     <div class="sectionRow">
-      <input class="sectionName" value="${n}">
-      <input class="sectionMarks" type="number" value="${m}">
+      <input value="${n}">
+      <input type="number" value="${m}">
       <input type="number" value="${c}">
       <input type="number" value="${w}">
       <input type="number" value="${u}">
@@ -99,49 +97,14 @@ function buildFilter() {
   examFilter.onchange = renderTables;
 }
 
-/* ---------------- EXAM DATE COUNTER ---------------- */
-function renderExamCounter() {
-  let card = document.querySelector(".examCounterCard");
-  if (!card) {
-    card = document.createElement("div");
-    card.className = "examCounterCard";
-    card.innerHTML = `
-      <h3>📅 Exam Countdown</h3>
-      <div class="counterRow">
-        <input id="examCounterName" placeholder="Exam Name">
-        <input id="examCounterDate" type="date">
-        <button onclick="saveExamDate()">Save</button>
-      </div>
-      <div id="counterList"></div>`;
-    document.body.insertBefore(card, tablesArea);
-  }
-
-  const list = card.querySelector("#counterList");
-  list.innerHTML = "";
-
-  Object.entries(examDates).forEach(([e, d]) => {
-    const days = Math.ceil((new Date(d) - new Date()) / 86400000);
-    list.innerHTML += `<p><b>${e}</b> : ${days} days</p>`;
-  });
-}
-
-function saveExamDate() {
-  const n = examCounterName.value;
-  const d = examCounterDate.value;
-  if (!n || !d) return;
-  examDates[n] = d;
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-  renderExamCounter();
-}
-
 /* ---------------- TABLES ---------------- */
 function renderTables() {
   tablesArea.innerHTML = "";
-  const sel = examFilter.value || "ALL";
-  const grouped = {};
+  const selected = examFilter.value || "ALL";
 
+  const grouped = {};
   tests.forEach(t => {
-    if (sel === "ALL" || t.exam === sel) {
+    if (selected === "ALL" || t.exam === selected) {
       grouped[t.exam] = grouped[t.exam] || [];
       grouped[t.exam].push(t);
     }
@@ -155,7 +118,11 @@ function renderTables() {
     const table = document.createElement("table");
     table.innerHTML = `
       <tr>
-        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
+        <th>Test</th>
+        <th>Date</th>
+        <th>Platform</th>
+        <th>Total</th>
+        <th>Accuracy</th>
         ${grouped[exam][0].sections.map(s => `<th>${s.name}</th>`).join("")}
       </tr>`;
 
