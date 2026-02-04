@@ -1,8 +1,9 @@
 :root {
-  --bg: #0f172a;
+  --bg: #0b1220;
   --card: #111827;
   --text: #e5e7eb;
   --primary: #38bdf8;
+  --accent: #facc15;
   --shadow: rgba(0,0,0,0.6);
 }
 
@@ -13,34 +14,65 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
-/* HEADER */
+/* ---------- HEADER FIX ---------- */
 .topHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #1e293b, #020617);
-  padding: 10px 20px;
+  position: relative;
+  height: 250px;
+  background: linear-gradient(135deg, #7c2d12, #991b1b);
+}
+
+.logo {
+  position: absolute;
+  top: 125px;
+  left: 125px;
+  height: 120px;
+}
+
+.flag {
+  position: absolute;
+  top: 125px;
+  right: 125px;
+  height: 80px;
 }
 
 .quoteBox {
-  color: #facc15;
-  font-style: italic;
-  font-size: 1.1em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: 450px;
+  transform: translate(-50%, -50%);
   text-align: center;
+  font-style: italic;
+  color: var(--accent);
+  font-size: 1.15em;
 }
 
-/* CARD */
-.trackerCard, .examTableWrapper, .examCounterCard {
+/* ---------- CARDS ---------- */
+.trackerCard,
+.examTableWrapper,
+.examCounterCard {
   background: var(--card);
   box-shadow: 0 10px 25px var(--shadow);
   border-radius: 14px;
   padding: 20px;
-  margin: 20px auto;
+  margin: 25px auto;
   width: 95%;
   max-width: 1200px;
 }
 
-/* FORMS */
+/* ---------- FORMS ---------- */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.formGroup label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  display: block;
+}
+
 input, select {
   background: #020617;
   color: var(--text);
@@ -49,6 +81,27 @@ input, select {
   padding: 6px;
 }
 
+/* ---------- SECTIONS ---------- */
+.sectionLabels,
+.sectionRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.5fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.sectionLabels span {
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.85em;
+  color: var(--accent);
+}
+
+.sectionRow input {
+  padding: 5px;
+}
+
+/* ---------- BUTTONS ---------- */
 button {
   background: var(--primary);
   color: #020617;
@@ -59,7 +112,7 @@ button {
   cursor: pointer;
 }
 
-/* TABLE */
+/* ---------- TABLE ---------- */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -74,9 +127,4 @@ td, th {
   padding: 8px;
   border: 1px solid #334155;
   text-align: center;
-}
-
-/* EXAM COUNTER */
-.examCounterCard h3 {
-  color: #facc15;
 }
