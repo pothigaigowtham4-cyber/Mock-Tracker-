@@ -11,19 +11,13 @@ let editIndex=null;
 
 /* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded",()=>{
+  document.body.classList.add("dark");   // 🔹 FORCE DARK MODE
   quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
   initSections();
   buildFilter();
   renderTables();
   renderExamDates();
-  darkModeBtn.onclick=toggleDark;
 });
-
-/* ---------------- DARK MODE ---------------- */
-function toggleDark(){
-  document.body.classList.toggle("dark");
-  darkModeBtn.textContent=document.body.classList.contains("dark")?"☀ Light Mode":"🌙 Dark Mode";
-}
 
 /* ---------------- SECTIONS ---------------- */
 function initSections(){
@@ -127,7 +121,7 @@ function renderTables(){
       <th>Edit</th><th>Delete</th>
     </tr>`;
 
-    grouped[exam].forEach((t,i)=>{
+    grouped[exam].forEach(t=>{
       table.innerHTML+=`
       <tr>
         <td>${t.test}</td>
