@@ -1,13 +1,31 @@
-/* =========================
+/* ===============================
+   SAFE HELPERS
+================================ */
+function qs(id) {
+  return document.getElementById(id);
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  const [y, m, day] = d.split("-");
+  return `${day}-${m}-${y}`;
+}
+
+function daysLeft(date) {
+  const diff = new Date(date) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+/* ===============================
    STORAGE
-========================= */
+================================ */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editingId = null;
 
-/* =========================
-   QUOTES (UNCHANGED COUNT)
-========================= */
+/* ===============================
+   QUOTES (UNCHANGED LIST)
+================================ */
 const quotes = [
   "Discipline beats motivation.",
   "Small progress is still progress.",
@@ -21,50 +39,43 @@ const quotes = [
   "No excuses. Just results."
 ];
 
-/* =========================
-   UTILITIES
-========================= */
-const qs = id => document.getElementById(id);
+/* ===============================
+   DOM READY
+================================ */
+document.addEventListener("DOMContentLoaded", () => {
 
-function formatDate(d) {
-  if (!d) return "";
-  const [y, m, day] = d.split("-");
-  return `${day}-${m}-${y}`;
-}
+  /* ---------- DARK MODE ---------- */
+  const darkBtn = qs("darkModeBtn");
+  if (darkBtn) {
+    darkBtn.onclick = () => {
+      document.body.classList.toggle("dark");
+    };
+  }
 
-function daysLeft(date) {
-  const diff = new Date(date) - new Date();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
+  /* ---------- TYPEWRITER QUOTE ---------- */
+  const quoteEl = qs("quoteText");
+  if (quoteEl) {
+    const q = quotes[Math.floor(Math.random() * quotes.length)];
+    quoteEl.style.fontWeight = "600";
+    quoteEl.textContent = "";
+    let i = 0;
+    const timer = setInterval(() => {
+      quoteEl.textContent += q[i++];
+      if (i === q.length) clearInterval(timer);
+    }, 50);
+  }
 
-/* =========================
-   DARK MODE
-========================= */
-qs("darkModeBtn").onclick = () => {
-  document.body.classList.toggle("dark");
-};
+  renderExamDates();
+  renderTables();
+  populateExamFilter();
+});
 
-/* =========================
-   RANDOM TYPEWRITER QUOTE
-========================= */
-(function typeQuote() {
-  const q = quotes[Math.floor(Math.random() * quotes.length)];
-  const el = qs("quoteText");
-  el.style.fontWeight = "600";
-  let i = 0;
-  el.textContent = "";
-  const timer = setInterval(() => {
-    el.textContent += q[i++];
-    if (i === q.length) clearInterval(timer);
-  }, 50);
-})();
-
-/* =========================
+/* ===============================
    EXAM DATE COUNTER
-========================= */
+================================ */
 function addExamDate() {
-  const name = qs("examCounterName").value.trim();
-  const date = qs("examCounterDate").value;
+  const name = qs("examCounterName")?.value.trim();
+  const date = qs("examCounterDate")?.value;
   if (!name || !date) return;
 
   examDates.push({ name, date });
@@ -77,6 +88,8 @@ function addExamDate() {
 
 function renderExamDates() {
   const box = qs("examDateList");
+  if (!box) return;
+
   box.innerHTML = "";
   examDates.forEach((e, i) => {
     const div = document.createElement("div");
@@ -94,11 +107,13 @@ function removeExamDate(i) {
   renderExamDates();
 }
 
-/* =========================
+/* ===============================
    SECTIONS
-========================= */
+================================ */
 function addSection() {
   const wrap = qs("sections");
+  if (!wrap) return;
+
   const row = document.createElement("div");
   row.className = "sectionRow";
   row.innerHTML = `
@@ -112,18 +127,18 @@ function addSection() {
   wrap.appendChild(row);
 }
 
-/* =========================
-   SAVE / UPDATE TEST
-========================= */
+/* ===============================
+   SAVE TEST
+================================ */
 function saveTest() {
   const sections = {};
   document.querySelectorAll(".sectionRow").forEach(r => {
-    const [name, c, w, u, m] = r.querySelectorAll("input");
-    sections[name.value] = {
-      correct: +c.value || 0,
-      wrong: +w.value || 0,
-      unattempted: +u.value || 0,
-      marks: +m.value || 0
+    const i = r.querySelectorAll("input");
+    sections[i[0].value] = {
+      correct: +i[1].value || 0,
+      wrong: +i[2].value || 0,
+      unattempted: +i[3].value || 0,
+      marks: +i[4].value || 0
     };
   });
 
@@ -133,7 +148,6 @@ function saveTest() {
     test: qs("testName").value,
     date: qs("testDate").value,
     platform: qs("platformName").value,
-    target: +qs("targetInput").value || 0,
     sections
   };
 
@@ -148,11 +162,12 @@ function saveTest() {
   location.reload();
 }
 
-/* =========================
-   TABLE RENDER
-========================= */
+/* ===============================
+   TABLES
+================================ */
 function renderTables() {
   const area = qs("tablesArea");
+  if (!area) return;
   area.innerHTML = "";
 
   const byExam = {};
@@ -163,9 +178,10 @@ function renderTables() {
 
   Object.keys(byExam).forEach(exam => {
     const list = byExam[exam];
+
     const avg = (
       list.reduce((s, t) =>
-        s + Object.values(t.sections).reduce((a, b) => a + b.marks, 0), 0
+        s + Object.values(t.sections || {}).reduce((a, b) => a + b.marks, 0), 0
       ) / list.length
     ).toFixed(1);
 
@@ -182,7 +198,7 @@ function renderTables() {
     `;
 
     list.forEach((t, i) => {
-      const total = Object.values(t.sections).reduce((a, b) => a + b.marks, 0);
+      const total = Object.values(t.sections || {}).reduce((a, b) => a + b.marks, 0);
 
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -201,9 +217,9 @@ function renderTables() {
   });
 }
 
-/* =========================
+/* ===============================
    DETAILS TOGGLE
-========================= */
+================================ */
 function toggleDetails(row, test) {
   if (row.nextSibling && row.nextSibling.classList?.contains("details")) {
     row.nextSibling.remove();
@@ -213,21 +229,20 @@ function toggleDetails(row, test) {
   const d = document.createElement("tr");
   d.className = "details";
   let html = `<td colspan="6">`;
-  Object.keys(test.sections).forEach(s => {
+
+  Object.keys(test.sections || {}).forEach(s => {
     const x = test.sections[s];
-    html += `
-      <b>${s}</b> →
-      C:${x.correct}, W:${x.wrong}, U:${x.unattempted}, M:${x.marks}<br>
-    `;
+    html += `<b>${s}</b> → C:${x.correct}, W:${x.wrong}, U:${x.unattempted}, M:${x.marks}<br>`;
   });
+
   html += `</td>`;
   d.innerHTML = html;
   row.after(d);
 }
 
-/* =========================
+/* ===============================
    EDIT / DELETE
-========================= */
+================================ */
 function editTest(id) {
   const t = tests.find(x => x.id === id);
   editingId = id;
@@ -236,8 +251,8 @@ function editTest(id) {
   qs("testName").value = t.test;
   qs("testDate").value = t.date;
   qs("platformName").value = t.platform;
-  qs("sections").innerHTML = "";
 
+  qs("sections").innerHTML = "";
   Object.keys(t.sections).forEach(s => {
     addSection();
     const r = qs("sections").lastElementChild;
@@ -257,10 +272,26 @@ function deleteTest(id) {
   location.reload();
 }
 
-/* =========================
-   INIT
-========================= */
-document.addEventListener("DOMContentLoaded", () => {
-  renderTables();
-  renderExamDates();
-});
+/* ===============================
+   FILTER
+================================ */
+function populateExamFilter() {
+  const sel = qs("examFilter");
+  if (!sel) return;
+
+  sel.innerHTML = `<option value="">All</option>`;
+  [...new Set(tests.map(t => t.exam))].forEach(e => {
+    sel.innerHTML += `<option>${e}</option>`;
+  });
+}
+
+/* ===============================
+   GRAPH PLACEHOLDERS
+================================ */
+function showGraph() {
+  qs("graphPage").style.display = "block";
+}
+
+function hideGraph() {
+  qs("graphPage").style.display = "none";
+}
