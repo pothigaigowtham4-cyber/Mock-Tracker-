@@ -1,130 +1,132 @@
-:root {
-  --bg: #0b1220;
-  --card: #111827;
-  --text: #e5e7eb;
-  --primary: #38bdf8;
-  --accent: #facc15;
-  --shadow: rgba(0,0,0,0.6);
+/* ===============================
+   GLOBAL – DARK MODE ONLY
+   =============================== */
+
+* {
+  box-sizing: border-box;
 }
 
 html, body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  padding: 0;
+  background: #020617;
+  color: #e5e7eb;
   font-family: Arial, sans-serif;
 }
 
-/* ---------- HEADER FIX ---------- */
-.topHeader {
+/* ===============================
+   HEADER
+   =============================== */
+
+header {
   position: relative;
-  height: 250px;
-  background: linear-gradient(135deg, #7c2d12, #991b1b);
+  height: 260px;
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
 }
 
-.logo {
+/* Logo – top left */
+#logo {
   position: absolute;
   top: 125px;
   left: 125px;
-  height: 120px;
+  width: 120px;
 }
 
-.flag {
+/* Flag – top right */
+#flag {
   position: absolute;
   top: 125px;
   right: 125px;
-  height: 80px;
+  width: 120px;
 }
 
-.quoteBox {
+/* Quote – center */
+#quote {
   position: absolute;
-  top: 50%;
+  top: 140px;
   left: 50%;
-  max-width: 450px;
-  transform: translate(-50%, -50%);
-  text-align: center;
+  transform: translateX(-50%);
+  color: #facc15;
   font-style: italic;
-  color: var(--accent);
-  font-size: 1.15em;
+  font-size: 18px;
 }
 
-/* ---------- CARDS ---------- */
-.trackerCard,
-.examTableWrapper,
-.examCounterCard {
-  background: var(--card);
-  box-shadow: 0 10px 25px var(--shadow);
+/* ===============================
+   REMOVE DARK MODE TOGGLE COMPLETELY
+   =============================== */
+
+#darkToggle {
+  display: none !important;
+}
+
+/* ===============================
+   CARDS / CONTAINERS
+   =============================== */
+
+.card {
+  background: #020617;
   border-radius: 14px;
   padding: 20px;
-  margin: 25px auto;
-  width: 95%;
-  max-width: 1200px;
+  margin: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
 }
 
-/* ---------- FORMS ---------- */
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-}
+/* ===============================
+   INPUTS
+   =============================== */
 
-.formGroup label {
-  font-weight: bold;
-  margin-bottom: 4px;
-  display: block;
-}
-
-input, select {
+input,
+select {
+  width: 100%;
+  padding: 8px;
   background: #020617;
-  color: var(--text);
+  color: #e5e7eb;
   border: 1px solid #334155;
   border-radius: 6px;
-  padding: 6px;
 }
 
-/* ---------- SECTIONS ---------- */
-.sectionLabels,
-.sectionRow {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.5fr;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.sectionLabels span {
-  text-align: center;
-  font-weight: bold;
-  font-size: 0.85em;
-  color: var(--accent);
-}
-
-.sectionRow input {
-  padding: 5px;
-}
-
-/* ---------- BUTTONS ---------- */
-button {
-  background: var(--primary);
-  color: #020617;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-weight: bold;
+/* Date picker icon – visible */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
   cursor: pointer;
 }
 
-/* ---------- TABLE ---------- */
+/* ===============================
+   SECTIONAL MARKS
+   =============================== */
+
+.section-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  color: #facc15;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.section-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* ===============================
+   TABLE
+   =============================== */
+
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #334155;
+  text-align: center;
 }
 
 th {
-  background: #1e293b;
-  color: #7dd3fc;
-}
-
-td, th {
-  padding: 8px;
-  border: 1px solid #334155;
-  text-align: center;
+  color: #facc15;
 }
