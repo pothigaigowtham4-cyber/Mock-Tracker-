@@ -1,4 +1,4 @@
-/* ---------- QUOTES (TYPEWRITER) ---------- */
+/* ---------- QUOTES (RANDOM + TYPEWRITER) ---------- */
 
 const quotes = [
   "Be the person your future self will thank.",
@@ -23,7 +23,7 @@ const quotes = [
   "Future you is watching."
 ];
 
-let quoteIndex = 0;
+let quoteIndex = Math.floor(Math.random() * quotes.length);
 let charIndex = 0;
 
 function typeQuote() {
@@ -38,7 +38,7 @@ function typeQuote() {
       charIndex = 0;
       quoteIndex = (quoteIndex + 1) % quotes.length;
       typeQuote();
-    }, 10000); // 10 seconds per quote
+    }, 10000);
   }
 }
 
@@ -141,6 +141,11 @@ function buildFilter() {
 
 /* ---------- TABLES ---------- */
 
+function formatDate(d) {
+  const [y, m, day] = d.split("-");
+  return `${day}-${m}-${y}`;
+}
+
 function renderTables() {
   tablesArea.innerHTML = "";
   const selected = examFilter.value || "ALL";
@@ -166,7 +171,10 @@ function renderTables() {
           <tr>
             <th>Test</th>
             <th>Date</th>
+            <th>Platform</th>
             <th>Total</th>
+            <th>Accuracy</th>
+            ${arr[0].sections.map(s => `<th>${s.name}</th>`).join("")}
           </tr>`;
 
     arr.forEach(t => {
@@ -174,8 +182,11 @@ function renderTables() {
       html += `
         <tr class="${cls}">
           <td>${t.test}</td>
-          <td>${t.date}</td>
+          <td>${formatDate(t.date)}</td>
+          <td>${t.platform}</td>
           <td>${t.total}</td>
+          <td>${t.accuracy}</td>
+          ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
         </tr>`;
     });
 
