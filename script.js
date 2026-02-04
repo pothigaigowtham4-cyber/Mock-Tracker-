@@ -43,9 +43,7 @@ function typeQuote() {
 /* ---------------- STORAGE ---------------- */
 
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let targets = JSON.parse(localStorage.getItem("targets")) || {};
 let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
-
 let editIndex = null;
 let openStatsIndex = null;
 
@@ -109,7 +107,6 @@ function saveTest() {
     test: testName.value,
     date: testDate.value,
     platform: platformName.value,
-    neg: +negativeMark.value || 0,
     total,
     accuracy: tc + tw ? ((tc / (tc + tw)) * 100).toFixed(1) : 0,
     sectionsData
@@ -121,33 +118,6 @@ function saveTest() {
 
   localStorage.setItem("tests", JSON.stringify(tests));
   initSections();
-  buildFilter();
-  renderTables();
-}
-
-/* ---------------- EDIT / DELETE ---------------- */
-
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
-
-  examName.value = t.exam;
-  testName.value = t.test;
-  testDate.value = t.date;
-  platformName.value = t.platform;
-  negativeMark.value = t.neg;
-
-  initSections();
-
-  const data = t.sectionsData || {};
-  Object.keys(data).forEach(k => addSection({ name: k, ...data[k] }));
-}
-
-function deleteTest(i) {
-  if (!confirm("Delete test?")) return;
-  tests.splice(i, 1);
-  localStorage.setItem("tests", JSON.stringify(tests));
-  openStatsIndex = null;
   buildFilter();
   renderTables();
 }
@@ -165,13 +135,23 @@ function buildFilter() {
   };
 }
 
-/* ---------------- TABLES ---------------- */
+/* ---------------- DATE FORMAT ---------------- */
 
 function formatDate(d) {
   if (!d) return "";
   const [y, m, da] = d.split("-");
   return `${da}-${m}-${y}`;
 }
+
+/* ---------------- EXAM DATE COUNTER ---------------- */
+
+function getRemainingDays(date) {
+  const today = new Date();
+  const exam = new Date(date);
+  return Math.ceil((exam - today) / (1000 * 60 * 60 * 24));
+}
+
+/* ---------------- TABLES ---------------- */
 
 function toggleStats(i) {
   openStatsIndex = openStatsIndex === i ? null : i;
@@ -193,33 +173,35 @@ function renderTables() {
   Object.keys(grouped).forEach(exam => {
     const arr = grouped[exam];
 
-    const sectionOrder =
-      Object.keys(arr[0].sectionsData || {});
+    const sectionNames = Object.keys(arr[0].sectionsData || {});
 
-    const max = Math.max(...arr.map(t => t.total));
-    const min = Math.min(...arr.map(t => t.total));
+    const avg =
+      (arr.reduce((s, t) => s + t.total, 0) / arr.length).toFixed(1);
 
     let html = `
       <div class="examTableWrapper">
-        <h3>${exam}</h3>
+        <h3>
+          ${exam} | Avg: ${avg}
+          ${examDates[exam] ? ` | ${getRemainingDays(examDates[exam])} days left` : ""}
+        </h3>
         <table>
           <tr>
-            <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
-            ${sectionOrder.map(s => `<th>${s}</th>`).join("")}
+            <th>Test</th><th>Date</th><th>Platform</th>
+            <th>Total</th><th>Accuracy</th>
+            ${sectionNames.map(s => `<th>${s}</th>`).join("")}
             <th>Edit</th><th>Delete</th>
           </tr>`;
 
     arr.forEach(t => {
-      const cls = t.total === max ? "best" : t.total === min ? "worst" : "";
       html += `
-        <tr class="${cls}" onclick="toggleStats(${t._i})">
+        <tr onclick="toggleStats(${t._i})">
           <td>${t.test}</td>
           <td>${formatDate(t.date)}</td>
           <td>${t.platform}</td>
           <td>${t.total}</td>
           <td>${t.accuracy}</td>
-          ${sectionOrder.map(
-            s => `<td>${(t.sectionsData || {})[s]?.marks || 0}</td>`
+          ${sectionNames.map(
+            s => `<td>${t.sectionsData?.[s]?.marks ?? 0}</td>`
           ).join("")}
           <td><button onclick="event.stopPropagation();editTest(${t._i})">✏</button></td>
           <td><button onclick="event.stopPropagation();deleteTest(${t._i})">🗑</button></td>
@@ -228,13 +210,11 @@ function renderTables() {
       if (openStatsIndex === t._i) {
         html += `
           <tr class="statsRow">
-            <td colspan="${7 + sectionOrder.length}">
-              ${sectionOrder.map(
-                s => {
-                  const d = (t.sectionsData || {})[s] || {};
-                  return `<b>${s}</b> → C:${d.c || 0}, W:${d.w || 0}, U:${d.u || 0}`;
-                }
-              ).join(" | ")}
+            <td colspan="${7 + sectionNames.length}">
+              ${sectionNames.map(s => {
+                const d = t.sectionsData[s] || {};
+                return `<b>${s}</b> → C:${d.c || 0}, W:${d.w || 0}, U:${d.u || 0}`;
+              }).join(" | ")}
             </td>
           </tr>`;
       }
@@ -245,54 +225,28 @@ function renderTables() {
   });
 }
 
-/* ---------------- GRAPH ---------------- */
+/* ---------------- EDIT / DELETE ---------------- */
 
-function showGraph() {
-  if (examFilter.value === "ALL") return alert("Select an exam");
-  graphPage.style.display = "block";
-  tablesArea.style.display = "none";
+function editTest(i) {
+  const t = tests[i];
+  editIndex = i;
 
-  const data = tests.filter(t => t.exam === examFilter.value);
-  const ctx = graph.getContext("2d");
+  examName.value = t.exam;
+  testName.value = t.test;
+  testDate.value = t.date;
+  platformName.value = t.platform;
 
-  if (window.g) window.g.destroy();
-  window.g = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: data.map(t => t.test),
-      datasets: [{ label: "Marks", data: data.map(t => t.total) }]
-    }
-  });
+  initSections();
+  Object.keys(t.sectionsData || {}).forEach(k =>
+    addSection({ name: k, ...t.sectionsData[k] })
+  );
 }
 
-function hideGraph() {
-  graphPage.style.display = "none";
-  tablesArea.style.display = "block";
-}
-
-/* ---------------- EXAM DATE ---------------- */
-
-function addExamDate(name, date) {
-  examDates[name] = date;
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-}
-
-/* ---------------- EXPORT ---------------- */
-
-function exportExcel() {
-  const ws = XLSX.utils.json_to_sheet(tests);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Tests");
-  XLSX.writeFile(wb, "MockTracker.xlsx");
-}
-
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  let y = 10;
-  tests.forEach(t => {
-    doc.text(`${t.exam} - ${t.test} : ${t.total}`, 10, y);
-    y += 8;
-  });
-  doc.save("MockTracker.pdf");
+function deleteTest(i) {
+  if (!confirm("Delete test?")) return;
+  tests.splice(i, 1);
+  localStorage.setItem("tests", JSON.stringify(tests));
+  openStatsIndex = null;
+  buildFilter();
+  renderTables();
 }
