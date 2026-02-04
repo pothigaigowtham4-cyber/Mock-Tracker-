@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <title>Mock Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- prevent favicon error -->
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
   <link rel="stylesheet" href="style.css">
@@ -16,57 +14,68 @@
 </head>
 
 <body>
-  <header class="topHeader">
-    <img src="emblem.png" class="logo">
+<header class="topHeader">
+  <img src="emblem.png" class="logo">
 
-    <div class="quoteBox">
-      <p id="quoteText"></p>
-    </div>
-
-    <div class="flagContainer">
-      <img src="flag.jpg" class="flag">
-    </div>
-  </header>
-
-  <div class="container">
-    <div class="card trackerCard">
-      <h3>Test Tracker</h3>
-
-      <div class="formGrid">
-        <div class="formGroup"><label>Exam</label><input id="examName"></div>
-        <div class="formGroup"><label>Test</label><input id="testName"></div>
-        <div class="formGroup"><label>Date</label><input id="testDate" type="date"></div>
-        <div class="formGroup"><label>Platform</label><input id="platformName"></div>
-        <div class="formGroup"><label>Negative</label><input id="negativeMark" type="number"></div>
-        <div class="formGroup"><label>Target 🎯</label><input id="targetInput" type="number"></div>
-      </div>
-
-      <h4>Sections</h4>
-      <div id="sections"></div>
-
-      <div class="btnRow">
-        <button class="addBtn" onclick="addSection()">+ Add Section</button>
-        <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
-      </div>
-
-      <h4>View Exam</h4>
-      <select id="examFilter"></select>
-      <br><br>
-
-      <button onclick="showGraph()">Show Graph 📊</button>
-      <button onclick="exportExcel()">Export Excel 📁</button>
-      <button onclick="exportPDF()">Export PDF 📄</button>
-    </div>
+  <div class="quoteBox">
+    <p id="quoteText"></p>
   </div>
 
-  <div id="tablesArea"></div>
+  <img src="flag.jpg" class="flag">
+</header>
 
-  <div id="graphPage" style="display:none;">
-    <h3>Performance Graph</h3>
-    <canvas id="graph"></canvas><br>
-    <button onclick="hideGraph()">⬅ Back</button>
+<div class="container">
+
+  <!-- Test Tracker -->
+  <div class="card trackerCard">
+    <h3>Test Tracker</h3>
+
+    <div class="formGrid">
+      <div class="formGroup"><label>Exam</label><input id="examName"></div>
+      <div class="formGroup"><label>Test</label><input id="testName"></div>
+      <div class="formGroup"><label>Date</label><input id="testDate" type="date"></div>
+      <div class="formGroup"><label>Platform</label><input id="platformName"></div>
+      <div class="formGroup"><label>Negative</label><input id="negativeMark" type="number"></div>
+      <div class="formGroup"><label>Target 🎯</label><input id="targetInput" type="number"></div>
+    </div>
+
+    <h4>Sections</h4>
+    <div id="sections"></div>
+
+    <div class="btnRow">
+      <button class="addBtn" onclick="addSection()">+ Add Section</button>
+      <button class="saveBtn" onclick="saveTest()">💾 Save Test</button>
+    </div>
+
+    <h4>View Exam</h4>
+    <select id="examFilter"></select><br><br>
+
+    <button onclick="showGraph()">Show Graph 📊</button>
+    <button onclick="exportExcel()">Export Excel 📁</button>
+    <button onclick="exportPDF()">Export PDF 📄</button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Exam Date Counter -->
+  <div class="card examCounterCard">
+    <h3>Exam Date Counter</h3>
+    <div class="counterRow">
+      <input id="examCounterName" placeholder="Exam Name">
+      <input id="examCounterDate" type="date">
+      <button onclick="addExamDate()">Add</button>
+    </div>
+    <div id="examCountdownList"></div>
+  </div>
+
+</div>
+
+<div id="tablesArea"></div>
+
+<div id="graphPage" style="display:none;">
+  <h3>Performance Graph</h3>
+  <canvas id="graph"></canvas><br>
+  <button onclick="hideGraph()">⬅ Back</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
