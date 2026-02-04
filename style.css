@@ -1,22 +1,15 @@
 :root {
-  --bg: #f4f6fa;
-  --text: #111;
-  --card: #ffffff;
-  --primary: #0b5ed7;
-  --best: #fff176;
-  --worst: #ff8a80;
-  --section1: #FFCDD2;
-  --section2: #F8BBD0;
-  --section3: #C8E6C9;
-  --section4: #BBDEFB;
-  --section5: #FFF9C4;
-  --shadow: rgba(0,0,0,0.1);
-}
-
-body.dark {
   --bg: #121212;
   --text: #eaeaea;
   --card: #1e1e1e;
+  --primary: #4dabf7;
+  --best: #fff176;
+  --worst: #ff8a80;
+  --section1: #6d4c41;
+  --section2: #4a148c;
+  --section3: #1b5e20;
+  --section4: #0d47a1;
+  --section5: #f57f17;
   --shadow: rgba(255,255,255,0.05);
 }
 
@@ -32,53 +25,30 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg,#0b5ed7,#4dabf7);
+  background: linear-gradient(90deg,#0d47a1,#1e88e5);
   padding: 10px 20px;
-  color: white;
   flex-wrap: wrap;
 }
 
 .logo { height: 120px; }
 
-/* 🔹 QUOTE FIX */
+/* -------- QUOTE -------- */
 .quoteBox {
-  background: rgba(255,255,255,0.9);
+  background: #1e1e1e;
   padding: 10px 20px;
   border-radius: 12px;
   max-width: 600px;
   margin: 5px auto;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.6);
 }
 
 #quoteText {
-  color: #0b5ed7;
+  color: #ffd54f;
   font-weight: bold;
   text-align: center;
 }
 
-body.dark .quoteBox { background:#1e1e1e; }
-body.dark #quoteText { color:#ffd54f; }
-
-.flagContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
-}
-
-.flag { height: 80px; }
-
-#darkModeBtn {
-  padding: 6px 12px;
-  cursor: pointer;
-  border: none;
-  border-radius: 6px;
-  background: white;
-  color: var(--primary);
-  font-weight: bold;
-}
-
-/* -------- CARD -------- */
+/* -------- LAYOUT -------- */
 .container { padding: 20px; }
 
 .trackerCard {
@@ -98,7 +68,24 @@ body.dark #quoteText { color:#ffd54f; }
   gap: 12px;
 }
 
-.formGroup label { font-weight: bold; }
+input {
+  background: #2a2a2a;
+  color: #eaeaea;
+  border: 1px solid #555;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+/* -------- BUTTONS -------- */
+button {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #1e88e5;
+  color: #fff;
+  font-weight: bold;
+}
 
 /* -------- SECTIONS -------- */
 .sectionLabels,.sectionRow{
@@ -122,12 +109,12 @@ table {
 }
 
 th {
-  background: var(--primary);
+  background: #1e88e5;
   color: white;
 }
 
 td,th {
-  border:1px solid #ccc;
+  border:1px solid #444;
   padding:8px;
   text-align:center;
 }
@@ -139,20 +126,7 @@ td,th {
   padding: 15px;
   margin: 20px auto;
   border-radius: 10px;
-  background: #fff8e1;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  background: #1e1e1e;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
   text-align: center;
-}
-
-.examCounterCard .counterRow {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-
-body.dark .examCounterCard {
-  background:#2a2a2a;
-  color:#eaeaea;
 }
