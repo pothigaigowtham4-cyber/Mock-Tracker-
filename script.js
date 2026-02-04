@@ -1,7 +1,7 @@
 /* ---------------- GLOBAL ---------------- */
 
 const quotes = [
- "Be the person your future self will thank.",
+  "Be the person your future self will thank.",
   "Discipline beats motivation.",
   "Small progress is still progress.",
   "Consistency creates confidence.",
@@ -22,39 +22,30 @@ const quotes = [
   "Results follow discipline.",
   "Future you is watching."
 ];
+
 let quoteIndex = 0;
+let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let targets = JSON.parse(localStorage.getItem("targets")) || {};
+let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
+let editIndex = null;
+
+/* ---------------- QUOTES ---------------- */
 
 function rotateQuote() {
   quoteText.textContent = quotes[quoteIndex];
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  rotateQuote();
-  setInterval(rotateQuote, 10000); // 10 seconds
-});
-let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let targets = JSON.parse(localStorage.getItem("targets")) || {};
-let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
-let editIndex = null;
-
 /* ---------------- INIT ---------------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-  quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  rotateQuote();
+  setInterval(rotateQuote, 10000); // 10 seconds
+
   initSections();
   buildFilter();
   renderTables();
-  darkModeBtn.onclick = toggleDark;
 });
-
-/* ---------------- DARK MODE ---------------- */
-
-function toggleDark() {
-  document.body.classList.toggle("dark");
-  darkModeBtn.textContent =
-    document.body.classList.contains("dark") ? "☀ Light Mode" : "🌙 Dark Mode";
-}
 
 /* ---------------- SECTIONS ---------------- */
 
@@ -192,6 +183,7 @@ function renderTables() {
 function editTest(i) {
   const t = tests[i];
   editIndex = i;
+
   examName.value = t.exam;
   testName.value = t.test;
   testDate.value = t.date;
@@ -223,6 +215,7 @@ function deleteTest(i) {
 
 function showGraph() {
   if (examFilter.value === "ALL") return alert("Select an exam");
+
   graphPage.style.display = "block";
   tablesArea.style.display = "none";
 
