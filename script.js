@@ -257,8 +257,11 @@ function exportPDF() {
   const doc = new jsPDF();
   let y = 10;
   tests.forEach(t => {
-    doc.text(`${t.exam} - ${t.test} : ${t.total}`, 10, y);
-    y += 8;
-  });
+   doc.text(
+  `${t.exam} | ${t.test} | ${formatDateDMY(t.date)} | ${t.total}`,
+  10,
+  y
+);
+ });
   doc.save("MockTracker.pdf");
 }
