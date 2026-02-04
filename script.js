@@ -23,18 +23,18 @@ const quotes = [
   "Future you is watching."
 ];
 
-let qIndex = Math.floor(Math.random() * quotes.length);
-let cIndex = 0;
+let qi = Math.floor(Math.random() * quotes.length);
+let ci = 0;
 
 function typeQuote() {
-  if (cIndex === 0) quoteText.textContent = "";
-  if (cIndex < quotes[qIndex].length) {
-    quoteText.textContent += quotes[qIndex][cIndex++];
+  if (ci === 0) quoteText.textContent = "";
+  if (ci < quotes[qi].length) {
+    quoteText.textContent += quotes[qi][ci++];
     setTimeout(typeQuote, 70);
   } else {
     setTimeout(() => {
-      cIndex = 0;
-      qIndex = (qIndex + 1) % quotes.length;
+      ci = 0;
+      qi = (qi + 1) % quotes.length;
       typeQuote();
     }, 10000);
   }
@@ -44,6 +44,7 @@ function typeQuote() {
 
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let targets = JSON.parse(localStorage.getItem("targets")) || {};
+let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
 
 let editIndex = null;
 let openStatsIndex = null;
@@ -67,14 +68,14 @@ function initSections() {
   for (let i = 0; i < 4; i++) addSection();
 }
 
-function addSection(data = {}) {
+function addSection(d = {}) {
   sections.innerHTML += `
     <div class="sectionRow">
-      <input value="${data.name || ""}">
-      <input type="number" value="${data.marks || 0}">
-      <input type="number" value="${data.c || 0}">
-      <input type="number" value="${data.w || 0}">
-      <input type="number" value="${data.u || 0}">
+      <input value="${d.name || ""}">
+      <input type="number" value="${d.marks || 0}">
+      <input type="number" value="${d.c || 0}">
+      <input type="number" value="${d.w || 0}">
+      <input type="number" value="${d.u || 0}">
       <button onclick="this.parentElement.remove()">🗑</button>
     </div>`;
 }
@@ -136,14 +137,10 @@ function editTest(i) {
   platformName.value = t.platform;
   negativeMark.value = t.neg;
 
-  sections.innerHTML = `
-    <div class="sectionLabels">
-      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
-    </div>`;
+  initSections();
 
-  Object.entries(t.sectionsData).forEach(([name, d]) =>
-    addSection({ name, ...d })
-  );
+  const data = t.sectionsData || {};
+  Object.keys(data).forEach(k => addSection({ name: k, ...data[k] }));
 }
 
 function deleteTest(i) {
@@ -172,8 +169,8 @@ function buildFilter() {
 
 function formatDate(d) {
   if (!d) return "";
-  const [y, m, day] = d.split("-");
-  return `${day}-${m}-${y}`;
+  const [y, m, da] = d.split("-");
+  return `${da}-${m}-${y}`;
 }
 
 function toggleStats(i) {
@@ -195,7 +192,9 @@ function renderTables() {
 
   Object.keys(grouped).forEach(exam => {
     const arr = grouped[exam];
-    const sectionOrder = Object.keys(arr[0].sectionsData);
+
+    const sectionOrder =
+      Object.keys(arr[0].sectionsData || {});
 
     const max = Math.max(...arr.map(t => t.total));
     const min = Math.min(...arr.map(t => t.total));
@@ -219,7 +218,9 @@ function renderTables() {
           <td>${t.platform}</td>
           <td>${t.total}</td>
           <td>${t.accuracy}</td>
-          ${sectionOrder.map(s => `<td>${t.sectionsData[s].marks}</td>`).join("")}
+          ${sectionOrder.map(
+            s => `<td>${(t.sectionsData || {})[s]?.marks || 0}</td>`
+          ).join("")}
           <td><button onclick="event.stopPropagation();editTest(${t._i})">✏</button></td>
           <td><button onclick="event.stopPropagation();deleteTest(${t._i})">🗑</button></td>
         </tr>`;
@@ -229,11 +230,10 @@ function renderTables() {
           <tr class="statsRow">
             <td colspan="${7 + sectionOrder.length}">
               ${sectionOrder.map(
-                s =>
-                  `<b>${s}</b> → 
-                   C: ${t.sectionsData[s].c}, 
-                   W: ${t.sectionsData[s].w}, 
-                   U: ${t.sectionsData[s].u}`
+                s => {
+                  const d = (t.sectionsData || {})[s] || {};
+                  return `<b>${s}</b> → C:${d.c || 0}, W:${d.w || 0}, U:${d.u || 0}`;
+                }
               ).join(" | ")}
             </td>
           </tr>`;
@@ -243,6 +243,38 @@ function renderTables() {
     html += `</table></div>`;
     tablesArea.innerHTML += html;
   });
+}
+
+/* ---------------- GRAPH ---------------- */
+
+function showGraph() {
+  if (examFilter.value === "ALL") return alert("Select an exam");
+  graphPage.style.display = "block";
+  tablesArea.style.display = "none";
+
+  const data = tests.filter(t => t.exam === examFilter.value);
+  const ctx = graph.getContext("2d");
+
+  if (window.g) window.g.destroy();
+  window.g = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: data.map(t => t.test),
+      datasets: [{ label: "Marks", data: data.map(t => t.total) }]
+    }
+  });
+}
+
+function hideGraph() {
+  graphPage.style.display = "none";
+  tablesArea.style.display = "block";
+}
+
+/* ---------------- EXAM DATE ---------------- */
+
+function addExamDate(name, date) {
+  examDates[name] = date;
+  localStorage.setItem("examDates", JSON.stringify(examDates));
 }
 
 /* ---------------- EXPORT ---------------- */
