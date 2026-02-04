@@ -1,9 +1,36 @@
-/* ===============================
-   SAFE HELPERS
-================================ */
-function qs(id) {
-  return document.getElementById(id);
-}
+/* ================= GLOBAL ================= */
+
+const quotes = [
+  "Be the person your future self will thank.",
+  "Discipline beats motivation.",
+  "Small progress is still progress.",
+  "Consistency creates confidence.",
+  "Your competition is your past self.",
+  "Focus on the process, not the outcome.",
+  "Dreams don’t work unless you do.",
+  "Hard work compounds silently.",
+  "Success is built daily.",
+  "You are one habit away from change.",
+  "Work now, relax later.",
+  "Pressure makes diamonds.",
+  "No excuses. Just execution.",
+  "Train your mind to stay strong.",
+  "Do it even when you don’t feel like it.",
+  "Comfort is the enemy of growth.",
+  "Every mock makes you sharper.",
+  "Stay patient. Stay consistent.",
+  "Results follow discipline.",
+  "Future you is watching."
+];
+
+let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
+let editIndex = null;
+let chartInstance = null;
+
+/* ================= HELPERS ================= */
+
+const $ = id => document.getElementById(id);
 
 function formatDate(d) {
   if (!d) return "";
@@ -11,287 +38,236 @@ function formatDate(d) {
   return `${day}-${m}-${y}`;
 }
 
-function daysLeft(date) {
-  const diff = new Date(date) - new Date();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
+/* ================= INIT ================= */
 
-/* ===============================
-   STORAGE
-================================ */
-let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
-let editingId = null;
-
-/* ===============================
-   QUOTES (UNCHANGED LIST)
-================================ */
-const quotes = [
-  "Discipline beats motivation.",
-  "Small progress is still progress.",
-  "Consistency creates confidence.",
-  "Today’s effort is tomorrow’s rank.",
-  "One mock closer to selection.",
-  "Focus beats talent when talent sleeps.",
-  "Your future self is watching.",
-  "Every test is feedback.",
-  "Pressure makes diamonds.",
-  "No excuses. Just results."
-];
-
-/* ===============================
-   DOM READY
-================================ */
 document.addEventListener("DOMContentLoaded", () => {
+  rotateQuote();
+  setInterval(rotateQuote, 10000);
 
-  /* ---------- DARK MODE ---------- */
-  const darkBtn = qs("darkModeBtn");
-  if (darkBtn) {
-    darkBtn.onclick = () => {
-      document.body.classList.toggle("dark");
-    };
-  }
+  $("darkModeBtn").onclick = toggleDark;
 
-  /* ---------- TYPEWRITER QUOTE ---------- */
-  const quoteEl = qs("quoteText");
-  if (quoteEl) {
-    const q = quotes[Math.floor(Math.random() * quotes.length)];
-    quoteEl.style.fontWeight = "600";
-    quoteEl.textContent = "";
-    let i = 0;
-    const timer = setInterval(() => {
-      quoteEl.textContent += q[i++];
-      if (i === q.length) clearInterval(timer);
-    }, 50);
-  }
-
-  renderExamDates();
+  initSections();
+  buildFilter();
   renderTables();
-  populateExamFilter();
 });
 
-/* ===============================
-   EXAM DATE COUNTER
-================================ */
-function addExamDate() {
-  const name = qs("examCounterName")?.value.trim();
-  const date = qs("examCounterDate")?.value;
-  if (!name || !date) return;
+/* ================= QUOTES ================= */
 
-  examDates.push({ name, date });
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-
-  qs("examCounterName").value = "";
-  qs("examCounterDate").value = "";
-  renderExamDates();
+let quoteIndex = Math.floor(Math.random() * quotes.length);
+function rotateQuote() {
+  $("quoteText").textContent = quotes[quoteIndex];
+  quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
-function renderExamDates() {
-  const box = qs("examDateList");
-  if (!box) return;
+/* ================= DARK MODE ================= */
 
-  box.innerHTML = "";
-  examDates.forEach((e, i) => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <strong>${e.name}</strong> : ${daysLeft(e.date)} days
-      <button onclick="removeExamDate(${i})">❌</button>
-    `;
-    box.appendChild(div);
-  });
+function toggleDark() {
+  document.body.classList.toggle("dark");
 }
 
-function removeExamDate(i) {
-  examDates.splice(i, 1);
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-  renderExamDates();
+/* ================= SECTIONS ================= */
+
+function initSections() {
+  $("sections").innerHTML = "";
+  addSectionHeader();
+  for (let i = 0; i < 4; i++) addSection();
 }
 
-/* ===============================
-   SECTIONS
-================================ */
+function addSectionHeader() {
+  $("sections").innerHTML += `
+    <div class="sectionLabels">
+      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
+    </div>`;
+}
+
 function addSection() {
-  const wrap = qs("sections");
-  if (!wrap) return;
-
-  const row = document.createElement("div");
-  row.className = "sectionRow";
-  row.innerHTML = `
-    <input placeholder="Section">
-    <input type="number" placeholder="Correct">
-    <input type="number" placeholder="Wrong">
-    <input type="number" placeholder="Unattempted">
-    <input type="number" placeholder="Marks">
-    <button onclick="this.parentElement.remove()">❌</button>
-  `;
-  wrap.appendChild(row);
+  $("sections").innerHTML += `
+    <div class="sectionRow">
+      <input class="sectionName">
+      <input class="sectionMarks" type="number">
+      <input type="number">
+      <input type="number">
+      <input type="number">
+      <button onclick="this.parentElement.remove()">🗑</button>
+    </div>`;
 }
 
-/* ===============================
-   SAVE TEST
-================================ */
+/* ================= SAVE TEST ================= */
+
 function saveTest() {
-  const sections = {};
+  const sections = [];
+  let total = 0;
+
   document.querySelectorAll(".sectionRow").forEach(r => {
-    const i = r.querySelectorAll("input");
-    sections[i[0].value] = {
-      correct: +i[1].value || 0,
-      wrong: +i[2].value || 0,
-      unattempted: +i[3].value || 0,
-      marks: +i[4].value || 0
+    const s = {
+      name: r.children[0].value,
+      marks: +r.children[1].value || 0,
+      c: +r.children[2].value || 0,
+      w: +r.children[3].value || 0,
+      u: +r.children[4].value || 0
     };
+    total += s.marks;
+    sections.push(s);
   });
 
   const test = {
-    id: editingId || Date.now(),
-    exam: qs("examName").value,
-    test: qs("testName").value,
-    date: qs("testDate").value,
-    platform: qs("platformName").value,
+    exam: $("examName").value,
+    test: $("testName").value,
+    date: $("testDate").value,
+    platform: $("platformName").value,
+    total,
     sections
   };
 
-  if (editingId) {
-    tests = tests.map(t => t.id === editingId ? test : t);
-    editingId = null;
-  } else {
-    tests.push(test);
-  }
+  editIndex === null ? tests.push(test) : tests[editIndex] = test;
+  editIndex = null;
 
   localStorage.setItem("tests", JSON.stringify(tests));
-  location.reload();
+
+  initSections();
+  buildFilter();
+  renderTables();
 }
 
-/* ===============================
-   TABLES
-================================ */
-function renderTables() {
-  const area = qs("tablesArea");
-  if (!area) return;
-  area.innerHTML = "";
+/* ================= FILTER ================= */
 
-  const byExam = {};
+function buildFilter() {
+  const f = $("examFilter");
+  f.innerHTML = `<option value="ALL">All Exams</option>`;
+  [...new Set(tests.map(t => t.exam))].forEach(e => {
+    f.innerHTML += `<option value="${e}">${e}</option>`;
+  });
+  f.onchange = renderTables;
+}
+
+/* ================= TABLES ================= */
+
+function renderTables() {
+  $("tablesArea").innerHTML = "";
+  const selected = $("examFilter").value;
+
+  const grouped = {};
   tests.forEach(t => {
-    if (!byExam[t.exam]) byExam[t.exam] = [];
-    byExam[t.exam].push(t);
+    if (selected === "ALL" || t.exam === selected) {
+      grouped[t.exam] = grouped[t.exam] || [];
+      grouped[t.exam].push(t);
+    }
   });
 
-  Object.keys(byExam).forEach(exam => {
-    const list = byExam[exam];
-
+  Object.keys(grouped).forEach(exam => {
+    const list = grouped[exam];
     const avg = (
-      list.reduce((s, t) =>
-        s + Object.values(t.sections || {}).reduce((a, b) => a + b.marks, 0), 0
-      ) / list.length
+      list.reduce((s, t) => s + t.total, 0) / list.length
     ).toFixed(1);
 
-    const h = document.createElement("h3");
-    h.textContent = `${exam} | Avg: ${avg}`;
-    area.appendChild(h);
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<h3>${exam} | Avg: ${avg}</h3>`;
 
     const table = document.createElement("table");
+
+    const headers = list[0].sections.map(s => `<th>${s.name}</th>`).join("");
+
     table.innerHTML = `
       <tr>
-        <th>Test</th><th>Date</th><th>Platform</th>
-        <th>Total</th><th>Edit</th><th>Delete</th>
-      </tr>
-    `;
+        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th>
+        ${headers}
+        <th>Edit</th><th>Delete</th>
+      </tr>`;
 
     list.forEach((t, i) => {
-      const total = Object.values(t.sections || {}).reduce((a, b) => a + b.marks, 0);
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${formatDate(t.date)}</td>
-        <td>${t.platform}</td>
-        <td>${total}</td>
-        <td><button onclick="editTest(${t.id})">✏️</button></td>
-        <td><button onclick="deleteTest(${t.id})">🗑</button></td>
-      `;
-      row.onclick = () => toggleDetails(row, t);
-      table.appendChild(row);
+      table.innerHTML += `
+        <tr onclick="toggleDetails(this, ${tests.indexOf(t)})">
+          <td>${i + 1}</td>
+          <td>${formatDate(t.date)}</td>
+          <td>${t.platform}</td>
+          <td>${t.total}</td>
+          ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
+          <td><button onclick="event.stopPropagation();editTest(${tests.indexOf(t)})">✏️</button></td>
+          <td><button onclick="event.stopPropagation();deleteTest(${tests.indexOf(t)})">🗑</button></td>
+        </tr>`;
     });
 
-    area.appendChild(table);
+    wrap.appendChild(table);
+    $("tablesArea").appendChild(wrap);
   });
 }
 
-/* ===============================
-   DETAILS TOGGLE
-================================ */
-function toggleDetails(row, test) {
-  if (row.nextSibling && row.nextSibling.classList?.contains("details")) {
+/* ================= DETAILS ROW ================= */
+
+function toggleDetails(row, i) {
+  if (row.nextSibling && row.nextSibling.classList.contains("details")) {
     row.nextSibling.remove();
     return;
   }
 
+  const t = tests[i];
   const d = document.createElement("tr");
   d.className = "details";
-  let html = `<td colspan="6">`;
-
-  Object.keys(test.sections || {}).forEach(s => {
-    const x = test.sections[s];
-    html += `<b>${s}</b> → C:${x.correct}, W:${x.wrong}, U:${x.unattempted}, M:${x.marks}<br>`;
-  });
-
-  html += `</td>`;
-  d.innerHTML = html;
+  d.innerHTML = `
+    <td colspan="100%">
+      ${t.sections.map(s =>
+        `<b>${s.name}</b> → C:${s.c} W:${s.w} U:${s.u}`
+      ).join("<br>")}
+    </td>`;
   row.after(d);
 }
 
-/* ===============================
-   EDIT / DELETE
-================================ */
-function editTest(id) {
-  const t = tests.find(x => x.id === id);
-  editingId = id;
+/* ================= EDIT / DELETE ================= */
 
-  qs("examName").value = t.exam;
-  qs("testName").value = t.test;
-  qs("testDate").value = t.date;
-  qs("platformName").value = t.platform;
+function editTest(i) {
+  const t = tests[i];
+  editIndex = i;
 
-  qs("sections").innerHTML = "";
-  Object.keys(t.sections).forEach(s => {
-    addSection();
-    const r = qs("sections").lastElementChild;
-    const i = r.querySelectorAll("input");
-    i[0].value = s;
-    i[1].value = t.sections[s].correct;
-    i[2].value = t.sections[s].wrong;
-    i[3].value = t.sections[s].unattempted;
-    i[4].value = t.sections[s].marks;
+  $("examName").value = t.exam;
+  $("testName").value = t.test;
+  $("testDate").value = t.date;
+  $("platformName").value = t.platform;
+
+  initSections();
+  t.sections.forEach((s, idx) => {
+    const r = document.querySelectorAll(".sectionRow")[idx];
+    r.children[0].value = s.name;
+    r.children[1].value = s.marks;
+    r.children[2].value = s.c;
+    r.children[3].value = s.w;
+    r.children[4].value = s.u;
   });
 }
 
-function deleteTest(id) {
+function deleteTest(i) {
   if (!confirm("Delete test?")) return;
-  tests = tests.filter(t => t.id !== id);
+  tests.splice(i, 1);
   localStorage.setItem("tests", JSON.stringify(tests));
-  location.reload();
+  buildFilter();
+  renderTables();
 }
 
-/* ===============================
-   FILTER
-================================ */
-function populateExamFilter() {
-  const sel = qs("examFilter");
-  if (!sel) return;
+/* ================= GRAPH ================= */
 
-  sel.innerHTML = `<option value="">All</option>`;
-  [...new Set(tests.map(t => t.exam))].forEach(e => {
-    sel.innerHTML += `<option>${e}</option>`;
-  });
-}
-
-/* ===============================
-   GRAPH PLACEHOLDERS
-================================ */
 function showGraph() {
-  qs("graphPage").style.display = "block";
+  $("graphPage").style.display = "block";
+  $("tablesArea").style.display = "none";
+
+  const exam = $("examFilter").value;
+  if (exam === "ALL") return alert("Select an exam");
+
+  const data = tests.filter(t => t.exam === exam);
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart($("graph"), {
+    type: "line",
+    data: {
+      labels: data.map(t => t.test),
+      datasets: [{
+        label: "Total Marks",
+        data: data.map(t => t.total)
+      }]
+    }
+  });
 }
 
 function hideGraph() {
-  qs("graphPage").style.display = "none";
+  $("graphPage").style.display = "none";
+  $("tablesArea").style.display = "block";
 }
