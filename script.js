@@ -1,4 +1,4 @@
-/* ---------------- GLOBAL ---------------- */
+/* ---------- QUOTES (TYPEWRITER) ---------- */
 
 const quotes = [
   "Be the person your future self will thank.",
@@ -22,85 +22,89 @@ const quotes = [
   "Results follow discipline.",
   "Future you is watching."
 ];
-function formatDateDMY(dateStr) {
-  if (!dateStr) return "";
-  const [y, m, d] = dateStr.split("-");
-  return `${d}-${m}-${y}`;
-}
 
 let quoteIndex = 0;
+let charIndex = 0;
+
+function typeQuote() {
+  if (charIndex === 0) quoteText.textContent = "";
+
+  if (charIndex < quotes[quoteIndex].length) {
+    quoteText.textContent += quotes[quoteIndex][charIndex];
+    charIndex++;
+    setTimeout(typeQuote, 70);
+  } else {
+    setTimeout(() => {
+      charIndex = 0;
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      typeQuote();
+    }, 10000); // 10 seconds per quote
+  }
+}
+
+/* ---------- GLOBAL ---------- */
+
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let targets = JSON.parse(localStorage.getItem("targets")) || {};
 let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
 let editIndex = null;
 
-/* ---------------- QUOTES ---------------- */
-
-function rotateQuote() {
-  quoteText.textContent = quotes[quoteIndex];
-  quoteIndex = (quoteIndex + 1) % quotes.length;
-}
-
-/* ---------------- INIT ---------------- */
+/* ---------- INIT ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-  rotateQuote();
-  setInterval(rotateQuote, 10000); // 10 seconds
-
+  typeQuote();
   initSections();
   buildFilter();
   renderTables();
+  renderExamDates();
 });
 
-/* ---------------- SECTIONS ---------------- */
+/* ---------- SECTIONS ---------- */
 
 function initSections() {
-  sections.innerHTML = "";
-  addSectionHeader();
+  sections.innerHTML = `
+    <div class="sectionLabels">
+      <span>Section</span>
+      <span>Marks</span>
+      <span>C</span>
+      <span>W</span>
+      <span>U</span>
+      <span></span>
+    </div>`;
   for (let i = 0; i < 4; i++) addSection();
 }
 
-function addSectionHeader() {
-  sections.innerHTML += `
-    <div class="sectionLabels">
-      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
-    </div>`;
-}
-
-function addSection(n = "", m = 0, c = 0, w = 0, u = 0) {
+function addSection() {
   sections.innerHTML += `
     <div class="sectionRow">
-      <input class="sectionName" value="${n}">
-      <input class="sectionMarks" type="number" value="${m}">
-      <input type="number" value="${c}">
-      <input type="number" value="${w}">
-      <input type="number" value="${u}">
+      <input class="sectionName">
+      <input class="sectionMarks" type="number">
+      <input type="number">
+      <input type="number">
+      <input type="number">
       <button onclick="this.parentElement.remove()">🗑</button>
     </div>`;
 }
 
-/* ---------------- SAVE ---------------- */
+/* ---------- SAVE TEST ---------- */
 
 function saveTest() {
   if (!examName.value || !testName.value || !testDate.value)
     return alert("Fill all fields");
 
   const secs = [];
-  let total = 0, tc = 0, tw = 0, tu = 0;
+  let total = 0, tc = 0, tw = 0;
 
   document.querySelectorAll(".sectionRow").forEach(r => {
-    const s = {
+    const marks = +r.children[1].value || 0;
+    total += marks;
+    tc += +r.children[2].value || 0;
+    tw += +r.children[3].value || 0;
+
+    secs.push({
       name: r.children[0].value,
-      marks: +r.children[1].value || 0,
-      c: +r.children[2].value || 0,
-      w: +r.children[3].value || 0,
-      u: +r.children[4].value || 0
-    };
-    total += s.marks;
-    tc += s.c;
-    tw += s.w;
-    tu += s.u;
-    secs.push(s);
+      marks
+    });
   });
 
   const t = {
@@ -114,8 +118,6 @@ function saveTest() {
     sections: secs
   };
 
-  if (targetInput.value) targets[t.exam] = +targetInput.value;
-
   editIndex === null ? tests.push(t) : tests[editIndex] = t;
   editIndex = null;
 
@@ -127,7 +129,7 @@ function saveTest() {
   renderTables();
 }
 
-/* ---------------- FILTER ---------------- */
+/* ---------- FILTER ---------- */
 
 function buildFilter() {
   examFilter.innerHTML = `<option value="ALL">All Exams</option>`;
@@ -137,7 +139,7 @@ function buildFilter() {
   examFilter.onchange = renderTables;
 }
 
-/* ---------------- TABLES ---------------- */
+/* ---------- TABLES ---------- */
 
 function renderTables() {
   tablesArea.innerHTML = "";
@@ -152,72 +154,56 @@ function renderTables() {
   });
 
   Object.keys(grouped).forEach(exam => {
-    const wrap = document.createElement("div");
-    wrap.className = "examTableWrapper";
-    wrap.innerHTML = `<h3>${exam} | Target: ${targets[exam] || "-"}</h3>`;
+    const arr = grouped[exam];
+    const avg = (arr.reduce((s, t) => s + t.total, 0) / arr.length).toFixed(1);
+    const max = Math.max(...arr.map(t => t.total));
+    const min = Math.min(...arr.map(t => t.total));
 
-    const table = document.createElement("table");
-    table.innerHTML = `
-      <tr>
-        <th>Test</th><th>Date</th><th>Platform</th><th>Total</th><th>Accuracy</th>
-        ${grouped[exam][0].sections.map(s => `<th>${s.name}</th>`).join("")}
-        <th>Edit</th><th>Delete</th>
-      </tr>`;
+    let html = `
+      <div class="examTableWrapper">
+        <h3>${exam} | Average: ${avg}</h3>
+        <table>
+          <tr>
+            <th>Test</th>
+            <th>Date</th>
+            <th>Total</th>
+          </tr>`;
 
-    grouped[exam].forEach(t => {
-      table.innerHTML += `
-        <tr>
+    arr.forEach(t => {
+      const cls = t.total === max ? "best" : t.total === min ? "worst" : "";
+      html += `
+        <tr class="${cls}">
           <td>${t.test}</td>
-         <td>${formatDateDMY(t.date)}</td>
-
-          <td>${t.platform}</td>
+          <td>${t.date}</td>
           <td>${t.total}</td>
-          <td>${t.accuracy}</td>
-          ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
-          <td><button onclick="editTest(${tests.indexOf(t)})">✏️</button></td>
-          <td><button onclick="deleteTest(${tests.indexOf(t)})">🗑</button></td>
         </tr>`;
     });
 
-    wrap.appendChild(table);
-    tablesArea.appendChild(wrap);
+    html += `</table></div>`;
+    tablesArea.innerHTML += html;
   });
 }
 
-/* ---------------- EDIT / DELETE ---------------- */
+/* ---------- EXAM DATE COUNTER ---------- */
 
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
+function addExamDate() {
+  if (!examCounterName.value || !examCounterDate.value) return;
+  examDates[examCounterName.value] = examCounterDate.value;
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+  renderExamDates();
+}
 
-  examName.value = t.exam;
-  testName.value = t.test;
-  testDate.value = t.date;
-  platformName.value = t.platform;
-  negativeMark.value = t.neg || 0;
-  targetInput.value = targets[t.exam] || "";
+function renderExamDates() {
+  examCountdownList.innerHTML = "";
+  const today = new Date();
 
-  initSections();
-  t.sections.forEach((s, i) => {
-    const r = document.querySelectorAll(".sectionRow")[i];
-    r.children[0].value = s.name;
-    r.children[1].value = s.marks;
-    r.children[2].value = s.c;
-    r.children[3].value = s.w;
-    r.children[4].value = s.u;
+  Object.entries(examDates).forEach(([exam, date]) => {
+    const days = Math.ceil((new Date(date) - today) / 86400000);
+    examCountdownList.innerHTML += `<div>${exam}: ${days} days</div>`;
   });
 }
 
-function deleteTest(i) {
-  if (confirm("Delete test?")) {
-    tests.splice(i, 1);
-    localStorage.setItem("tests", JSON.stringify(tests));
-    buildFilter();
-    renderTables();
-  }
-}
-
-/* ---------------- GRAPH ---------------- */
+/* ---------- GRAPH ---------- */
 
 function showGraph() {
   if (examFilter.value === "ALL") return alert("Select an exam");
@@ -226,10 +212,9 @@ function showGraph() {
   tablesArea.style.display = "none";
 
   const data = tests.filter(t => t.exam === examFilter.value);
-  const ctx = graph.getContext("2d");
+  if (window.g) g.destroy();
 
-  if (window.g) window.g.destroy();
-  window.g = new Chart(ctx, {
+  g = new Chart(graph, {
     type: "line",
     data: {
       labels: data.map(t => t.test),
@@ -243,7 +228,7 @@ function hideGraph() {
   tablesArea.style.display = "block";
 }
 
-/* ---------------- EXPORT ---------------- */
+/* ---------- EXPORT ---------- */
 
 function exportExcel() {
   const ws = XLSX.utils.json_to_sheet(tests);
@@ -256,12 +241,11 @@ function exportPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   let y = 10;
+
   tests.forEach(t => {
-   doc.text(
-  `${t.exam} | ${t.test} | ${formatDateDMY(t.date)} | ${t.total}`,
-  10,
-  y
-);
- });
+    doc.text(`${t.exam} - ${t.test} : ${t.total}`, 10, y);
+    y += 8;
+  });
+
   doc.save("MockTracker.pdf");
 }
