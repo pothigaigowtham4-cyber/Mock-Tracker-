@@ -1,96 +1,77 @@
 :root {
-  --bg: #121212;
-  --text: #eaeaea;
-  --card: #1e1e1e;
-  --primary: #0b5ed7;
-  --best: #fff176;
-  --worst: #ff8a80;
-  --shadow: rgba(255,255,255,0.05);
+  --bg:#121212;
+  --text:#eaeaea;
+  --card:#1e1e1e;
+  --primary:#0b5ed7;
+  --best:#fff176;
+  --worst:#ff8a80;
+  --shadow:rgba(255,255,255,0.05);
 }
 
 body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
 }
 
-/* -------- HEADER -------- */
+/* HEADER */
+.topHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 20px;
+  background:var(--primary);
+}
+.logo,.flag{height:120px}
+.flag{height:80px}
 
-.topHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--primary);
-  padding: 10px 20px;
-  color: white;
+.quoteBox{
+  flex:1;
+  text-align:center;
+  font-weight:600;
+  font-style:italic;
 }
 
-.logo {
-  height: 120px;
+/* CARDS */
+.container{padding:20px}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 4px 15px var(--shadow);
+  margin-bottom:25px;
 }
 
-.quoteBox {
-  flex: 1;
-  text-align: center;
-  font-style: italic;
-  font-size: 1.1em;
+/* FORM GRID */
+.formGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
+.formGroup label{font-weight:bold}
+
+/* SECTIONS */
+.sectionLabels,.sectionRow{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr 1fr 0.5fr;
+  gap:6px;
+  margin-bottom:6px;
 }
 
-/* FIXED FLAG ALIGNMENT */
-.flagContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* BUTTONS */
+.btnRow{display:flex;gap:10px;margin-top:10px}
+.addBtn{background:#0b5ed7;color:white}
+.saveBtn{background:#198754;color:white}
 
-.flag {
-  height: 80px;
-}
+/* TABLE */
+.examTableWrapper{margin-bottom:30px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #444;padding:8px;text-align:center}
+th{background:var(--primary)}
+.best{background:var(--best);color:#000}
+.worst{background:var(--worst);color:#000}
 
-/* -------- LAYOUT -------- */
-
-.container {
-  padding: 20px;
-}
-
-.trackerCard {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-  border-radius: 12px;
-  background: var(--card);
-  box-shadow: 0 4px 15px var(--shadow);
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-  gap: 12px;
-}
-
-.sectionLabels,
-.sectionRow {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.5fr;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-}
-
-th, td {
-  border: 1px solid #444;
-  padding: 8px;
-  text-align: center;
-  color: var(--text);
-}
-
-th {
-  background: var(--primary);
-  color: #fff;
-}
+/* COUNTER */
+.examCounterCard input{padding:6px}
+.counterRow{display:flex;gap:10px;margin-bottom:10px}
