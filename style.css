@@ -1,133 +1,108 @@
-:root {
-  --bg: #0f1115;
-  --text: #eaeaea;
-  --card: #1a1d24;
-  --primary: #4dabf7;
-  --best: #fff176;
-  --worst: #ff8a80;
-  --section1: #4e342e;
-  --section2: #311b92;
-  --section3: #1b5e20;
-  --section4: #0d47a1;
-  --section5: #f57f17;
-  --shadow: rgba(0,0,0,0.8);
-}
-
-body {
+/* ---------------- GLOBAL DARK BASE ---------------- */
+html, body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
+  padding: 0;
+  background: #0f1115;
+  color: #eaeaea;
+  font-family: system-ui, sans-serif;
 }
 
-/* -------- HEADER -------- */
+/* ---------------- HEADER ---------------- */
 .topHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg,#0d47a1,#1565c0);
-  padding: 10px 20px;
-  flex-wrap: wrap;
+  background: #161a22;
+  padding: 12px 20px;
 }
 
-.logo { height: 120px; }
+.logo { height: 60px; }
+.flag { height: 30px; }
 
-/* -------- QUOTE -------- */
+/* ---------------- QUOTE ---------------- */
 .quoteBox {
-  background: #1a1d24;
-  padding: 10px 20px;
-  border-radius: 12px;
-  max-width: 600px;
-  margin: 5px auto;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.7);
+  background: #1f2430;
+  padding: 10px 18px;
+  border-radius: 10px;
 }
 
 #quoteText {
   color: #ffd54f;
   font-weight: bold;
-  text-align: center;
 }
 
-/* -------- LAYOUT -------- */
-.container { padding: 20px; }
-
-.trackerCard {
-  width: 95%;
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-  border-radius: 12px;
-  background: var(--card);
-  box-shadow: 0 4px 15px var(--shadow);
-}
-
-/* -------- FORM -------- */
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
-  gap: 12px;
-}
-
-input {
-  background: #10131a;
-  color: #eaeaea;
-  border: 1px solid #333;
-  padding: 6px;
-  border-radius: 6px;
-}
-
-/* -------- BUTTONS -------- */
-button {
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  background: #1e88e5;
-  color: #fff;
-  font-weight: bold;
-}
-
-/* -------- SECTIONS -------- */
-.sectionLabels,
-.sectionRow {
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr 1fr 1fr .5fr;
-  gap:6px;
-}
-
-/* -------- TABLE -------- */
-.examTableWrapper {
-  padding: 15px;
+/* ---------------- CARDS ---------------- */
+.card,
+.examCounterCard {
+  background: #161a22;
   margin: 20px;
-  border-radius: 12px;
-  background: var(--card);
-  box-shadow: 0 5px 20px var(--shadow);
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px #2a2f3a;
 }
 
+/* ---------------- INPUTS ---------------- */
+input, select {
+  background: #0f1115;
+  color: #fff;
+  border: 1px solid #2a2f3a;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+input::placeholder {
+  color: #888;
+}
+
+/* ---------------- SECTIONS ---------------- */
+.sectionRow {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr) auto;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* ---------------- BUTTONS ---------------- */
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+/* ---------------- TABLES ---------------- */
 table {
-  width: 100%;
+  width: 95%;
+  margin: 20px auto;
   border-collapse: collapse;
+  background: #161a22;
+}
+
+caption {
+  padding: 10px;
+  font-weight: bold;
+  color: #ffd54f;
+}
+
+th, td {
+  border: 1px solid #2a2f3a;
+  padding: 10px;
+  text-align: center;
 }
 
 th {
-  background: #1e88e5;
+  background: #1f2430;
+}
+
+/* ---------------- GRAPH PAGE ---------------- */
+#graphPage {
+  background: #0f1115;
   color: white;
-}
-
-td,th {
-  border:1px solid #2a2a2a;
-  padding:8px;
-  text-align:center;
-}
-
-/* -------- EXAM DATE COUNTER -------- */
-.examCounterCard {
-  width: fit-content;
-  max-width: 600px;
-  padding: 15px;
-  margin: 20px auto;
-  border-radius: 10px;
-  background: #1a1d24;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
-  text-align: center;
+  padding: 20px;
 }
