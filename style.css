@@ -1,17 +1,10 @@
 :root {
-  --bg: #f4f6fa;
-  --text: #111;
-  --card: #ffffff;
-  --primary: #0b5ed7;
-  --best: #fff176;
-  --worst: #ff8a80;
-  --shadow: rgba(0,0,0,0.1);
-}
-
-body.dark {
   --bg: #121212;
   --text: #eaeaea;
   --card: #1e1e1e;
+  --primary: #0b5ed7;
+  --best: #fff176;
+  --worst: #ff8a80;
   --shadow: rgba(255,255,255,0.05);
 }
 
@@ -33,7 +26,9 @@ body {
   color: white;
 }
 
-.logo { height: 120px; }
+.logo {
+  height: 120px;
+}
 
 .quoteBox {
   flex: 1;
@@ -42,25 +37,22 @@ body {
   font-size: 1.1em;
 }
 
+/* FIXED FLAG ALIGNMENT */
 .flagContainer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  gap: 10px;
 }
 
-.flag { height: 80px; }
-
-#darkModeBtn {
-  margin-top: 5px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.flag {
+  height: 80px;
 }
 
 /* -------- LAYOUT -------- */
 
-.container { padding: 20px; }
+.container {
+  padding: 20px;
+}
 
 .trackerCard {
   max-width: 1200px;
@@ -88,10 +80,17 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--card);
 }
 
 th, td {
-  border: 1px solid #ccc;
+  border: 1px solid #444;
   padding: 8px;
   text-align: center;
+  color: var(--text);
+}
+
+th {
+  background: var(--primary);
+  color: #fff;
 }
