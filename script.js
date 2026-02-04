@@ -1,5 +1,7 @@
-/* ================= GLOBAL ================= */
+/* ================= SAFE SELECTOR ================= */
+const $ = id => document.getElementById(id);
 
+/* ================= QUOTES ================= */
 const quotes = [
   "Be the person your future self will thank.",
   "Discipline beats motivation.",
@@ -23,68 +25,47 @@ const quotes = [
   "Future you is watching."
 ];
 
+let quoteIndex = Math.floor(Math.random() * quotes.length);
+
+/* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
 let chartInstance = null;
 
-/* ================= HELPERS ================= */
-
-const $ = id => document.getElementById(id);
-
-function formatDate(d) {
-  if (!d) return "";
-  const [y, m, day] = d.split("-");
-  return `${day}-${m}-${y}`;
-}
-
 /* ================= INIT ================= */
-
 document.addEventListener("DOMContentLoaded", () => {
   rotateQuote();
   setInterval(rotateQuote, 10000);
-
-  $("darkModeBtn").onclick = toggleDark;
 
   initSections();
   buildFilter();
   renderTables();
 });
 
-/* ================= QUOTES ================= */
-
-let quoteIndex = Math.floor(Math.random() * quotes.length);
+/* ================= QUOTE ROTATION ================= */
 function rotateQuote() {
-  $("quoteText").textContent = quotes[quoteIndex];
+  const qt = $("quoteText");
+  if (!qt) return;
+  qt.textContent = quotes[quoteIndex];
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
-/* ================= DARK MODE ================= */
-
-function toggleDark() {
-  document.body.classList.toggle("dark");
-}
-
 /* ================= SECTIONS ================= */
-
 function initSections() {
-  $("sections").innerHTML = "";
-  addSectionHeader();
-  for (let i = 0; i < 4; i++) addSection();
-}
-
-function addSectionHeader() {
-  $("sections").innerHTML += `
+  const s = $("sections");
+  if (!s) return;
+  s.innerHTML = `
     <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
     </div>`;
+  for (let i = 0; i < 4; i++) addSection();
 }
 
 function addSection() {
   $("sections").innerHTML += `
     <div class="sectionRow">
-      <input class="sectionName">
-      <input class="sectionMarks" type="number">
+      <input>
+      <input type="number">
       <input type="number">
       <input type="number">
       <input type="number">
@@ -93,21 +74,21 @@ function addSection() {
 }
 
 /* ================= SAVE TEST ================= */
-
 function saveTest() {
-  const sections = [];
+  const rows = document.querySelectorAll(".sectionRow");
+  let sections = [];
   let total = 0;
 
-  document.querySelectorAll(".sectionRow").forEach(r => {
-    const s = {
+  rows.forEach(r => {
+    const sec = {
       name: r.children[0].value,
       marks: +r.children[1].value || 0,
       c: +r.children[2].value || 0,
       w: +r.children[3].value || 0,
       u: +r.children[4].value || 0
     };
-    total += s.marks;
-    sections.push(s);
+    total += sec.marks;
+    sections.push(sec);
   });
 
   const test = {
@@ -123,28 +104,31 @@ function saveTest() {
   editIndex = null;
 
   localStorage.setItem("tests", JSON.stringify(tests));
-
   initSections();
   buildFilter();
   renderTables();
 }
 
 /* ================= FILTER ================= */
-
 function buildFilter() {
   const f = $("examFilter");
+  if (!f) return;
+
   f.innerHTML = `<option value="ALL">All Exams</option>`;
   [...new Set(tests.map(t => t.exam))].forEach(e => {
     f.innerHTML += `<option value="${e}">${e}</option>`;
   });
+
   f.onchange = renderTables;
 }
 
-/* ================= TABLES ================= */
-
+/* ================= TABLE ================= */
 function renderTables() {
-  $("tablesArea").innerHTML = "";
-  const selected = $("examFilter").value;
+  const area = $("tablesArea");
+  if (!area) return;
+
+  area.innerHTML = "";
+  const selected = $("examFilter")?.value || "ALL";
 
   const grouped = {};
   tests.forEach(t => {
@@ -156,15 +140,12 @@ function renderTables() {
 
   Object.keys(grouped).forEach(exam => {
     const list = grouped[exam];
-    const avg = (
-      list.reduce((s, t) => s + t.total, 0) / list.length
-    ).toFixed(1);
+    const avg = (list.reduce((s, t) => s + t.total, 0) / list.length).toFixed(1);
 
     const wrap = document.createElement("div");
     wrap.innerHTML = `<h3>${exam} | Avg: ${avg}</h3>`;
 
     const table = document.createElement("table");
-
     const headers = list[0].sections.map(s => `<th>${s.name}</th>`).join("");
 
     table.innerHTML = `
@@ -188,12 +169,11 @@ function renderTables() {
     });
 
     wrap.appendChild(table);
-    $("tablesArea").appendChild(wrap);
+    area.appendChild(wrap);
   });
 }
 
-/* ================= DETAILS ROW ================= */
-
+/* ================= DETAILS ================= */
 function toggleDetails(row, i) {
   if (row.nextSibling && row.nextSibling.classList.contains("details")) {
     row.nextSibling.remove();
@@ -213,7 +193,6 @@ function toggleDetails(row, i) {
 }
 
 /* ================= EDIT / DELETE ================= */
-
 function editTest(i) {
   const t = tests[i];
   editIndex = i;
@@ -243,16 +222,17 @@ function deleteTest(i) {
 }
 
 /* ================= GRAPH ================= */
-
 function showGraph() {
-  $("graphPage").style.display = "block";
-  $("tablesArea").style.display = "none";
-
+  const page = $("graphPage");
+  const area = $("tablesArea");
   const exam = $("examFilter").value;
+
   if (exam === "ALL") return alert("Select an exam");
 
-  const data = tests.filter(t => t.exam === exam);
+  page.style.display = "block";
+  area.style.display = "none";
 
+  const data = tests.filter(t => t.exam === exam);
   if (chartInstance) chartInstance.destroy();
 
   chartInstance = new Chart($("graph"), {
@@ -270,4 +250,11 @@ function showGraph() {
 function hideGraph() {
   $("graphPage").style.display = "none";
   $("tablesArea").style.display = "block";
+}
+
+/* ================= DATE FORMAT ================= */
+function formatDate(d) {
+  if (!d) return "";
+  const [y, m, day] = d.split("-");
+  return `${day}-${m}-${y}`;
 }
