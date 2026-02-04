@@ -168,7 +168,8 @@ function renderTables() {
       table.innerHTML += `
         <tr>
           <td>${t.test}</td>
-          <td>${t.date}</td>
+         <td>${formatDateDMY(t.date)}</td>
+
           <td>${t.platform}</td>
           <td>${t.total}</td>
           <td>${t.accuracy}</td>
