@@ -1,252 +1,266 @@
-/* ---------------- QUOTES ---------------- */
+/* =========================
+   STORAGE
+========================= */
+let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
+let editingId = null;
 
+/* =========================
+   QUOTES (UNCHANGED COUNT)
+========================= */
 const quotes = [
-  "Be the person your future self will thank.",
   "Discipline beats motivation.",
   "Small progress is still progress.",
   "Consistency creates confidence.",
-  "Your competition is your past self.",
-  "Focus on the process, not the outcome.",
-  "Dreams don’t work unless you do.",
-  "Hard work compounds silently.",
-  "Success is built daily.",
-  "You are one habit away from change.",
-  "Work now, relax later.",
+  "Today’s effort is tomorrow’s rank.",
+  "One mock closer to selection.",
+  "Focus beats talent when talent sleeps.",
+  "Your future self is watching.",
+  "Every test is feedback.",
   "Pressure makes diamonds.",
-  "No excuses. Just execution.",
-  "Train your mind to stay strong.",
-  "Do it even when you don’t feel like it.",
-  "Comfort is the enemy of growth.",
-  "Every mock makes you sharper.",
-  "Stay patient. Stay consistent.",
-  "Results follow discipline.",
-  "Future you is watching."
+  "No excuses. Just results."
 ];
 
-let qi = Math.floor(Math.random() * quotes.length);
-let ci = 0;
-
-function typeQuote() {
-  if (ci === 0) quoteText.textContent = "";
-  if (ci < quotes[qi].length) {
-    quoteText.textContent += quotes[qi][ci++];
-    setTimeout(typeQuote, 70);
-  } else {
-    setTimeout(() => {
-      ci = 0;
-      qi = (qi + 1) % quotes.length;
-      typeQuote();
-    }, 10000);
-  }
-}
-
-/* ---------------- STORAGE ---------------- */
-
-let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
-let editIndex = null;
-let openStatsIndex = null;
-
-/* ---------------- INIT ---------------- */
-
-document.addEventListener("DOMContentLoaded", () => {
-  typeQuote();
-  initSections();
-  buildFilter();
-  renderTables();
-});
-
-/* ---------------- SECTIONS ---------------- */
-
-function initSections() {
-  sections.innerHTML = `
-    <div class="sectionLabels">
-      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
-    </div>`;
-  for (let i = 0; i < 4; i++) addSection();
-}
-
-function addSection(d = {}) {
-  sections.innerHTML += `
-    <div class="sectionRow">
-      <input value="${d.name || ""}">
-      <input type="number" value="${d.marks || 0}">
-      <input type="number" value="${d.c || 0}">
-      <input type="number" value="${d.w || 0}">
-      <input type="number" value="${d.u || 0}">
-      <button onclick="this.parentElement.remove()">🗑</button>
-    </div>`;
-}
-
-/* ---------------- SAVE TEST ---------------- */
-
-function saveTest() {
-  if (!examName.value || !testName.value || !testDate.value)
-    return alert("Fill all fields");
-
-  const sectionsData = {};
-  let total = 0, tc = 0, tw = 0;
-
-  document.querySelectorAll(".sectionRow").forEach(r => {
-    const name = r.children[0].value.trim();
-    if (!name) return;
-
-    const marks = +r.children[1].value || 0;
-    const c = +r.children[2].value || 0;
-    const w = +r.children[3].value || 0;
-    const u = +r.children[4].value || 0;
-
-    sectionsData[name] = { marks, c, w, u };
-    total += marks;
-    tc += c;
-    tw += w;
-  });
-
-  const t = {
-    exam: examName.value,
-    test: testName.value,
-    date: testDate.value,
-    platform: platformName.value,
-    total,
-    accuracy: tc + tw ? ((tc / (tc + tw)) * 100).toFixed(1) : 0,
-    sectionsData
-  };
-
-  editIndex === null ? tests.push(t) : tests[editIndex] = t;
-  editIndex = null;
-  openStatsIndex = null;
-
-  localStorage.setItem("tests", JSON.stringify(tests));
-  initSections();
-  buildFilter();
-  renderTables();
-}
-
-/* ---------------- FILTER ---------------- */
-
-function buildFilter() {
-  examFilter.innerHTML = `<option value="ALL">All Exams</option>`;
-  [...new Set(tests.map(t => t.exam))].forEach(e => {
-    examFilter.innerHTML += `<option value="${e}">${e}</option>`;
-  });
-  examFilter.onchange = () => {
-    openStatsIndex = null;
-    renderTables();
-  };
-}
-
-/* ---------------- DATE FORMAT ---------------- */
+/* =========================
+   UTILITIES
+========================= */
+const qs = id => document.getElementById(id);
 
 function formatDate(d) {
   if (!d) return "";
-  const [y, m, da] = d.split("-");
-  return `${da}-${m}-${y}`;
+  const [y, m, day] = d.split("-");
+  return `${day}-${m}-${y}`;
 }
 
-/* ---------------- EXAM DATE COUNTER ---------------- */
-
-function getRemainingDays(date) {
-  const today = new Date();
-  const exam = new Date(date);
-  return Math.ceil((exam - today) / (1000 * 60 * 60 * 24));
+function daysLeft(date) {
+  const diff = new Date(date) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-/* ---------------- TABLES ---------------- */
+/* =========================
+   DARK MODE
+========================= */
+qs("darkModeBtn").onclick = () => {
+  document.body.classList.toggle("dark");
+};
 
-function toggleStats(i) {
-  openStatsIndex = openStatsIndex === i ? null : i;
-  renderTables();
+/* =========================
+   RANDOM TYPEWRITER QUOTE
+========================= */
+(function typeQuote() {
+  const q = quotes[Math.floor(Math.random() * quotes.length)];
+  const el = qs("quoteText");
+  el.style.fontWeight = "600";
+  let i = 0;
+  el.textContent = "";
+  const timer = setInterval(() => {
+    el.textContent += q[i++];
+    if (i === q.length) clearInterval(timer);
+  }, 50);
+})();
+
+/* =========================
+   EXAM DATE COUNTER
+========================= */
+function addExamDate() {
+  const name = qs("examCounterName").value.trim();
+  const date = qs("examCounterDate").value;
+  if (!name || !date) return;
+
+  examDates.push({ name, date });
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+
+  qs("examCounterName").value = "";
+  qs("examCounterDate").value = "";
+  renderExamDates();
 }
 
-function renderTables() {
-  tablesArea.innerHTML = "";
-  const selected = examFilter.value || "ALL";
+function renderExamDates() {
+  const box = qs("examDateList");
+  box.innerHTML = "";
+  examDates.forEach((e, i) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <strong>${e.name}</strong> : ${daysLeft(e.date)} days
+      <button onclick="removeExamDate(${i})">❌</button>
+    `;
+    box.appendChild(div);
+  });
+}
 
-  const grouped = {};
-  tests.forEach((t, i) => {
-    if (selected === "ALL" || t.exam === selected) {
-      grouped[t.exam] = grouped[t.exam] || [];
-      grouped[t.exam].push({ ...t, _i: i });
-    }
+function removeExamDate(i) {
+  examDates.splice(i, 1);
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+  renderExamDates();
+}
+
+/* =========================
+   SECTIONS
+========================= */
+function addSection() {
+  const wrap = qs("sections");
+  const row = document.createElement("div");
+  row.className = "sectionRow";
+  row.innerHTML = `
+    <input placeholder="Section">
+    <input type="number" placeholder="Correct">
+    <input type="number" placeholder="Wrong">
+    <input type="number" placeholder="Unattempted">
+    <input type="number" placeholder="Marks">
+    <button onclick="this.parentElement.remove()">❌</button>
+  `;
+  wrap.appendChild(row);
+}
+
+/* =========================
+   SAVE / UPDATE TEST
+========================= */
+function saveTest() {
+  const sections = {};
+  document.querySelectorAll(".sectionRow").forEach(r => {
+    const [name, c, w, u, m] = r.querySelectorAll("input");
+    sections[name.value] = {
+      correct: +c.value || 0,
+      wrong: +w.value || 0,
+      unattempted: +u.value || 0,
+      marks: +m.value || 0
+    };
   });
 
-  Object.keys(grouped).forEach(exam => {
-    const arr = grouped[exam];
+  const test = {
+    id: editingId || Date.now(),
+    exam: qs("examName").value,
+    test: qs("testName").value,
+    date: qs("testDate").value,
+    platform: qs("platformName").value,
+    target: +qs("targetInput").value || 0,
+    sections
+  };
 
-    const sectionNames = Object.keys(arr[0].sectionsData || {});
+  if (editingId) {
+    tests = tests.map(t => t.id === editingId ? test : t);
+    editingId = null;
+  } else {
+    tests.push(test);
+  }
 
-    const avg =
-      (arr.reduce((s, t) => s + t.total, 0) / arr.length).toFixed(1);
+  localStorage.setItem("tests", JSON.stringify(tests));
+  location.reload();
+}
 
-    let html = `
-      <div class="examTableWrapper">
-        <h3>
-          ${exam} | Avg: ${avg}
-          ${examDates[exam] ? ` | ${getRemainingDays(examDates[exam])} days left` : ""}
-        </h3>
-        <table>
-          <tr>
-            <th>Test</th><th>Date</th><th>Platform</th>
-            <th>Total</th><th>Accuracy</th>
-            ${sectionNames.map(s => `<th>${s}</th>`).join("")}
-            <th>Edit</th><th>Delete</th>
-          </tr>`;
+/* =========================
+   TABLE RENDER
+========================= */
+function renderTables() {
+  const area = qs("tablesArea");
+  area.innerHTML = "";
 
-    arr.forEach(t => {
-      html += `
-        <tr onclick="toggleStats(${t._i})">
-          <td>${t.test}</td>
-          <td>${formatDate(t.date)}</td>
-          <td>${t.platform}</td>
-          <td>${t.total}</td>
-          <td>${t.accuracy}</td>
-          ${sectionNames.map(
-            s => `<td>${t.sectionsData?.[s]?.marks ?? 0}</td>`
-          ).join("")}
-          <td><button onclick="event.stopPropagation();editTest(${t._i})">✏</button></td>
-          <td><button onclick="event.stopPropagation();deleteTest(${t._i})">🗑</button></td>
-        </tr>`;
+  const byExam = {};
+  tests.forEach(t => {
+    if (!byExam[t.exam]) byExam[t.exam] = [];
+    byExam[t.exam].push(t);
+  });
 
-      if (openStatsIndex === t._i) {
-        html += `
-          <tr class="statsRow">
-            <td colspan="${7 + sectionNames.length}">
-              ${sectionNames.map(s => {
-                const d = t.sectionsData[s] || {};
-                return `<b>${s}</b> → C:${d.c || 0}, W:${d.w || 0}, U:${d.u || 0}`;
-              }).join(" | ")}
-            </td>
-          </tr>`;
-      }
+  Object.keys(byExam).forEach(exam => {
+    const list = byExam[exam];
+    const avg = (
+      list.reduce((s, t) =>
+        s + Object.values(t.sections).reduce((a, b) => a + b.marks, 0), 0
+      ) / list.length
+    ).toFixed(1);
+
+    const h = document.createElement("h3");
+    h.textContent = `${exam} | Avg: ${avg}`;
+    area.appendChild(h);
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <tr>
+        <th>Test</th><th>Date</th><th>Platform</th>
+        <th>Total</th><th>Edit</th><th>Delete</th>
+      </tr>
+    `;
+
+    list.forEach((t, i) => {
+      const total = Object.values(t.sections).reduce((a, b) => a + b.marks, 0);
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${formatDate(t.date)}</td>
+        <td>${t.platform}</td>
+        <td>${total}</td>
+        <td><button onclick="editTest(${t.id})">✏️</button></td>
+        <td><button onclick="deleteTest(${t.id})">🗑</button></td>
+      `;
+      row.onclick = () => toggleDetails(row, t);
+      table.appendChild(row);
     });
 
-    html += `</table></div>`;
-    tablesArea.innerHTML += html;
+    area.appendChild(table);
   });
 }
 
-/* ---------------- EDIT / DELETE ---------------- */
+/* =========================
+   DETAILS TOGGLE
+========================= */
+function toggleDetails(row, test) {
+  if (row.nextSibling && row.nextSibling.classList?.contains("details")) {
+    row.nextSibling.remove();
+    return;
+  }
 
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
-
-  examName.value = t.exam;
-  testName.value = t.test;
-  testDate.value = t.date;
-  platformName.value = t.platform;
-
-  initSections();
-  Object.keys(t.sectionsData || {}).forEach(k =>
-    addSection({ name: k, ...t.sectionsData[k] })
-  );
+  const d = document.createElement("tr");
+  d.className = "details";
+  let html = `<td colspan="6">`;
+  Object.keys(test.sections).forEach(s => {
+    const x = test.sections[s];
+    html += `
+      <b>${s}</b> →
+      C:${x.correct}, W:${x.wrong}, U:${x.unattempted}, M:${x.marks}<br>
+    `;
+  });
+  html += `</td>`;
+  d.innerHTML = html;
+  row.after(d);
 }
 
-function deleteTest(i) {
+/* =========================
+   EDIT / DELETE
+========================= */
+function editTest(id) {
+  const t = tests.find(x => x.id === id);
+  editingId = id;
+
+  qs("examName").value = t.exam;
+  qs("testName").value = t.test;
+  qs("testDate").value = t.date;
+  qs("platformName").value = t.platform;
+  qs("sections").innerHTML = "";
+
+  Object.keys(t.sections).forEach(s => {
+    addSection();
+    const r = qs("sections").lastElementChild;
+    const i = r.querySelectorAll("input");
+    i[0].value = s;
+    i[1].value = t.sections[s].correct;
+    i[2].value = t.sections[s].wrong;
+    i[3].value = t.sections[s].unattempted;
+    i[4].value = t.sections[s].marks;
+  });
+}
+
+function deleteTest(id) {
   if (!confirm("Delete test?")) return;
-  tests.splice(i, 1);
+  tests = tests.filter(t => t.id !== id);
   localStorage.setItem("tests", JSON.stringify(tests));
-  openStatsIndex = null;
-  buildFilter();
-  renderTables();
+  location.reload();
 }
+
+/* =========================
+   INIT
+========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  renderTables();
+  renderExamDates();
+});
