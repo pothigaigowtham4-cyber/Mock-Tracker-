@@ -22,7 +22,17 @@ const quotes = [
   "Results follow discipline.",
   "Future you is watching."
 ];
+let quoteIndex = 0;
 
+function rotateQuote() {
+  quoteText.textContent = quotes[quoteIndex];
+  quoteIndex = (quoteIndex + 1) % quotes.length;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  rotateQuote();
+  setInterval(rotateQuote, 10000); // 10 seconds
+});
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let targets = JSON.parse(localStorage.getItem("targets")) || {};
 let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
