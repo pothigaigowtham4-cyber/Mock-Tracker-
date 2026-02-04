@@ -1,134 +1,97 @@
-/* ===============================
-   GLOBAL – DARK MODE ONLY
-   =============================== */
-
-* {
-  box-sizing: border-box;
+:root {
+  --bg: #f4f6fa;
+  --text: #111;
+  --card: #ffffff;
+  --primary: #0b5ed7;
+  --best: #fff176;
+  --worst: #ff8a80;
+  --shadow: rgba(0,0,0,0.1);
 }
 
-html, body {
+body.dark {
+  --bg: #121212;
+  --text: #eaeaea;
+  --card: #1e1e1e;
+  --shadow: rgba(255,255,255,0.05);
+}
+
+body {
   margin: 0;
-  padding: 0;
-  background: #020617;
-  color: #e5e7eb;
+  background: var(--bg);
+  color: var(--text);
   font-family: Arial, sans-serif;
 }
 
-/* ===============================
-   HEADER
-   =============================== */
+/* -------- HEADER -------- */
 
-header {
-  position: relative;
-  height: 260px;
-  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+.topHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary);
+  padding: 10px 20px;
+  color: white;
 }
 
-/* Logo – top left */
-#logo {
-  position: absolute;
-  top: 125px;
-  left: 125px;
-  width: 120px;
-}
+.logo { height: 120px; }
 
-/* Flag – EXACT SAME LEVEL AS LOGO */
-#flag {
-  position: absolute;
-  top: 125px;
-  right: 125px;
-  width: 120px;
-}
-
-/* Quote – center */
-#quote {
-  position: absolute;
-  top: 135px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #facc15;
-  font-style: italic;
-  font-size: 18px;
+.quoteBox {
+  flex: 1;
   text-align: center;
-  max-width: 50%;
+  font-style: italic;
+  font-size: 1.1em;
 }
 
-/* ===============================
-   REMOVE DARK MODE TOGGLE COMPLETELY
-   =============================== */
-
-#darkToggle {
-  display: none !important;
+.flagContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-/* ===============================
-   CARDS / CONTAINERS
-   =============================== */
+.flag { height: 80px; }
 
-.card {
-  background: #020617;
-  border-radius: 14px;
-  padding: 20px;
-  margin: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-}
-
-/* ===============================
-   INPUTS
-   =============================== */
-
-input,
-select {
-  width: 100%;
-  padding: 8px;
-  background: #020617;
-  color: #e5e7eb;
-  border: 1px solid #334155;
+#darkModeBtn {
+  margin-top: 5px;
+  padding: 6px 12px;
+  border: none;
   border-radius: 6px;
-}
-
-/* Date picker icon – visible */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
   cursor: pointer;
 }
 
-/* ===============================
-   SECTIONAL MARKS
-   =============================== */
+/* -------- LAYOUT -------- */
 
-.section-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-  gap: 10px;
-  color: #facc15;
-  font-weight: bold;
-  margin-bottom: 6px;
+.container { padding: 20px; }
+
+.trackerCard {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 4px 15px var(--shadow);
 }
 
-.section-row {
+.formGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-  gap: 10px;
-  margin-bottom: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 12px;
 }
 
-/* ===============================
-   TABLE
-   =============================== */
+.sectionLabels,
+.sectionRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.5fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
 }
 
 th, td {
-  padding: 10px;
-  border-bottom: 1px solid #334155;
+  border: 1px solid #ccc;
+  padding: 8px;
   text-align: center;
-}
-
-th {
-  color: #facc15;
 }
