@@ -1,16 +1,16 @@
 :root {
-  --bg: #121212;
+  --bg: #0f1115;
   --text: #eaeaea;
-  --card: #1e1e1e;
+  --card: #1a1d24;
   --primary: #4dabf7;
   --best: #fff176;
   --worst: #ff8a80;
-  --section1: #6d4c41;
-  --section2: #4a148c;
+  --section1: #4e342e;
+  --section2: #311b92;
   --section3: #1b5e20;
   --section4: #0d47a1;
   --section5: #f57f17;
-  --shadow: rgba(255,255,255,0.05);
+  --shadow: rgba(0,0,0,0.8);
 }
 
 body {
@@ -25,7 +25,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg,#0d47a1,#1e88e5);
+  background: linear-gradient(90deg,#0d47a1,#1565c0);
   padding: 10px 20px;
   flex-wrap: wrap;
 }
@@ -34,12 +34,12 @@ body {
 
 /* -------- QUOTE -------- */
 .quoteBox {
-  background: #1e1e1e;
+  background: #1a1d24;
   padding: 10px 20px;
   border-radius: 12px;
   max-width: 600px;
   margin: 5px auto;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.7);
 }
 
 #quoteText {
@@ -69,9 +69,9 @@ body {
 }
 
 input {
-  background: #2a2a2a;
+  background: #10131a;
   color: #eaeaea;
-  border: 1px solid #555;
+  border: 1px solid #333;
   padding: 6px;
   border-radius: 6px;
 }
@@ -88,7 +88,8 @@ button {
 }
 
 /* -------- SECTIONS -------- */
-.sectionLabels,.sectionRow{
+.sectionLabels,
+.sectionRow {
   display:grid;
   grid-template-columns:2fr 1fr 1fr 1fr 1fr .5fr;
   gap:6px;
@@ -114,7 +115,7 @@ th {
 }
 
 td,th {
-  border:1px solid #444;
+  border:1px solid #2a2a2a;
   padding:8px;
   text-align:center;
 }
@@ -126,7 +127,7 @@ td,th {
   padding: 15px;
   margin: 20px auto;
   border-radius: 10px;
-  background: #1e1e1e;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  background: #1a1d24;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
   text-align: center;
 }
