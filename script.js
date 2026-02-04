@@ -74,11 +74,11 @@ function initSections() {
   for (let i = 0; i < 4; i++) addSection();
 }
 
-function addSection() {
+function addSection(data = {}) {
   sections.innerHTML += `
     <div class="sectionRow">
-      <input class="sectionName">
-      <input class="sectionMarks" type="number">
+      <input class="sectionName" value="${data.name || ""}">
+      <input class="sectionMarks" type="number" value="${data.marks || ""}">
       <input type="number">
       <input type="number">
       <input type="number">
@@ -129,6 +129,31 @@ function saveTest() {
   renderTables();
 }
 
+/* ---------- EDIT TEST ---------- */
+
+function editTest(index) {
+  const t = tests[index];
+  editIndex = index;
+
+  examName.value = t.exam;
+  testName.value = t.test;
+  testDate.value = t.date;
+  platformName.value = t.platform;
+  negativeMark.value = t.neg;
+
+  sections.innerHTML = `
+    <div class="sectionLabels">
+      <span>Section</span>
+      <span>Marks</span>
+      <span>C</span>
+      <span>W</span>
+      <span>U</span>
+      <span></span>
+    </div>`;
+
+  t.sections.forEach(s => addSection(s));
+}
+
 /* ---------- FILTER ---------- */
 
 function buildFilter() {
@@ -151,10 +176,10 @@ function renderTables() {
   const selected = examFilter.value || "ALL";
 
   const grouped = {};
-  tests.forEach(t => {
+  tests.forEach((t, i) => {
     if (selected === "ALL" || t.exam === selected) {
       grouped[t.exam] = grouped[t.exam] || [];
-      grouped[t.exam].push(t);
+      grouped[t.exam].push({ ...t, _i: i });
     }
   });
 
@@ -175,6 +200,7 @@ function renderTables() {
             <th>Total</th>
             <th>Accuracy</th>
             ${arr[0].sections.map(s => `<th>${s.name}</th>`).join("")}
+            <th>Edit</th>
           </tr>`;
 
     arr.forEach(t => {
@@ -187,6 +213,7 @@ function renderTables() {
           <td>${t.total}</td>
           <td>${t.accuracy}</td>
           ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
+          <td><button onclick="editTest(${t._i})">✏ Edit</button></td>
         </tr>`;
     });
 
