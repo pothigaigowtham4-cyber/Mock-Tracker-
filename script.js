@@ -1,3 +1,9 @@
+/* ================= FORCE DARK MODE AT LOAD ================= */
+document.documentElement.style.backgroundColor = "#0d1117";
+document.documentElement.style.colorScheme = "dark";
+document.body.style.backgroundColor = "#0d1117";
+document.body.style.color = "#e6edf3";
+
 /* ---------------- GLOBAL DATA ---------------- */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let examDates = JSON.parse(localStorage.getItem("examDates")) || {};
@@ -18,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTables();
   renderExamDates();
 });
+
+/* -------- REST OF YOUR SCRIPT CONTINUES UNCHANGED -------- */
 
 /* ---------------- SECTIONS ---------------- */
 function initSections() {
