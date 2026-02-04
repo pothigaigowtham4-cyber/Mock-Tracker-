@@ -1,107 +1,82 @@
-body {
-  background: red !important;
-}
-
-
-/* ================= FORCE DARK MODE (ROOT) ================= */
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: #0d1117 !important;
-  color: #e6edf3 !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Tell browser this page is DARK */
 :root {
-  color-scheme: dark;
+  --bg: #0f172a;
+  --card: #111827;
+  --text: #e5e7eb;
+  --primary: #38bdf8;
+  --shadow: rgba(0,0,0,0.6);
 }
 
-/* ================= GLOBAL OVERRIDES ================= */
-* {
-  background-color: transparent;
-  color: inherit;
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
 }
 
-/* ================= HEADER ================= */
+/* HEADER */
 .topHeader {
-  background: #161b22 !important;
-  color: #e6edf3 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #1e293b, #020617);
+  padding: 10px 20px;
 }
 
-/* ================= CARDS ================= */
-.card,
-.trackerCard,
-.examCounterCard {
-  background: #161b22 !important;
-  color: #e6edf3 !important;
-  border-radius: 14px;
-  box-shadow: 0 0 0 1px #30363d;
-}
-
-/* ================= QUOTE ================= */
 .quoteBox {
-  background: #1f2937 !important;
+  color: #facc15;
+  font-style: italic;
+  font-size: 1.1em;
+  text-align: center;
 }
 
-#quoteText {
-  color: #facc15 !important;
-  font-weight: bold;
+/* CARD */
+.trackerCard, .examTableWrapper, .examCounterCard {
+  background: var(--card);
+  box-shadow: 0 10px 25px var(--shadow);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 20px auto;
+  width: 95%;
+  max-width: 1200px;
 }
 
-/* ================= INPUTS ================= */
-input,
-select,
-textarea {
-  background: #0d1117 !important;
-  color: #e6edf3 !important;
-  border: 1px solid #30363d !important;
-  border-radius: 8px;
+/* FORMS */
+input, select {
+  background: #020617;
+  color: var(--text);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px;
 }
 
-input::placeholder {
-  color: #8b949e !important;
-}
-
-/* ================= SECTIONS ================= */
-.sectionRow {
-  display: grid;
-  grid-template-columns: 2fr repeat(4, 1fr) auto;
-  gap: 10px;
-}
-
-/* ================= BUTTONS ================= */
 button {
-  background: #238636 !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-radius: 8px;
+  background: var(--primary);
+  color: #020617;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: bold;
   cursor: pointer;
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
-/* ================= TABLES ================= */
+/* TABLE */
 table {
   width: 100%;
   border-collapse: collapse;
-  background: #161b22 !important;
-  color: #e6edf3 !important;
-}
-
-th, td {
-  border: 1px solid #30363d !important;
-  padding: 10px;
 }
 
 th {
-  background: #21262d !important;
+  background: #1e293b;
+  color: #7dd3fc;
 }
 
-/* ================= GRAPH PAGE ================= */
-#graphPage {
-  background: #0d1117 !important;
-  color: #e6edf3 !important;
+td, th {
+  padding: 8px;
+  border: 1px solid #334155;
+  text-align: center;
+}
+
+/* EXAM COUNTER */
+.examCounterCard h3 {
+  color: #facc15;
 }
