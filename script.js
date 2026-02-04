@@ -11,7 +11,6 @@ let editIndex=null;
 
 /* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded",()=>{
-  document.body.classList.add("dark");   // 🔹 FORCE DARK MODE
   quoteText.textContent=quotes[Math.floor(Math.random()*quotes.length)];
   initSections();
   buildFilter();
