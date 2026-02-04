@@ -40,10 +40,12 @@ function typeQuote() {
   }
 }
 
-/* ---------- GLOBAL ---------- */
+/* ---------- STORAGE ---------- */
 
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let targets = JSON.parse(localStorage.getItem("targets")) || {};
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
+
 let editIndex = null;
 let openStatsIndex = null;
 
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   typeQuote();
   initSections();
   buildFilter();
+  renderExamDates();
   renderTables();
 });
 
@@ -89,6 +92,8 @@ function saveTest() {
 
   document.querySelectorAll(".sectionRow").forEach(r => {
     const name = r.children[0].value.trim();
+    if (!name) return;
+
     const marks = +r.children[1].value || 0;
     const c = +r.children[2].value || 0;
     const w = +r.children[3].value || 0;
@@ -124,7 +129,7 @@ function saveTest() {
   renderTables();
 }
 
-/* ---------- EDIT ---------- */
+/* ---------- EDIT / DELETE ---------- */
 
 function editTest(i) {
   const t = tests[i];
@@ -142,14 +147,12 @@ function editTest(i) {
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
     </div>`;
 
-  Object.entries(t.sectionsData).forEach(([name, d]) =>
+  Object.entries(t.sectionsData || {}).forEach(([name, d]) =>
     addSection({ name, ...d })
   );
 
   renderTables();
 }
-
-/* ---------- DELETE ---------- */
 
 function deleteTest(i) {
   if (!confirm("Delete this test?")) return;
@@ -158,6 +161,35 @@ function deleteTest(i) {
   openStatsIndex = null;
   buildFilter();
   renderTables();
+}
+
+/* ---------- EXAM DATE COUNTER ---------- */
+
+function addExamDate() {
+  const name = document.getElementById("examDateName").value;
+  const date = document.getElementById("examDateValue").value;
+  if (!name || !date) return alert("Enter exam & date");
+
+  examDates.push({ name, date });
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+  renderExamDates();
+}
+
+function renderExamDates() {
+  const box = document.getElementById("examDateList");
+  if (!box) return;
+  box.innerHTML = "";
+
+  const today = new Date();
+  examDates.forEach((e, i) => {
+    const d = new Date(e.date);
+    const days = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+    box.innerHTML += `
+      <div>
+        <b>${e.name}</b> : ${days} days
+        <button onclick="examDates.splice(${i},1);localStorage.setItem('examDates',JSON.stringify(examDates));renderExamDates()">🗑</button>
+      </div>`;
+  });
 }
 
 /* ---------- FILTER ---------- */
@@ -176,6 +208,7 @@ function buildFilter() {
 /* ---------- TABLES ---------- */
 
 function formatDate(d) {
+  if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
 }
@@ -194,7 +227,9 @@ function renderTables() {
 
   Object.keys(grouped).forEach(exam => {
     const arr = grouped[exam];
-    const sectionOrder = Object.keys(arr[0].sectionsData);
+    const safeSections = arr[0].sectionsData || {};
+    const sectionOrder = Object.keys(safeSections);
+
     const avg = (arr.reduce((s, t) => s + t.total, 0) / arr.length).toFixed(1);
     const max = Math.max(...arr.map(t => t.total));
     const min = Math.min(...arr.map(t => t.total));
@@ -218,7 +253,7 @@ function renderTables() {
           <td>${t.platform}</td>
           <td>${t.total}</td>
           <td>${t.accuracy}</td>
-          ${sectionOrder.map(s => `<td>${t.sectionsData[s].marks}</td>`).join("")}
+          ${sectionOrder.map(s => `<td>${t.sectionsData?.[s]?.marks ?? 0}</td>`).join("")}
           <td><button onclick="editTest(${t._i})">✏</button></td>
           <td><button onclick="deleteTest(${t._i})">🗑</button></td>
         </tr>`;
