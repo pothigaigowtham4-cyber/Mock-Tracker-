@@ -29,7 +29,11 @@ let quoteIndex = Math.floor(Math.random() * quotes.length);
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
+
+/* 🔒 FIX: normalize examDates */
+let examDates = JSON.parse(localStorage.getItem("examDates"));
+if (!Array.isArray(examDates)) examDates = [];
+
 let editIndex = null;
 let chartInstance = null;
 
@@ -254,7 +258,7 @@ function hideGraph() {
   $("tablesArea").style.display = "block";
 }
 
-/* ================= EXAM DATE COUNTER (FIX) ================= */
+/* ================= EXAM DATE COUNTER ================= */
 function addExamDate() {
   const name = $("examCounterName").value;
   const date = $("examCounterDate").value;
