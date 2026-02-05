@@ -315,3 +315,57 @@ function formatDate(d) {
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
 }
+/* ================= EXPORT ================= */
+function exportExcel() {
+  let csv = "Exam,Test,Date,Platform,Total,Negative Lost\n";
+
+  tests.forEach(t => {
+    let negativeLoss = 0;
+    t.sections.forEach(s => {
+      negativeLoss += (s.w || 0) * (t.negative || 0);
+    });
+
+    csv += `"${t.exam}","${t.test}","${formatDate(t.date)}","${t.platform}",${t.total},${negativeLoss.toFixed(2)}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "mock_tracker_data.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function exportPDF() {
+  let content = "MOCK TRACKER REPORT\n\n";
+
+  tests.forEach((t, i) => {
+    let negativeLoss = 0;
+    t.sections.forEach(s => {
+      negativeLoss += (s.w || 0) * (t.negative || 0);
+    });
+
+    content += `
+Test ${i + 1}
+Exam: ${t.exam}
+Date: ${formatDate(t.date)}
+Platform: ${t.platform}
+Total Marks: ${t.total}
+Negative Marks Lost: ${negativeLoss.toFixed(2)}
+--------------------------
+`;
+  });
+
+  const blob = new Blob([content], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "mock_tracker_report.pdf";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
