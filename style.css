@@ -75,3 +75,11 @@ th{background:var(--primary)}
 /* COUNTER */
 .examCounterCard input{padding:6px}
 .counterRow{display:flex;gap:10px;margin-bottom:10px}
+
+/* Analysis row – left aligned */
+.analysisBox{
+  text-align: left;
+  padding: 12px;
+  line-height: 1.6;
+}
+
