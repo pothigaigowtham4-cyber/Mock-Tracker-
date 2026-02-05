@@ -26,21 +26,18 @@ const quotes = [
 ];
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
+let typingInterval = null;
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
-
-/* 🔒 FIX: normalize examDates */
-let examDates = JSON.parse(localStorage.getItem("examDates"));
-if (!Array.isArray(examDates)) examDates = [];
-
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
 let chartInstance = null;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  rotateQuote();
-  setInterval(rotateQuote, 10000);
+  typeQuote();
+  setInterval(typeQuote, 10000);
 
   initSections();
   buildFilter();
@@ -48,11 +45,23 @@ document.addEventListener("DOMContentLoaded", () => {
   renderExamDates();
 });
 
-/* ================= QUOTE ROTATION ================= */
-function rotateQuote() {
-  const qt = $("quoteText");
-  if (!qt) return;
-  qt.textContent = quotes[quoteIndex];
+/* ================= TYPEWRITER QUOTE ================= */
+function typeQuote() {
+  const el = $("quoteText");
+  if (!el) return;
+
+  clearInterval(typingInterval);
+  el.textContent = "";
+
+  const text = quotes[quoteIndex];
+  let i = 0;
+
+  typingInterval = setInterval(() => {
+    el.textContent += text.charAt(i);
+    i++;
+    if (i >= text.length) clearInterval(typingInterval);
+  }, 40);
+
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
@@ -60,6 +69,7 @@ function rotateQuote() {
 function initSections() {
   const s = $("sections");
   if (!s) return;
+
   s.innerHTML = `
     <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
@@ -84,16 +94,19 @@ function saveTest() {
   const rows = document.querySelectorAll(".sectionRow");
   let sections = [];
   let total = 0;
+  let negativeLoss = 0;
 
   rows.forEach(r => {
+    const w = +r.children[3].value || 0;
     const sec = {
       name: r.children[0].value,
       marks: +r.children[1].value || 0,
       c: +r.children[2].value || 0,
-      w: +r.children[3].value || 0,
+      w,
       u: +r.children[4].value || 0
     };
     total += sec.marks;
+    negativeLoss += w * (+$("negativeMark")?.value || 0);
     sections.push(sec);
   });
 
@@ -103,6 +116,7 @@ function saveTest() {
     date: $("testDate").value,
     platform: $("platformName").value,
     total,
+    negativeLoss,
     sections
   };
 
@@ -132,11 +146,11 @@ function buildFilter() {
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
-
   area.innerHTML = "";
-  const selected = $("examFilter")?.value || "ALL";
 
+  const selected = $("examFilter")?.value || "ALL";
   const grouped = {};
+
   tests.forEach(t => {
     if (selected === "ALL" || t.exam === selected) {
       grouped[t.exam] = grouped[t.exam] || [];
@@ -179,7 +193,7 @@ function renderTables() {
   });
 }
 
-/* ================= DETAILS ================= */
+/* ================= DETAILS (LEFT ALIGNED ANALYSIS) ================= */
 function toggleDetails(row, i) {
   if (row.nextSibling && row.nextSibling.classList.contains("details")) {
     row.nextSibling.remove();
@@ -190,10 +204,13 @@ function toggleDetails(row, i) {
   const d = document.createElement("tr");
   d.className = "details";
   d.innerHTML = `
-    <td colspan="100%">
+    <td colspan="100%" class="analysisBox">
+      <b>Analysis</b><br><br>
       ${t.sections.map(s =>
-        `<b>${s.name}</b> → C:${s.c} W:${s.w} U:${s.u}`
+        `<b>${s.name}</b> → C:${s.c} | W:${s.w} | U:${s.u}`
       ).join("<br>")}
+      <br><br>
+      <b>Negative Marks Lost:</b> ${t.negativeLoss.toFixed(2)}
     </td>`;
   row.after(d);
 }
@@ -227,35 +244,11 @@ function deleteTest(i) {
   renderTables();
 }
 
-/* ================= GRAPH ================= */
-function showGraph() {
-  const page = $("graphPage");
-  const area = $("tablesArea");
-  const exam = $("examFilter").value;
-
-  if (exam === "ALL") return alert("Select an exam");
-
-  page.style.display = "block";
-  area.style.display = "none";
-
-  const data = tests.filter(t => t.exam === exam);
-  if (chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart($("graph"), {
-    type: "line",
-    data: {
-      labels: data.map(t => t.test),
-      datasets: [{
-        label: "Total Marks",
-        data: data.map(t => t.total)
-      }]
-    }
-  });
-}
-
-function hideGraph() {
-  $("graphPage").style.display = "none";
-  $("tablesArea").style.display = "block";
+/* ================= DATE FORMAT ================= */
+function formatDate(d) {
+  if (!d) return "";
+  const [y, m, day] = d.split("-");
+  return `${day}-${m}-${y}`;
 }
 
 /* ================= EXAM DATE COUNTER ================= */
@@ -266,9 +259,6 @@ function addExamDate() {
 
   examDates.push({ name, date });
   localStorage.setItem("examDates", JSON.stringify(examDates));
-
-  $("examCounterName").value = "";
-  $("examCounterDate").value = "";
   renderExamDates();
 }
 
@@ -277,29 +267,8 @@ function renderExamDates() {
   if (!box) return;
 
   box.innerHTML = "";
-  const today = new Date();
-
-  examDates.forEach((e, i) => {
-    const d = new Date(e.date);
-    const days = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
-
-    box.innerHTML += `
-      <div>
-        <b>${e.name}</b> : ${days} days
-        <button onclick="deleteExamDate(${i})">🗑</button>
-      </div>`;
+  examDates.forEach(e => {
+    const days = Math.ceil((new Date(e.date) - new Date()) / 86400000);
+    box.innerHTML += `<div>${e.name}: ${days} days</div>`;
   });
-}
-
-function deleteExamDate(i) {
-  examDates.splice(i, 1);
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-  renderExamDates();
-}
-
-/* ================= DATE FORMAT ================= */
-function formatDate(d) {
-  if (!d) return "";
-  const [y, m, day] = d.split("-");
-  return `${day}-${m}-${y}`;
 }
