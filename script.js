@@ -29,6 +29,7 @@ let quoteIndex = Math.floor(Math.random() * quotes.length);
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
 let chartInstance = null;
 
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSections();
   buildFilter();
   renderTables();
+  renderExamDates();
 });
 
 /* ================= QUOTE ================= */
@@ -71,6 +73,48 @@ function addSection() {
       <input type="number">
       <button onclick="this.parentElement.remove()">🗑</button>
     </div>`;
+}
+
+/* ================= EXAM COUNTDOWN ================= */
+function addExamDate() {
+  const name = $("examCounterName").value;
+  const date = $("examCounterDate").value;
+
+  if (!name || !date) return alert("Enter exam name and date");
+
+  examDates.push({ name, date });
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+
+  $("examCounterName").value = "";
+  $("examCounterDate").value = "";
+
+  renderExamDates();
+}
+
+function renderExamDates() {
+  const box = $("examCountdownList");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  examDates.forEach((e, i) => {
+    const days = Math.ceil(
+      (new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24)
+    );
+
+    box.innerHTML += `
+      <div class="countdownCard">
+        <b>${e.name}</b><br>
+        <span>${days >= 0 ? days + " days left" : "Expired"}</span>
+        <button onclick="deleteExamDate(${i})">🗑</button>
+      </div>`;
+  });
+}
+
+function deleteExamDate(i) {
+  examDates.splice(i, 1);
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+  renderExamDates();
 }
 
 /* ================= SAVE TEST ================= */
