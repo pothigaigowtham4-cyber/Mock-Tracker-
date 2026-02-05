@@ -26,42 +26,27 @@ const quotes = [
 ];
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
-let typingInterval = null;
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
-let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
 let chartInstance = null;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  typeQuote();
-  setInterval(typeQuote, 10000);
+  rotateQuote();
+  setInterval(rotateQuote, 10000);
 
   initSections();
   buildFilter();
   renderTables();
-  renderExamDates();
 });
 
-/* ================= TYPEWRITER QUOTE ================= */
-function typeQuote() {
-  const el = $("quoteText");
-  if (!el) return;
-
-  clearInterval(typingInterval);
-  el.textContent = "";
-
-  const text = quotes[quoteIndex];
-  let i = 0;
-
-  typingInterval = setInterval(() => {
-    el.textContent += text.charAt(i);
-    i++;
-    if (i >= text.length) clearInterval(typingInterval);
-  }, 40);
-
+/* ================= QUOTE ================= */
+function rotateQuote() {
+  const qt = $("quoteText");
+  if (!qt) return;
+  qt.textContent = quotes[quoteIndex];
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
@@ -69,7 +54,6 @@ function typeQuote() {
 function initSections() {
   const s = $("sections");
   if (!s) return;
-
   s.innerHTML = `
     <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
@@ -94,19 +78,16 @@ function saveTest() {
   const rows = document.querySelectorAll(".sectionRow");
   let sections = [];
   let total = 0;
-  let negativeLoss = 0;
 
   rows.forEach(r => {
-    const w = +r.children[3].value || 0;
     const sec = {
       name: r.children[0].value,
       marks: +r.children[1].value || 0,
       c: +r.children[2].value || 0,
-      w,
+      w: +r.children[3].value || 0,
       u: +r.children[4].value || 0
     };
     total += sec.marks;
-    negativeLoss += w * (+$("negativeMark")?.value || 0);
     sections.push(sec);
   });
 
@@ -115,8 +96,8 @@ function saveTest() {
     test: $("testName").value,
     date: $("testDate").value,
     platform: $("platformName").value,
+    negative: +$("negativeMark")?.value || 0,
     total,
-    negativeLoss,
     sections
   };
 
@@ -146,11 +127,11 @@ function buildFilter() {
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
+
   area.innerHTML = "";
-
   const selected = $("examFilter")?.value || "ALL";
-  const grouped = {};
 
+  const grouped = {};
   tests.forEach(t => {
     if (selected === "ALL" || t.exam === selected) {
       grouped[t.exam] = grouped[t.exam] || [];
@@ -193,7 +174,7 @@ function renderTables() {
   });
 }
 
-/* ================= DETAILS (LEFT ALIGNED ANALYSIS) ================= */
+/* ================= ANALYSIS ================= */
 function toggleDetails(row, i) {
   if (row.nextSibling && row.nextSibling.classList.contains("details")) {
     row.nextSibling.remove();
@@ -201,17 +182,25 @@ function toggleDetails(row, i) {
   }
 
   const t = tests[i];
+  let negativeLoss = 0;
+
+  t.sections.forEach(s => {
+    negativeLoss += (s.w || 0) * (t.negative || 0);
+  });
+
   const d = document.createElement("tr");
   d.className = "details";
   d.innerHTML = `
-    <td colspan="100%" class="analysisBox">
-      <b>Analysis</b><br><br>
-      ${t.sections.map(s =>
-        `<b>${s.name}</b> → C:${s.c} | W:${s.w} | U:${s.u}`
-      ).join("<br>")}
-      <br><br>
-      <b>Negative Marks Lost:</b> ${t.negativeLoss.toFixed(2)}
+    <td colspan="100%">
+      <div class="analysisBox">
+        ${t.sections.map(s =>
+          `<b>${s.name}</b> → C:${s.c} W:${s.w} U:${s.u}`
+        ).join("<br>")}
+        <br><br>
+        <b>Negative Marks Lost:</b> ${negativeLoss.toFixed(2)}
+      </div>
     </td>`;
+
   row.after(d);
 }
 
@@ -224,6 +213,7 @@ function editTest(i) {
   $("testName").value = t.test;
   $("testDate").value = t.date;
   $("platformName").value = t.platform;
+  $("negativeMark").value = t.negative || 0;
 
   initSections();
   t.sections.forEach((s, idx) => {
@@ -244,31 +234,40 @@ function deleteTest(i) {
   renderTables();
 }
 
-/* ================= DATE FORMAT ================= */
+/* ================= GRAPH ================= */
+function showGraph() {
+  const page = $("graphPage");
+  const area = $("tablesArea");
+  const exam = $("examFilter").value;
+
+  if (exam === "ALL") return alert("Select an exam");
+
+  page.style.display = "block";
+  area.style.display = "none";
+
+  const data = tests.filter(t => t.exam === exam);
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart($("graph"), {
+    type: "line",
+    data: {
+      labels: data.map(t => t.test),
+      datasets: [{
+        label: "Total Marks",
+        data: data.map(t => t.total)
+      }]
+    }
+  });
+}
+
+function hideGraph() {
+  $("graphPage").style.display = "none";
+  $("tablesArea").style.display = "block";
+}
+
+/* ================= DATE ================= */
 function formatDate(d) {
   if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
-}
-
-/* ================= EXAM DATE COUNTER ================= */
-function addExamDate() {
-  const name = $("examCounterName").value;
-  const date = $("examCounterDate").value;
-  if (!name || !date) return;
-
-  examDates.push({ name, date });
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-  renderExamDates();
-}
-
-function renderExamDates() {
-  const box = $("examCountdownList");
-  if (!box) return;
-
-  box.innerHTML = "";
-  examDates.forEach(e => {
-    const days = Math.ceil((new Date(e.date) - new Date()) / 86400000);
-    box.innerHTML += `<div>${e.name}: ${days} days</div>`;
-  });
 }
