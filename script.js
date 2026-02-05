@@ -29,6 +29,7 @@ let quoteIndex = Math.floor(Math.random() * quotes.length);
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
+let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
 let chartInstance = null;
 
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSections();
   buildFilter();
   renderTables();
+  renderExamDates();
 });
 
 /* ================= QUOTE ROTATION ================= */
@@ -250,6 +252,45 @@ function showGraph() {
 function hideGraph() {
   $("graphPage").style.display = "none";
   $("tablesArea").style.display = "block";
+}
+
+/* ================= EXAM DATE COUNTER (FIX) ================= */
+function addExamDate() {
+  const name = $("examCounterName").value;
+  const date = $("examCounterDate").value;
+  if (!name || !date) return;
+
+  examDates.push({ name, date });
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+
+  $("examCounterName").value = "";
+  $("examCounterDate").value = "";
+  renderExamDates();
+}
+
+function renderExamDates() {
+  const box = $("examCountdownList");
+  if (!box) return;
+
+  box.innerHTML = "";
+  const today = new Date();
+
+  examDates.forEach((e, i) => {
+    const d = new Date(e.date);
+    const days = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+
+    box.innerHTML += `
+      <div>
+        <b>${e.name}</b> : ${days} days
+        <button onclick="deleteExamDate(${i})">🗑</button>
+      </div>`;
+  });
+}
+
+function deleteExamDate(i) {
+  examDates.splice(i, 1);
+  localStorage.setItem("examDates", JSON.stringify(examDates));
+  renderExamDates();
 }
 
 /* ================= DATE FORMAT ================= */
