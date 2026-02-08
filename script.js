@@ -26,6 +26,7 @@ const quotes = [
 ];
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
+let typingInterval;
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
@@ -35,8 +36,8 @@ let chartInstance = null;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  rotateQuote();
-  setInterval(rotateQuote, 10000);
+  typeQuote();
+  setInterval(typeQuote, 10000);
 
   initSections();
   buildFilter();
@@ -44,11 +45,23 @@ document.addEventListener("DOMContentLoaded", () => {
   renderExamDates();
 });
 
-/* ================= QUOTE ================= */
-function rotateQuote() {
-  const qt = $("quoteText");
-  if (!qt) return;
-  qt.textContent = quotes[quoteIndex];
+/* ================= TYPEWRITER QUOTE ================= */
+function typeQuote() {
+  const el = $("quoteText");
+  if (!el) return;
+
+  clearInterval(typingInterval);
+  el.textContent = "";
+
+  const text = quotes[quoteIndex];
+  let i = 0;
+
+  typingInterval = setInterval(() => {
+    el.textContent += text[i];
+    i++;
+    if (i >= text.length) clearInterval(typingInterval);
+  }, 50);
+
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
 
@@ -167,7 +180,7 @@ function buildFilter() {
   f.onchange = renderTables;
 }
 
-/* ================= TABLE ================= */
+/* ================= TABLE (BEST / WORST HIGHLIGHT) ================= */
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
@@ -185,10 +198,12 @@ function renderTables() {
 
   Object.keys(grouped).forEach(exam => {
     const list = grouped[exam];
-    const avg = (list.reduce((s, t) => s + t.total, 0) / list.length).toFixed(1);
+    const totals = list.map(t => t.total);
+    const max = Math.max(...totals);
+    const min = Math.min(...totals);
 
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<h3>${exam} | Avg: ${avg}</h3>`;
+    wrap.innerHTML = `<h3>${exam}</h3>`;
 
     const table = document.createElement("table");
     const headers = list[0].sections.map(s => `<th>${s.name}</th>`).join("");
@@ -201,12 +216,14 @@ function renderTables() {
       </tr>`;
 
     list.forEach((t, i) => {
+      const cls = t.total === max ? "best" : t.total === min ? "worst" : "";
+
       table.innerHTML += `
         <tr onclick="toggleDetails(this, ${tests.indexOf(t)})">
           <td>${i + 1}</td>
           <td>${formatDate(t.date)}</td>
           <td>${t.platform}</td>
-          <td>${t.total}</td>
+          <td class="${cls}">${t.total}</td>
           ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
           <td><button onclick="event.stopPropagation();editTest(${tests.indexOf(t)})">✏️</button></td>
           <td><button onclick="event.stopPropagation();deleteTest(${tests.indexOf(t)})">🗑</button></td>
@@ -248,124 +265,9 @@ function toggleDetails(row, i) {
   row.after(d);
 }
 
-/* ================= EDIT / DELETE ================= */
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
-
-  $("examName").value = t.exam;
-  $("testName").value = t.test;
-  $("testDate").value = t.date;
-  $("platformName").value = t.platform;
-  $("negativeMark").value = t.negative || 0;
-
-  initSections();
-  t.sections.forEach((s, idx) => {
-    const r = document.querySelectorAll(".sectionRow")[idx];
-    r.children[0].value = s.name;
-    r.children[1].value = s.marks;
-    r.children[2].value = s.c;
-    r.children[3].value = s.w;
-    r.children[4].value = s.u;
-  });
-}
-
-function deleteTest(i) {
-  if (!confirm("Delete test?")) return;
-  tests.splice(i, 1);
-  localStorage.setItem("tests", JSON.stringify(tests));
-  buildFilter();
-  renderTables();
-}
-
-/* ================= GRAPH ================= */
-function showGraph() {
-  const page = $("graphPage");
-  const area = $("tablesArea");
-  const exam = $("examFilter").value;
-
-  if (exam === "ALL") return alert("Select an exam");
-
-  page.style.display = "block";
-  area.style.display = "none";
-
-  const data = tests.filter(t => t.exam === exam);
-  if (chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart($("graph"), {
-    type: "line",
-    data: {
-      labels: data.map(t => t.test),
-      datasets: [{
-        label: "Total Marks",
-        data: data.map(t => t.total)
-      }]
-    }
-  });
-}
-
-function hideGraph() {
-  $("graphPage").style.display = "none";
-  $("tablesArea").style.display = "block";
-}
-
 /* ================= DATE ================= */
 function formatDate(d) {
   if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
-}
-/* ================= EXPORT ================= */
-function exportExcel() {
-  let csv = "Exam,Test,Date,Platform,Total,Negative Lost\n";
-
-  tests.forEach(t => {
-    let negativeLoss = 0;
-    t.sections.forEach(s => {
-      negativeLoss += (s.w || 0) * (t.negative || 0);
-    });
-
-    csv += `"${t.exam}","${t.test}","${formatDate(t.date)}","${t.platform}",${t.total},${negativeLoss.toFixed(2)}\n`;
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "mock_tracker_data.csv";
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-function exportPDF() {
-  let content = "MOCK TRACKER REPORT\n\n";
-
-  tests.forEach((t, i) => {
-    let negativeLoss = 0;
-    t.sections.forEach(s => {
-      negativeLoss += (s.w || 0) * (t.negative || 0);
-    });
-
-    content += `
-Test ${i + 1}
-Exam: ${t.exam}
-Date: ${formatDate(t.date)}
-Platform: ${t.platform}
-Total Marks: ${t.total}
-Negative Marks Lost: ${negativeLoss.toFixed(2)}
---------------------------
-`;
-  });
-
-  const blob = new Blob([content], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "mock_tracker_report.pdf";
-  a.click();
-
-  URL.revokeObjectURL(url);
 }
