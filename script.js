@@ -321,7 +321,6 @@ function hideGraph() {
 }
 let graphChart;
 
-let graphChart;
 
 function renderGraph(filteredData = testData) {
   const canvas = document.getElementById("graph");
