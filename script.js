@@ -180,7 +180,7 @@ function buildFilter() {
   f.onchange = renderTables;
 }
 
-/* ================= TABLE ================= */
+/* ================= TABLE (AVG + BEST/WORST) ================= */
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
@@ -201,9 +201,10 @@ function renderTables() {
     const totals = list.map(t => t.total);
     const max = Math.max(...totals);
     const min = Math.min(...totals);
+    const avg = (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1);
 
     const wrap = document.createElement("div");
-    wrap.innerHTML = `<h3>${exam}</h3>`;
+    wrap.innerHTML = `<h3>${exam} | Avg: ${avg}</h3>`;
 
     const table = document.createElement("table");
     const headers = list[0].sections.map(s => `<th>${s.name}</th>`).join("");
@@ -235,8 +236,8 @@ function renderTables() {
   });
 }
 
-/* ================= GRAPH (FIXED) ================= */
-function showGraph() {
+/* ================= GRAPH ================= */
+window.showGraph = function () {
   const page = $("graphPage");
   const area = $("tablesArea");
   const exam = $("examFilter").value;
@@ -259,12 +260,12 @@ function showGraph() {
       }]
     }
   });
-}
+};
 
-function hideGraph() {
+window.hideGraph = function () {
   $("graphPage").style.display = "none";
   $("tablesArea").style.display = "block";
-}
+};
 
 /* ================= DATE ================= */
 function formatDate(d) {
@@ -273,8 +274,21 @@ function formatDate(d) {
   return `${day}-${m}-${y}`;
 }
 
-/* ================= EXPORT PDF (FIXED & SAFE) ================= */
-function exportPDF() {
+/* ================= EXPORTS ================= */
+window.exportExcel = function () {
+  let csv = "Exam,Test,Date,Platform,Total\n";
+  tests.forEach(t => {
+    csv += `"${t.exam}","${t.test}","${formatDate(t.date)}","${t.platform}",${t.total}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mock_tracker_data.csv";
+  a.click();
+};
+
+window.exportPDF = function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
@@ -286,17 +300,11 @@ function exportPDF() {
   doc.setFontSize(10);
 
   tests.forEach((t, i) => {
-    let negativeLoss = 0;
-    t.sections.forEach(s => {
-      negativeLoss += (s.w || 0) * (t.negative || 0);
-    });
-
     doc.text(`Test ${i + 1}`, 10, y); y += 6;
     doc.text(`Exam: ${t.exam}`, 10, y); y += 6;
     doc.text(`Date: ${formatDate(t.date)}`, 10, y); y += 6;
     doc.text(`Platform: ${t.platform}`, 10, y); y += 6;
-    doc.text(`Total Marks: ${t.total}`, 10, y); y += 6;
-    doc.text(`Negative Lost: ${negativeLoss.toFixed(2)}`, 10, y); y += 10;
+    doc.text(`Total Marks: ${t.total}`, 10, y); y += 10;
 
     if (y > 270) {
       doc.addPage();
@@ -305,4 +313,4 @@ function exportPDF() {
   });
 
   doc.save("mock_tracker_report.pdf");
-}
+};
