@@ -321,21 +321,39 @@ function hideGraph() {
 }
 let graphChart;
 
-function renderGraph() {
-  const ctx = document.getElementById("graph").getContext("2d");
+let graphChart;
+
+function renderGraph(filteredData = testData) {
+  const canvas = document.getElementById("graph");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
 
   if (graphChart) graphChart.destroy();
 
   graphChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: exams.map(e => e.name),
+      labels: filteredData.map(t => t.exam),
       datasets: [{
-        label: "Marks",
-        data: exams.map(e => e.total),
+        label: "Total Marks",
+        data: filteredData.map(t => t.total),
         borderWidth: 2,
+        tension: 0.3,
         fill: false
       }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 10,
+          max: 300,
+          ticks: {
+            stepSize: 10
+          }
+        }
+      }
     }
   });
 }
