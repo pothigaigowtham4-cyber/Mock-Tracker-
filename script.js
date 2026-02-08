@@ -342,3 +342,50 @@ function formatDate(d) {
   const [y,m,day] = d.split("-");
   return `${day}-${m}-${y}`;
 }
+/* ================= EXPORT PDF ================= */
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 15;
+
+  const grouped = {};
+  tests.forEach(t => {
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
+
+  Object.keys(grouped).forEach(exam => {
+    doc.setFontSize(14);
+    doc.text(exam, 14, y);
+    y += 6;
+
+    const headers = [
+      "Test",
+      "Date",
+      "Platform",
+      "Total",
+      ...grouped[exam][0].sections.map(s => s.name)
+    ];
+
+    const rows = grouped[exam].map((t, i) => [
+      i + 1,
+      formatDate(t.date),
+      t.platform,
+      t.total,
+      ...t.sections.map(s => s.marks)
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      head: [headers],
+      body: rows,
+      theme: "grid",
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 30, 30] }
+    });
+
+    y = doc.lastAutoTable.finalY + 10;
+  });
+
+  doc.save("mock-tracker.pdf");
+}
