@@ -26,7 +26,6 @@ const quotes = [
 ];
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
-let typingInterval;
 
 /* ================= STORAGE ================= */
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
@@ -36,8 +35,8 @@ let chartInstance = null;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  typeQuote();
-  setInterval(typeQuote, 10000);
+  rotateQuote();
+  setInterval(rotateQuote, 10000);
 
   initSections();
   buildFilter();
@@ -45,22 +44,20 @@ document.addEventListener("DOMContentLoaded", () => {
   renderExamDates();
 });
 
-/* ================= TYPEWRITER QUOTE ================= */
-function typeQuote() {
-  const el = $("quoteText");
-  if (!el) return;
+/* ================= QUOTE ================= */
+function rotateQuote() {
+  const qt = $("quoteText");
+  if (!qt) return;
 
-  clearInterval(typingInterval);
-  el.textContent = "";
-
-  const text = quotes[quoteIndex];
+  let text = quotes[quoteIndex];
+  qt.textContent = "";
   let i = 0;
 
-  typingInterval = setInterval(() => {
-    el.textContent += text[i];
+  const typer = setInterval(() => {
+    qt.textContent += text.charAt(i);
     i++;
-    if (i >= text.length) clearInterval(typingInterval);
-  }, 50);
+    if (i >= text.length) clearInterval(typer);
+  }, 40);
 
   quoteIndex = (quoteIndex + 1) % quotes.length;
 }
@@ -69,6 +66,7 @@ function typeQuote() {
 function initSections() {
   const s = $("sections");
   if (!s) return;
+
   s.innerHTML = `
     <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
@@ -153,7 +151,7 @@ function saveTest() {
     test: $("testName").value,
     date: $("testDate").value,
     platform: $("platformName").value,
-    negative: +$("negativeMark")?.value || 0,
+    negative: +$("negativeMark").value || 0,
     total,
     sections
   };
@@ -236,36 +234,75 @@ function renderTables() {
   });
 }
 
-/* ================= GRAPH ================= */
-window.showGraph = function () {
-  const page = $("graphPage");
-  const area = $("tablesArea");
-  const exam = $("examFilter").value;
+/* ================= ANALYSIS ================= */
+function toggleDetails(row, index) {
+  const next = row.nextElementSibling;
+  if (next && next.classList.contains("analysisRow")) {
+    next.remove();
+    return;
+  }
 
-  if (exam === "ALL") return alert("Select an exam");
+  document.querySelectorAll(".analysisRow").forEach(r => r.remove());
 
-  page.style.display = "block";
-  area.style.display = "none";
+  const t = tests[index];
+  let c = 0, w = 0, u = 0;
+  let maxMarks = 0;
 
-  const data = tests.filter(t => t.exam === exam);
-  if (chartInstance) chartInstance.destroy();
+  t.sections.forEach(s => {
+    c += s.c;
+    w += s.w;
+    u += s.u;
 
-  chartInstance = new Chart($("graph"), {
-    type: "line",
-    data: {
-      labels: data.map(t => t.test),
-      datasets: [{
-        label: "Total Marks",
-        data: data.map(t => t.total)
-      }]
-    }
+    const perQ = s.marks / (s.c || 1);
+    maxMarks += (s.c + s.w + s.u) * perQ;
   });
-};
 
-window.hideGraph = function () {
-  $("graphPage").style.display = "none";
-  $("tablesArea").style.display = "block";
-};
+  const negativeLoss = (w * (t.negative || 0)).toFixed(2);
+  const required = Math.max(0, maxMarks - t.total).toFixed(2);
+
+  const tr = document.createElement("tr");
+  tr.className = "analysisRow";
+  tr.innerHTML = `
+    <td colspan="100%">
+      ✔ Correct: ${c}<br>
+      ✖ Wrong: ${w}<br>
+      ⏸ Unattempted: ${u}<br>
+      ➖ Negative Marks Lost: ${negativeLoss}<br>
+      🎯 Marks Needed to Reach Target: <b>${required}</b>
+    </td>`;
+
+  row.after(tr);
+}
+
+/* ================= EDIT / DELETE ================= */
+function editTest(i) {
+  const t = tests[i];
+  editIndex = i;
+
+  $("examName").value = t.exam;
+  $("testName").value = t.test;
+  $("testDate").value = t.date;
+  $("platformName").value = t.platform;
+  $("negativeMark").value = t.negative || 0;
+
+  initSections();
+  t.sections.forEach((s, idx) => {
+    const r = document.querySelectorAll(".sectionRow")[idx];
+    r.children[0].value = s.name;
+    r.children[1].value = s.marks;
+    r.children[2].value = s.c;
+    r.children[3].value = s.w;
+    r.children[4].value = s.u;
+  });
+}
+
+function deleteTest(i) {
+  if (!confirm("Delete test?")) return;
+  tests.splice(i, 1);
+  localStorage.setItem("tests", JSON.stringify(tests));
+  buildFilter();
+  renderTables();
+}
 
 /* ================= DATE ================= */
 function formatDate(d) {
@@ -273,78 +310,3 @@ function formatDate(d) {
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
 }
-
-/* ================= EXPORT EXCEL (GROUPED) ================= */
-window.exportExcel = function () {
-  const grouped = {};
-  tests.forEach(t => {
-    grouped[t.exam] = grouped[t.exam] || [];
-    grouped[t.exam].push(t);
-  });
-
-  let csv = "";
-
-  Object.keys(grouped).forEach(exam => {
-    const list = grouped[exam];
-    csv += `${exam}\n`;
-    csv += "Test,Date,Platform,Total\n";
-
-    list.forEach((t, i) => {
-      csv += `${i+1},${formatDate(t.date)},${t.platform},${t.total}\n`;
-    });
-
-    csv += "\n";
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "mock_tracker_data.csv";
-  a.click();
-};
-
-/* ================= EXPORT PDF (GROUPED TABLE STYLE) ================= */
-window.exportPDF = function () {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  let y = 10;
-  doc.setFontSize(14);
-  doc.text("MOCK TRACKER REPORT", 10, y);
-  y += 10;
-
-  doc.setFontSize(10);
-
-  const grouped = {};
-  tests.forEach(t => {
-    grouped[t.exam] = grouped[t.exam] || [];
-    grouped[t.exam].push(t);
-  });
-
-  Object.keys(grouped).forEach(exam => {
-    if (y > 260) { doc.addPage(); y = 10; }
-
-    doc.setFontSize(12);
-    doc.text(exam, 10, y);
-    y += 6;
-
-    doc.setFontSize(10);
-    doc.text("Test   Date        Platform        Total", 10, y);
-    y += 4;
-    doc.text("------------------------------------------", 10, y);
-    y += 4;
-
-    grouped[exam].forEach((t, i) => {
-      doc.text(
-        `${i+1}      ${formatDate(t.date)}    ${t.platform}        ${t.total}`,
-        10, y
-      );
-      y += 5;
-      if (y > 270) { doc.addPage(); y = 10; }
-    });
-
-    y += 8;
-  });
-
-  doc.save("mock_tracker_report.pdf");
-};
