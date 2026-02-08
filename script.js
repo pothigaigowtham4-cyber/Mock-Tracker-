@@ -180,7 +180,7 @@ function buildFilter() {
   f.onchange = renderTables;
 }
 
-/* ================= TABLE (AVG + BEST/WORST) ================= */
+/* ================= TABLE ================= */
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
@@ -274,11 +274,26 @@ function formatDate(d) {
   return `${day}-${m}-${y}`;
 }
 
-/* ================= EXPORTS ================= */
+/* ================= EXPORT EXCEL (GROUPED) ================= */
 window.exportExcel = function () {
-  let csv = "Exam,Test,Date,Platform,Total\n";
+  const grouped = {};
   tests.forEach(t => {
-    csv += `"${t.exam}","${t.test}","${formatDate(t.date)}","${t.platform}",${t.total}\n`;
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
+
+  let csv = "";
+
+  Object.keys(grouped).forEach(exam => {
+    const list = grouped[exam];
+    csv += `${exam}\n`;
+    csv += "Test,Date,Platform,Total\n";
+
+    list.forEach((t, i) => {
+      csv += `${i+1},${formatDate(t.date)},${t.platform},${t.total}\n`;
+    });
+
+    csv += "\n";
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
@@ -288,6 +303,7 @@ window.exportExcel = function () {
   a.click();
 };
 
+/* ================= EXPORT PDF (GROUPED TABLE STYLE) ================= */
 window.exportPDF = function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -299,17 +315,35 @@ window.exportPDF = function () {
 
   doc.setFontSize(10);
 
-  tests.forEach((t, i) => {
-    doc.text(`Test ${i + 1}`, 10, y); y += 6;
-    doc.text(`Exam: ${t.exam}`, 10, y); y += 6;
-    doc.text(`Date: ${formatDate(t.date)}`, 10, y); y += 6;
-    doc.text(`Platform: ${t.platform}`, 10, y); y += 6;
-    doc.text(`Total Marks: ${t.total}`, 10, y); y += 10;
+  const grouped = {};
+  tests.forEach(t => {
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
 
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
+  Object.keys(grouped).forEach(exam => {
+    if (y > 260) { doc.addPage(); y = 10; }
+
+    doc.setFontSize(12);
+    doc.text(exam, 10, y);
+    y += 6;
+
+    doc.setFontSize(10);
+    doc.text("Test   Date        Platform        Total", 10, y);
+    y += 4;
+    doc.text("------------------------------------------", 10, y);
+    y += 4;
+
+    grouped[exam].forEach((t, i) => {
+      doc.text(
+        `${i+1}      ${formatDate(t.date)}    ${t.platform}        ${t.total}`,
+        10, y
+      );
+      y += 5;
+      if (y > 270) { doc.addPage(); y = 10; }
+    });
+
+    y += 8;
   });
 
   doc.save("mock_tracker_report.pdf");
