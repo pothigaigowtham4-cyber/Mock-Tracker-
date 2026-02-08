@@ -152,6 +152,7 @@ function saveTest() {
     date: $("testDate").value,
     platform: $("platformName").value,
     negative: +$("negativeMark").value || 0,
+    target: +$("targetInput").value || 0,   // ✅ STORED PROPERLY
     total,
     sections
   };
@@ -234,7 +235,7 @@ function renderTables() {
   });
 }
 
-/* ================= ANALYSIS ================= */
+/* ================= ANALYSIS (CORRECT TARGET LOGIC) ================= */
 function toggleDetails(row, index) {
   const next = row.nextElementSibling;
   if (next && next.classList.contains("analysisRow")) {
@@ -246,29 +247,28 @@ function toggleDetails(row, index) {
 
   const t = tests[index];
   let c = 0, w = 0, u = 0;
-  let maxMarks = 0;
 
   t.sections.forEach(s => {
     c += s.c;
     w += s.w;
     u += s.u;
-
-    const perQ = s.marks / (s.c || 1);
-    maxMarks += (s.c + s.w + s.u) * perQ;
   });
 
   const negativeLoss = (w * (t.negative || 0)).toFixed(2);
-  const required = Math.max(0, maxMarks - t.total).toFixed(2);
+  const required = Math.max(0, (t.target || 0) - t.total).toFixed(2);
 
   const tr = document.createElement("tr");
   tr.className = "analysisRow";
   tr.innerHTML = `
     <td colspan="100%">
-      ✔ Correct: ${c}<br>
-      ✖ Wrong: ${w}<br>
-      ⏸ Unattempted: ${u}<br>
-      ➖ Negative Marks Lost: ${negativeLoss}<br>
-      🎯 Marks Needed to Reach Target: <b>${required}</b>
+      <div class="analysisBox">
+        ✔ Correct: ${c}<br>
+        ✖ Wrong: ${w}<br>
+        ⏸ Unattempted: ${u}<br>
+        ➖ Negative Marks Lost: ${negativeLoss}<br>
+        🎯 Target Marks: ${t.target}<br>
+        📉 Marks Needed to Achieve Target: <b>${required}</b>
+      </div>
     </td>`;
 
   row.after(tr);
@@ -284,6 +284,7 @@ function editTest(i) {
   $("testDate").value = t.date;
   $("platformName").value = t.platform;
   $("negativeMark").value = t.negative || 0;
+  $("targetInput").value = t.target || 0;
 
   initSections();
   t.sections.forEach((s, idx) => {
