@@ -38,7 +38,6 @@ let chartInstance = null;
 document.addEventListener("DOMContentLoaded", () => {
   rotateQuote();
   setInterval(rotateQuote, 10000);
-
   initSections();
   buildFilter();
   renderTables();
@@ -90,22 +89,18 @@ function addSection() {
 function addExamDate() {
   const name = $("examCounterName").value;
   const date = $("examCounterDate").value;
-
   if (!name || !date) return alert("Enter exam name and date");
 
   examDates.push({ name, date });
   localStorage.setItem("examDates", JSON.stringify(examDates));
-
   $("examCounterName").value = "";
   $("examCounterDate").value = "";
-
   renderExamDates();
 }
 
 function renderExamDates() {
   const box = $("examCountdownList");
   box.innerHTML = "";
-
   examDates.forEach((e, i) => {
     const days = Math.ceil((new Date(e.date) - new Date()) / 86400000);
     box.innerHTML += `
@@ -154,7 +149,6 @@ function saveTest() {
 
   editIndex === null ? tests.push(test) : tests[editIndex] = test;
   editIndex = null;
-
   localStorage.setItem("tests", JSON.stringify(tests));
   initSections();
   buildFilter();
@@ -168,7 +162,6 @@ function buildFilter() {
   [...new Set(tests.map(t => t.exam))].forEach(e => {
     f.innerHTML += `<option value="${e}">${e}</option>`;
   });
-  f.onchange = renderTables;
 }
 
 /* ================= TABLE ================= */
@@ -226,14 +219,9 @@ function renderTables() {
 
 /* ================= ANALYSIS ================= */
 function toggleDetails(row, index) {
-  const next = row.nextElementSibling;
-  if (next && next.classList.contains("analysisRow")) {
-    next.remove(); return;
-  }
-
   document.querySelectorAll(".analysisRow").forEach(r => r.remove());
-
   const t = tests[index];
+
   let c=0,w=0,u=0;
   t.sections.forEach(s => { c+=s.c; w+=s.w; u+=s.u; });
 
@@ -256,33 +244,96 @@ function toggleDetails(row, index) {
   row.after(tr);
 }
 
-/* ================= EXPORT PDF ================= */
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  let y = 15;
+/* ================= GRAPH ================= */
+function showGraph() {
+  $("graphPage").style.display = "block";
+  $("tablesArea").style.display = "none";
 
+  const exam = $("examFilter").value;
+  const data = tests.filter(t => exam === "ALL" ? false : t.exam === exam);
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart($("graph"), {
+    type: "line",
+    data: {
+      labels: data.map((_,i)=>`Test ${i+1}`),
+      datasets: [{
+        label: exam,
+        data: data.map(t=>t.total),
+        borderWidth: 2
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          min: 10,
+          max: 300,
+          ticks: { stepSize: 10 }
+        }
+      }
+    }
+  });
+}
+
+function hideGraph() {
+  $("graphPage").style.display = "none";
+  $("tablesArea").style.display = "block";
+}
+
+/* ================= EXPORT EXCEL ================= */
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
   const grouped = {};
+
   tests.forEach(t => {
     grouped[t.exam] = grouped[t.exam] || [];
     grouped[t.exam].push(t);
   });
 
   Object.keys(grouped).forEach(exam => {
-    doc.text(exam, 14, y); y += 6;
-
-    grouped[exam].forEach(t => {
-      doc.text(
-        `${formatDate(t.date)} | ${t.test} | ${t.platform} | ${t.total}`,
-        16, y
-      );
-      y += 5;
-    });
-
-    y += 8;
+    const rows = grouped[exam].map(t => ({
+      Date: formatDate(t.date),
+      Platform: t.platform,
+      Total: t.total
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, exam.substring(0,31));
   });
 
-  doc.save("mock-analysis.pdf");
+  XLSX.writeFile(wb, "mock-tracker.xlsx");
+}
+
+/* ================= EDIT / DELETE ================= */
+function editTest(i) {
+  editIndex = i;
+  const t = tests[i];
+  $("examName").value = t.exam;
+  $("testName").value = t.test;
+  $("testDate").value = t.date;
+  $("platformName").value = t.platform;
+  $("negativeMark").value = t.negative;
+  $("targetInput").value = t.target;
+
+  $("sections").innerHTML = "";
+  t.sections.forEach(s => {
+    $("sections").innerHTML += `
+      <div class="sectionRow">
+        <input value="${s.name}">
+        <input type="number" value="${s.marks}">
+        <input type="number" value="${s.c}">
+        <input type="number" value="${s.w}">
+        <input type="number" value="${s.u}">
+        <button onclick="this.parentElement.remove()">🗑</button>
+      </div>`;
+  });
+}
+
+function deleteTest(i) {
+  if (!confirm("Delete this test?")) return;
+  tests.splice(i, 1);
+  localStorage.setItem("tests", JSON.stringify(tests));
+  renderTables();
 }
 
 /* ================= DATE ================= */
