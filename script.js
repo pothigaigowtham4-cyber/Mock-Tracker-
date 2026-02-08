@@ -311,3 +311,81 @@ function formatDate(d) {
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
 }
+/* ================= GRAPH FUNCTIONS ================= */
+function showGraph() {
+  const graphPage = document.getElementById("graphPage");
+  if (!graphPage) return;
+
+  graphPage.style.display = "block";
+  renderGraph();
+}
+
+function hideGraph() {
+  const graphPage = document.getElementById("graphPage");
+  if (!graphPage) return;
+
+  graphPage.style.display = "none";
+}
+
+/* ================= GRAPH RENDER ================= */
+function renderGraph() {
+  const ctx = document.getElementById("graph");
+  if (!ctx) return;
+
+  if (window.chartInstance) {
+    window.chartInstance.destroy();
+  }
+
+  const labels = tests.map(t => t.exam + " - " + t.date);
+  const scores = tests.map(t => t.totalMarks || 0);
+
+  window.chartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Marks",
+        data: scores,
+        tension: 0.3,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+/* ================= EXPORT PDF ================= */
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
+
+  doc.text("Mock Test Analysis", 14, 15);
+  let y = 25;
+
+  tests.forEach((t, i) => {
+    doc.text(
+      `${i + 1}. ${t.exam} | Score: ${t.totalMarks} | Target: ${t.target}`,
+      14,
+      y
+    );
+    y += 8;
+  });
+
+  doc.save("mock-analysis.pdf");
+}
+
+/* ================= EXPORT EXCEL ================= */
+function exportExcel() {
+  const ws = XLSX.utils.json_to_sheet(tests);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Mock Analysis");
+  XLSX.writeFile(wb, "mock-analysis.xlsx");
+}
