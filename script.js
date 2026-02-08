@@ -49,13 +49,12 @@ function rotateQuote() {
   const qt = $("quoteText");
   if (!qt) return;
 
-  let text = quotes[quoteIndex];
   qt.textContent = "";
+  let text = quotes[quoteIndex];
   let i = 0;
 
   const typer = setInterval(() => {
-    qt.textContent += text.charAt(i);
-    i++;
+    qt.textContent += text.charAt(i++);
     if (i >= text.length) clearInterval(typer);
   }, 40);
 
@@ -65,8 +64,6 @@ function rotateQuote() {
 /* ================= SECTIONS ================= */
 function initSections() {
   const s = $("sections");
-  if (!s) return;
-
   s.innerHTML = `
     <div class="sectionLabels">
       <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
@@ -84,48 +81,6 @@ function addSection() {
       <input type="number">
       <button onclick="this.parentElement.remove()">🗑</button>
     </div>`;
-}
-
-/* ================= EXAM COUNTDOWN ================= */
-function addExamDate() {
-  const name = $("examCounterName").value;
-  const date = $("examCounterDate").value;
-
-  if (!name || !date) return alert("Enter exam name and date");
-
-  examDates.push({ name, date });
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-
-  $("examCounterName").value = "";
-  $("examCounterDate").value = "";
-
-  renderExamDates();
-}
-
-function renderExamDates() {
-  const box = $("examCountdownList");
-  if (!box) return;
-
-  box.innerHTML = "";
-
-  examDates.forEach((e, i) => {
-    const days = Math.ceil(
-      (new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24)
-    );
-
-    box.innerHTML += `
-      <div class="countdownCard">
-        <b>${e.name}</b><br>
-        <span>${days >= 0 ? days + " days left" : "Expired"}</span>
-        <button onclick="deleteExamDate(${i})">🗑</button>
-      </div>`;
-  });
-}
-
-function deleteExamDate(i) {
-  examDates.splice(i, 1);
-  localStorage.setItem("examDates", JSON.stringify(examDates));
-  renderExamDates();
 }
 
 /* ================= SAVE TEST ================= */
@@ -152,7 +107,7 @@ function saveTest() {
     date: $("testDate").value,
     platform: $("platformName").value,
     negative: +$("negativeMark").value || 0,
-    target: +$("targetInput").value || 0,   // ✅ STORED PROPERLY
+    target: +$("targetInput").value || 0,
     total,
     sections
   };
@@ -169,23 +124,18 @@ function saveTest() {
 /* ================= FILTER ================= */
 function buildFilter() {
   const f = $("examFilter");
-  if (!f) return;
-
   f.innerHTML = `<option value="ALL">All Exams</option>`;
   [...new Set(tests.map(t => t.exam))].forEach(e => {
     f.innerHTML += `<option value="${e}">${e}</option>`;
   });
-
   f.onchange = renderTables;
 }
 
 /* ================= TABLE ================= */
 function renderTables() {
   const area = $("tablesArea");
-  if (!area) return;
-
   area.innerHTML = "";
-  const selected = $("examFilter")?.value || "ALL";
+  const selected = $("examFilter").value;
 
   const grouped = {};
   tests.forEach(t => {
@@ -198,8 +148,6 @@ function renderTables() {
   Object.keys(grouped).forEach(exam => {
     const list = grouped[exam];
     const totals = list.map(t => t.total);
-    const max = Math.max(...totals);
-    const min = Math.min(...totals);
     const avg = (totals.reduce((a,b)=>a+b,0)/totals.length).toFixed(1);
 
     const wrap = document.createElement("div");
@@ -216,14 +164,12 @@ function renderTables() {
       </tr>`;
 
     list.forEach((t, i) => {
-      const cls = t.total === max ? "best" : t.total === min ? "worst" : "";
-
       table.innerHTML += `
         <tr onclick="toggleDetails(this, ${tests.indexOf(t)})">
           <td>${i + 1}</td>
           <td>${formatDate(t.date)}</td>
           <td>${t.platform}</td>
-          <td class="${cls}">${t.total}</td>
+          <td>${t.total}</td>
           ${t.sections.map(s => `<td>${s.marks}</td>`).join("")}
           <td><button onclick="event.stopPropagation();editTest(${tests.indexOf(t)})">✏️</button></td>
           <td><button onclick="event.stopPropagation();deleteTest(${tests.indexOf(t)})">🗑</button></td>
@@ -235,155 +181,84 @@ function renderTables() {
   });
 }
 
-/* ================= ANALYSIS (CORRECT TARGET LOGIC) ================= */
+/* ================= ANALYSIS ================= */
 function toggleDetails(row, index) {
-  const next = row.nextElementSibling;
-  if (next && next.classList.contains("analysisRow")) {
-    next.remove();
-    return;
-  }
-
   document.querySelectorAll(".analysisRow").forEach(r => r.remove());
 
   const t = tests[index];
-  let c = 0, w = 0, u = 0;
+  let c=0,w=0,u=0;
+  t.sections.forEach(s => { c+=s.c; w+=s.w; u+=s.u; });
 
-  t.sections.forEach(s => {
-    c += s.c;
-    w += s.w;
-    u += s.u;
-  });
-
-  const negativeLoss = (w * (t.negative || 0)).toFixed(2);
-  const required = Math.max(0, (t.target || 0) - t.total).toFixed(2);
+  const negLoss = (w * (t.negative||0)).toFixed(2);
+  const need = Math.max(0, t.target - t.total).toFixed(2);
 
   const tr = document.createElement("tr");
   tr.className = "analysisRow";
   tr.innerHTML = `
     <td colspan="100%">
-      <div class="analysisBox">
-        ✔ Correct: ${c}<br>
-        ✖ Wrong: ${w}<br>
-        ⏸ Unattempted: ${u}<br>
-        ➖ Negative Marks Lost: ${negativeLoss}<br>
-        🎯 Target Marks: ${t.target}<br>
-        📉 Marks Needed to Achieve Target: <b>${required}</b>
-      </div>
+      ✔ Correct: ${c}<br>
+      ✖ Wrong: ${w}<br>
+      ⏸ Unattempted: ${u}<br>
+      ➖ Negative Lost: ${negLoss}<br>
+      🎯 Target: ${t.target}<br>
+      📉 Marks Needed: <b>${need}</b>
     </td>`;
-
   row.after(tr);
 }
 
-/* ================= EDIT / DELETE ================= */
-function editTest(i) {
-  const t = tests[i];
-  editIndex = i;
-
-  $("examName").value = t.exam;
-  $("testName").value = t.test;
-  $("testDate").value = t.date;
-  $("platformName").value = t.platform;
-  $("negativeMark").value = t.negative || 0;
-  $("targetInput").value = t.target || 0;
-
-  initSections();
-  t.sections.forEach((s, idx) => {
-    const r = document.querySelectorAll(".sectionRow")[idx];
-    r.children[0].value = s.name;
-    r.children[1].value = s.marks;
-    r.children[2].value = s.c;
-    r.children[3].value = s.w;
-    r.children[4].value = s.u;
-  });
+/* ================= GRAPH ================= */
+function showGraph() {
+  $("graphPage").style.display = "block";
+  renderGraph();
 }
 
-function deleteTest(i) {
-  if (!confirm("Delete test?")) return;
-  tests.splice(i, 1);
-  localStorage.setItem("tests", JSON.stringify(tests));
-  buildFilter();
-  renderTables();
+function hideGraph() {
+  $("graphPage").style.display = "none";
 }
 
-/* ================= DATE ================= */
-function formatDate(d) {
-  if (!d) return "";
-  const [y, m, day] = d.split("-");
-  return `${day}-${m}-${y}`;
-}
-/* ================= GRAPH FUNCTIONS ================= */
-function showGraph(index = null) {
-  const graphPage = document.getElementById("graphPage");
-  if (!graphPage) return;
+function renderGraph() {
+  const ctx = $("graph");
+  if (chartInstance) chartInstance.destroy();
 
-  graphPage.style.display = "block";
-  renderGraph(index);
-}
+  const selected = $("examFilter").value;
+  const data = selected === "ALL" ? tests : tests.filter(t => t.exam === selected);
 
-
-/* ================= GRAPH RENDER ================= */
-function renderGraph(index = null) {
-  const ctx = document.getElementById("graph");
-  if (!ctx) return;
-
-  if (window.chartInstance) {
-    window.chartInstance.destroy();
-  }
-
-  let labels = [];
-  let scores = [];
-
-  if (index !== null && tests[index]) {
-    // ▶ Plot only the selected exam
-    labels = [tests[index].exam + " - " + tests[index].date];
-    scores = [tests[index].totalMarks || 0];
-  } else {
-    // ▶ Plot all exams (default behavior)
-    labels = tests.map(t => t.exam + " - " + t.date);
-    scores = tests.map(t => t.totalMarks || 0);
-  }
-
-  window.chartInstance = new Chart(ctx, {
+  chartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels,
+      labels: data.map(t => `${t.exam} ${formatDate(t.date)}`),
       datasets: [{
         label: "Marks",
-        data: scores,
-        tension: 0.3,
-        fill: false
+        data: data.map(t => t.total),
+        tension: 0.3
       }]
     },
     options: {
-      responsive: true,
       scales: {
-        y: {
-          min: 10,
-          max: 300,
-          ticks: {
-            stepSize: 10
-          }
-        }
+        y: { min: 10, max: 300, ticks: { stepSize: 10 } }
       }
     }
   });
 }
 
-
 /* ================= EXPORT PDF ================= */
 function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
+  const doc = new jsPDF();
+  let y = 15;
 
-  doc.text("Mock Test Analysis", 14, 15);
-  let y = 25;
+  const grouped = {};
+  tests.forEach(t => {
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
 
-  tests.forEach((t, i) => {
-    doc.text(
-      `${i + 1}. ${t.exam} | Score: ${t.totalMarks} | Target: ${t.target}`,
-      14,
-      y
-    );
+  Object.keys(grouped).forEach(exam => {
+    doc.text(exam, 14, y); y += 6;
+    grouped[exam].forEach(t => {
+      doc.text(`• ${t.test} | ${t.total}`, 16, y);
+      y += 5;
+    });
     y += 8;
   });
 
@@ -392,8 +267,32 @@ function exportPDF() {
 
 /* ================= EXPORT EXCEL ================= */
 function exportExcel() {
-  const ws = XLSX.utils.json_to_sheet(tests);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Mock Analysis");
+  const grouped = {};
+
+  tests.forEach(t => {
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
+
+  Object.keys(grouped).forEach(exam => {
+    const data = grouped[exam].map(t => ({
+      Test: t.test,
+      Date: t.date,
+      Platform: t.platform,
+      Total: t.total,
+      Target: t.target
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, exam);
+  });
+
   XLSX.writeFile(wb, "mock-analysis.xlsx");
+}
+
+/* ================= DATE ================= */
+function formatDate(d) {
+  if (!d) return "";
+  const [y,m,day] = d.split("-");
+  return `${day}-${m}-${y}`;
 }
