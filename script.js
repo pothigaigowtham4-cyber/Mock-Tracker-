@@ -272,23 +272,30 @@ function exportPDF() {
   Object.keys(grouped).forEach(exam => {
     doc.setFontSize(14);
     doc.text(exam, 14, y);
-    y += 5;
+    y += 6;
 
-    const head = [["Test","Date","Platform","Total",...grouped[exam][0].sections.map(s=>s.name)]];
+    const head = [[
+      "Test",
+      "Date",
+      "Platform",
+      "Total",
+      ...grouped[exam][0].sections.map(s => s.name)
+    ]];
+
     const body = grouped[exam].map((t,i)=>[
-      i+1,
+      i + 1,
       formatDate(t.date),
       t.platform,
       t.total,
-      ...t.sections.map(s=>s.marks)
+      ...t.sections.map(s => s.marks)
     ]);
 
-    window.jspdf.autoTable(doc,{
-      startY:y,
+    doc.autoTable({
+      startY: y,
       head,
       body,
-      theme:"grid",
-      styles:{fontSize:8}
+      theme: "grid",
+      styles: { fontSize: 8 }
     });
 
     y = doc.lastAutoTable.finalY + 10;
@@ -296,10 +303,17 @@ function exportPDF() {
 
   doc.save("mock-tracker.pdf");
 }
-
 /* ================= DATE ================= */
 function formatDate(d) {
   if (!d) return "";
   const [y,m,day] = d.split("-");
   return `${day}-${m}-${y}`;
+}
+/* ================= GRAPH ================= */
+function showGraph() {
+  document.getElementById("graphPage").style.display = "block";
+}
+
+function hideGraph() {
+  document.getElementById("graphPage").style.display = "none";
 }
