@@ -312,23 +312,17 @@ function formatDate(d) {
   return `${day}-${m}-${y}`;
 }
 /* ================= GRAPH FUNCTIONS ================= */
-function showGraph() {
+function showGraph(index = null) {
   const graphPage = document.getElementById("graphPage");
   if (!graphPage) return;
 
   graphPage.style.display = "block";
-  renderGraph();
+  renderGraph(index);
 }
 
-function hideGraph() {
-  const graphPage = document.getElementById("graphPage");
-  if (!graphPage) return;
-
-  graphPage.style.display = "none";
-}
 
 /* ================= GRAPH RENDER ================= */
-function renderGraph() {
+function renderGraph(index = null) {
   const ctx = document.getElementById("graph");
   if (!ctx) return;
 
@@ -336,8 +330,18 @@ function renderGraph() {
     window.chartInstance.destroy();
   }
 
-  const labels = tests.map(t => t.exam + " - " + t.date);
-  const scores = tests.map(t => t.totalMarks || 0);
+  let labels = [];
+  let scores = [];
+
+  if (index !== null && tests[index]) {
+    // ▶ Plot only the selected exam
+    labels = [tests[index].exam + " - " + tests[index].date];
+    scores = [tests[index].totalMarks || 0];
+  } else {
+    // ▶ Plot all exams (default behavior)
+    labels = tests.map(t => t.exam + " - " + t.date);
+    scores = tests.map(t => t.totalMarks || 0);
+  }
 
   window.chartInstance = new Chart(ctx, {
     type: "line",
@@ -352,15 +356,19 @@ function renderGraph() {
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { display: true }
-      },
       scales: {
-        y: { beginAtZero: true }
+        y: {
+          min: 10,
+          max: 300,
+          ticks: {
+            stepSize: 10
+          }
+        }
       }
     }
   });
 }
+
 
 /* ================= EXPORT PDF ================= */
 function exportPDF() {
