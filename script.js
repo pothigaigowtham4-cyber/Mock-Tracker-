@@ -180,7 +180,7 @@ function buildFilter() {
   f.onchange = renderTables;
 }
 
-/* ================= TABLE (BEST / WORST HIGHLIGHT) ================= */
+/* ================= TABLE ================= */
 function renderTables() {
   const area = $("tablesArea");
   if (!area) return;
@@ -235,34 +235,35 @@ function renderTables() {
   });
 }
 
-/* ================= ANALYSIS ================= */
-function toggleDetails(row, i) {
-  if (row.nextSibling && row.nextSibling.classList.contains("details")) {
-    row.nextSibling.remove();
-    return;
-  }
+/* ================= GRAPH (FIXED) ================= */
+function showGraph() {
+  const page = $("graphPage");
+  const area = $("tablesArea");
+  const exam = $("examFilter").value;
 
-  const t = tests[i];
-  let negativeLoss = 0;
+  if (exam === "ALL") return alert("Select an exam");
 
-  t.sections.forEach(s => {
-    negativeLoss += (s.w || 0) * (t.negative || 0);
+  page.style.display = "block";
+  area.style.display = "none";
+
+  const data = tests.filter(t => t.exam === exam);
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart($("graph"), {
+    type: "line",
+    data: {
+      labels: data.map(t => t.test),
+      datasets: [{
+        label: "Total Marks",
+        data: data.map(t => t.total)
+      }]
+    }
   });
+}
 
-  const d = document.createElement("tr");
-  d.className = "details";
-  d.innerHTML = `
-    <td colspan="100%">
-      <div class="analysisBox">
-        ${t.sections.map(s =>
-          `<b>${s.name}</b> → C:${s.c} W:${s.w} U:${s.u}`
-        ).join("<br>")}
-        <br><br>
-        <b>Negative Marks Lost:</b> ${negativeLoss.toFixed(2)}
-      </div>
-    </td>`;
-
-  row.after(d);
+function hideGraph() {
+  $("graphPage").style.display = "none";
+  $("tablesArea").style.display = "block";
 }
 
 /* ================= DATE ================= */
@@ -270,4 +271,38 @@ function formatDate(d) {
   if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}-${m}-${y}`;
+}
+
+/* ================= EXPORT PDF (FIXED & SAFE) ================= */
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  let y = 10;
+  doc.setFontSize(14);
+  doc.text("MOCK TRACKER REPORT", 10, y);
+  y += 10;
+
+  doc.setFontSize(10);
+
+  tests.forEach((t, i) => {
+    let negativeLoss = 0;
+    t.sections.forEach(s => {
+      negativeLoss += (s.w || 0) * (t.negative || 0);
+    });
+
+    doc.text(`Test ${i + 1}`, 10, y); y += 6;
+    doc.text(`Exam: ${t.exam}`, 10, y); y += 6;
+    doc.text(`Date: ${formatDate(t.date)}`, 10, y); y += 6;
+    doc.text(`Platform: ${t.platform}`, 10, y); y += 6;
+    doc.text(`Total Marks: ${t.total}`, 10, y); y += 6;
+    doc.text(`Negative Lost: ${negativeLoss.toFixed(2)}`, 10, y); y += 10;
+
+    if (y > 270) {
+      doc.addPage();
+      y = 10;
+    }
+  });
+
+  doc.save("mock_tracker_report.pdf");
 }
