@@ -312,8 +312,30 @@ function formatDate(d) {
 /* ================= GRAPH ================= */
 function showGraph() {
   document.getElementById("graphPage").style.display = "block";
+  renderGraph();   
 }
+
 
 function hideGraph() {
   document.getElementById("graphPage").style.display = "none";
+}
+let graphChart;
+
+function renderGraph() {
+  const ctx = document.getElementById("graph").getContext("2d");
+
+  if (graphChart) graphChart.destroy();
+
+  graphChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: exams.map(e => e.name),
+      datasets: [{
+        label: "Marks",
+        data: exams.map(e => e.total),
+        borderWidth: 2,
+        fill: false
+      }]
+    }
+  });
 }
