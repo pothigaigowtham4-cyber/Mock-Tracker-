@@ -312,17 +312,16 @@ function formatDate(d) {
 /* ================= GRAPH ================= */
 function showGraph() {
   document.getElementById("graphPage").style.display = "block";
-  renderGraph();   
+  renderGraph();
 }
-
 
 function hideGraph() {
   document.getElementById("graphPage").style.display = "none";
 }
+
 let graphChart;
 
-
-function renderGraph(filteredData = testData) {
+function renderGraph() {
   const canvas = document.getElementById("graph");
   if (!canvas) return;
 
@@ -330,13 +329,15 @@ function renderGraph(filteredData = testData) {
 
   if (graphChart) graphChart.destroy();
 
+  if (tests.length === 0) return;
+
   graphChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: filteredData.map(t => t.exam),
+      labels: tests.map((t, i) => `Test ${i + 1}`),
       datasets: [{
         label: "Total Marks",
-        data: filteredData.map(t => t.total),
+        data: tests.map(t => t.total),
         borderWidth: 2,
         tension: 0.3,
         fill: false
@@ -346,13 +347,10 @@ function renderGraph(filteredData = testData) {
       responsive: true,
       scales: {
         y: {
-          min: 10,
-          max: 300,
-          ticks: {
-            stepSize: 10
-          }
+          beginAtZero: true
         }
       }
     }
   });
 }
+
