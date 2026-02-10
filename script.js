@@ -177,13 +177,14 @@ function editTest(index) {
   }
 
   editIndex = index;
+  const t = tests[index]; // ✅ MISSING LINE (CRITICAL)
 
-  $("examName").value = t.exam;
-  $("testName").value = t.test;
-  $("testDate").value = t.date;
-  $("platformName").value = t.platform;
-  $("negativeMark").value = t.negative;
-  $("targetInput").value = t.target;
+  $("examName").value = t.exam ?? "";
+  $("testName").value = t.test ?? "";
+  $("testDate").value = t.date ?? "";
+  $("platformName").value = t.platform ?? "";
+  $("negativeMark").value = t.negative ?? "";
+  $("targetInput").value = t.target ?? "";
 
   $("sections").innerHTML = `
     <div class="sectionLabels">
@@ -193,15 +194,16 @@ function editTest(index) {
   t.sections.forEach(s => {
     $("sections").innerHTML += `
       <div class="sectionRow">
-        <input value="${s.name}">
-        <input type="number" value="${s.marks}">
-        <input type="number" value="${s.c}">
-        <input type="number" value="${s.w}">
-        <input type="number" value="${s.u}">
+        <input value="${s.name ?? ""}">
+        <input type="number" value="${s.marks ?? ""}">
+        <input type="number" value="${s.c ?? ""}">
+        <input type="number" value="${s.w ?? ""}">
+        <input type="number" value="${s.u ?? ""}">
         <button onclick="this.parentElement.remove()">🗑</button>
       </div>`;
   });
 }
+
 
 /* ================= FILTER ================= */
 function buildFilter() {
