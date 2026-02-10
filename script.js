@@ -1,5 +1,7 @@
 /* ================= SAFE SELECTOR ================= */
-const $ = id => document.getElementById(id);
+if (!window.$) {
+  window.$ = id => document.getElementById(id);
+}
 
 /* ================= QUOTES ================= */
 const quotes = [
@@ -32,7 +34,7 @@ let quoteTimer = null;
 let tests = JSON.parse(localStorage.getItem("tests")) || [];
 let examDates = JSON.parse(localStorage.getItem("examDates")) || [];
 let editIndex = null;
-let chartInstance = null;
+let graphChart = null;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
@@ -118,7 +120,7 @@ function deleteExamDate(i) {
   renderExamDates();
 }
 
-/* ================= SAVE TEST ================= */
+/* ================= SAVE / EDIT TEST ================= */
 function saveTest() {
   const rows = document.querySelectorAll(".sectionRow");
   let sections = [];
@@ -156,7 +158,36 @@ function saveTest() {
   renderTables();
 }
 
-/* ================= FILTER (FIXED) ================= */
+function editTest(index) {
+  const t = tests[index];
+  editIndex = index;
+
+  $("examName").value = t.exam;
+  $("testName").value = t.test;
+  $("testDate").value = t.date;
+  $("platformName").value = t.platform;
+  $("negativeMark").value = t.negative;
+  $("targetInput").value = t.target;
+
+  $("sections").innerHTML = `
+    <div class="sectionLabels">
+      <span>Section</span><span>Marks</span><span>C</span><span>W</span><span>U</span><span></span>
+    </div>`;
+
+  t.sections.forEach(s => {
+    $("sections").innerHTML += `
+      <div class="sectionRow">
+        <input value="${s.name}">
+        <input type="number" value="${s.marks}">
+        <input type="number" value="${s.c}">
+        <input type="number" value="${s.w}">
+        <input type="number" value="${s.u}">
+        <button onclick="this.parentElement.remove()">🗑</button>
+      </div>`;
+  });
+}
+
+/* ================= FILTER ================= */
 function buildFilter() {
   const f = $("examFilter");
   const selected = f.value || "ALL";
@@ -225,119 +256,44 @@ function renderTables() {
   });
 }
 
-/* ================= ANALYSIS ================= */
-function toggleDetails(row, index) {
-  const next = row.nextElementSibling;
-  if (next && next.classList.contains("analysisRow")) {
-    next.remove(); return;
-  }
-
-  document.querySelectorAll(".analysisRow").forEach(r => r.remove());
-
-  const t = tests[index];
-  let c=0,w=0,u=0;
-  t.sections.forEach(s => { c+=s.c; w+=s.w; u+=s.u; });
-
-  const negLoss = (w * (t.negative||0)).toFixed(2);
-  const need = Math.max(0, t.target - t.total).toFixed(2);
-
-  const tr = document.createElement("tr");
-  tr.className = "analysisRow";
-  tr.innerHTML = `
-    <td colspan="100%">
-      <div class="analysisBox" style="text-align:left">
-        ✔ Correct: ${c}<br>
-        ✖ Wrong: ${w}<br>
-        ⏸ Unattempted: ${u}<br>
-        ➖ Negative Lost: ${negLoss}<br>
-        🎯 Target: ${t.target}<br>
-        📉 Marks Needed: <b>${need}</b>
-      </div>
-    </td>`;
-  row.after(tr);
+function deleteTest(i) {
+  tests.splice(i, 1);
+  localStorage.setItem("tests", JSON.stringify(tests));
+  buildFilter();
+  renderTables();
 }
 
-/* ================= EXPORT PDF (FIXED) ================= */
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p","mm","a4");
-  let y = 15;
-
-  const grouped = {};
-  tests.forEach(t => {
-    grouped[t.exam] = grouped[t.exam] || [];
-    grouped[t.exam].push(t);
-  });
-
-  Object.keys(grouped).forEach(exam => {
-    doc.setFontSize(14);
-    doc.text(exam, 14, y);
-    y += 6;
-
-    const head = [[
-      "Test",
-      "Date",
-      "Platform",
-      "Total",
-      ...grouped[exam][0].sections.map(s => s.name)
-    ]];
-
-    const body = grouped[exam].map((t,i)=>[
-      i + 1,
-      formatDate(t.date),
-      t.platform,
-      t.total,
-      ...t.sections.map(s => s.marks)
-    ]);
-
-    doc.autoTable({
-      startY: y,
-      head,
-      body,
-      theme: "grid",
-      styles: { fontSize: 8 }
-    });
-
-    y = doc.lastAutoTable.finalY + 10;
-  });
-
-  doc.save("mock-tracker.pdf");
-}
-/* ================= DATE ================= */
-function formatDate(d) {
-  if (!d) return "";
-  const [y,m,day] = d.split("-");
-  return `${day}-${m}-${y}`;
-}
-/* ================= GRAPH ================= */
+/* ================= GRAPH (FILTER AWARE) ================= */
 function showGraph() {
-  document.getElementById("graphPage").style.display = "block";
+  $("graphPage").style.display = "block";
   renderGraph();
 }
 
 function hideGraph() {
-  document.getElementById("graphPage").style.display = "none";
+  $("graphPage").style.display = "none";
 }
 
-let graphChart;
-
 function renderGraph() {
-  const canvas = document.getElementById("graph");
+  const canvas = $("graph");
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
-
   if (graphChart) graphChart.destroy();
 
-  if (tests.length === 0) return;
+  const selected = $("examFilter").value;
+  const data = selected === "ALL"
+    ? tests
+    : tests.filter(t => t.exam === selected);
+
+  if (data.length === 0) return;
 
   graphChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: tests.map((t, i) => `Test ${i + 1}`),
+      labels: data.map((_, i) => `Test ${i + 1}`),
       datasets: [{
         label: "Total Marks",
-        data: tests.map(t => t.total),
+        data: data.map(t => t.total),
         borderWidth: 2,
         tension: 0.3,
         fill: false
@@ -345,12 +301,30 @@ function renderGraph() {
     },
     options: {
       responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
+      scales: { y: { beginAtZero: true } }
     }
   });
 }
 
+/* ================= EXPORT EXCEL ================= */
+function exportExcel() {
+  const ws = XLSX.utils.json_to_sheet(
+    tests.map(t => ({
+      Exam: t.exam,
+      Test: t.test,
+      Date: formatDate(t.date),
+      Platform: t.platform,
+      Total: t.total
+    }))
+  );
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tests");
+  XLSX.writeFile(wb, "mock-tracker.xlsx");
+}
+
+/* ================= DATE ================= */
+function formatDate(d) {
+  if (!d) return "";
+  const [y,m,day] = d.split("-");
+  return `${day}-${m}-${y}`;
+}
