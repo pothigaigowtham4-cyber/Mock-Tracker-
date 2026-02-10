@@ -1,3 +1,11 @@
+/* ===== GLOBAL GUARD (DO NOT REMOVE) ===== */
+if (window.__mockTrackerLoaded) {
+  console.warn("script.js already loaded, skipping re-execution");
+  throw new Error("Duplicate script load prevented");
+}
+window.__mockTrackerLoaded = true;
+
+
 /* ================= SAFE SELECTOR ================= */
 if (!window.$) {
   window.$ = id => document.getElementById(id);
