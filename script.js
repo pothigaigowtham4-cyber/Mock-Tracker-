@@ -169,7 +169,13 @@ function saveTest() {
 }
 
 function editTest(index) {
-  const t = tests[index];
+  index = Number(index);
+
+  if (isNaN(index) || !tests[index]) {
+    console.error("Invalid test index:", index);
+    return;
+  }
+
   editIndex = index;
 
   $("examName").value = t.exam;
