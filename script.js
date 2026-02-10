@@ -258,7 +258,7 @@ function renderTables() {
   });
 }
 
-/* ================= ANALYSIS (RESTORED) ================= */
+/* ================= ANALYSIS ================= */
 function toggleDetails(row, index) {
   const next = row.nextElementSibling;
   if (next && next.classList.contains("analysisRow")) {
@@ -348,6 +348,53 @@ function exportExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Tests");
   XLSX.writeFile(wb, "mock-tracker.xlsx");
+}
+
+/* ================= EXPORT PDF (RESTORED, UNCHANGED) ================= */
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p","mm","a4");
+  let y = 15;
+
+  const grouped = {};
+  tests.forEach(t => {
+    grouped[t.exam] = grouped[t.exam] || [];
+    grouped[t.exam].push(t);
+  });
+
+  Object.keys(grouped).forEach(exam => {
+    doc.setFontSize(14);
+    doc.text(exam, 14, y);
+    y += 6;
+
+    const head = [[
+      "Test",
+      "Date",
+      "Platform",
+      "Total",
+      ...grouped[exam][0].sections.map(s => s.name)
+    ]];
+
+    const body = grouped[exam].map((t,i)=>[
+      i + 1,
+      formatDate(t.date),
+      t.platform,
+      t.total,
+      ...t.sections.map(s => s.marks)
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      head,
+      body,
+      theme: "grid",
+      styles: { fontSize: 8 }
+    });
+
+    y = doc.lastAutoTable.finalY + 10;
+  });
+
+  doc.save("mock-tracker.pdf");
 }
 
 /* ================= DATE ================= */
