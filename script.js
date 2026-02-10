@@ -276,6 +276,12 @@ function renderTables() {
 
 /* ================= ANALYSIS ================= */
 function toggleDetails(row, index) {
+  index = Number(index);
+  if (isNaN(index) || !tests[index]) {
+    console.error("Invalid analysis index:", index);
+    return;
+  }
+
   const next = row.nextElementSibling;
   if (next && next.classList.contains("analysisRow")) {
     next.remove();
@@ -285,22 +291,44 @@ function toggleDetails(row, index) {
   document.querySelectorAll(".analysisRow").forEach(r => r.remove());
 
   const t = tests[index];
-  let c=0,w=0,u=0;
-  t.sections.forEach(s => { c+=s.c; w+=s.w; u+=s.u; });
 
-  const negLoss = (w * (t.negative||0)).toFixed(2);
-  const need = Math.max(0, t.target - t.total).toFixed(2);
+  let totalC = 0, totalW = 0, totalU = 0;
+
+  let sectionHTML = "";
+  t.sections.forEach(s => {
+    const c = Number(s.c) || 0;
+    const w = Number(s.w) || 0;
+    const u = Number(s.u) || 0;
+
+    totalC += c;
+    totalW += w;
+    totalU += u;
+
+    sectionHTML += `
+      <div>
+        <b>${s.name || "Section"}</b> →
+        ✔ ${c} |
+        ✖ ${w} |
+        ⏸ ${u}
+      </div>`;
+  });
+
+  const negLoss = (totalW * (Number(t.negative) || 0)).toFixed(2);
+  const need = Math.max(0, (Number(t.target) || 0) - (Number(t.total) || 0)).toFixed(2);
 
   const tr = document.createElement("tr");
   tr.className = "analysisRow";
   tr.innerHTML = `
     <td colspan="100%">
-      <div class="analysisBox">
-        ✔ Correct: ${c}<br>
-        ✖ Wrong: ${w}<br>
-        ⏸ Unattempted: ${u}<br>
+      <div class="analysisBox" style="text-align:left">
+        <b>Section-wise Analysis</b><br>
+        ${sectionHTML}
+        <hr>
+        ✔ Correct: ${totalC}<br>
+        ✖ Wrong: ${totalW}<br>
+        ⏸ Unattempted: ${totalU}<br>
         ➖ Negative Lost: ${negLoss}<br>
-        🎯 Target: ${t.target}<br>
+        🎯 Target: ${t.target || 0}<br>
         📉 Marks Needed: <b>${need}</b>
       </div>
     </td>`;
