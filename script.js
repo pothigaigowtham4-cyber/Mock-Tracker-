@@ -4,28 +4,30 @@ if (!window.$) {
 }
 
 /* ================= QUOTES ================= */
-const quotes = [
-  "Be the person your future self will thank.",
-  "Discipline beats motivation.",
-  "Small progress is still progress.",
-  "Consistency creates confidence.",
-  "Your competition is your past self.",
-  "Focus on the process, not the outcome.",
-  "Dreams don’t work unless you do.",
-  "Hard work compounds silently.",
-  "Success is built daily.",
-  "You are one habit away from change.",
-  "Work now, relax later.",
-  "Pressure makes diamonds.",
-  "No excuses. Just execution.",
-  "Train your mind to stay strong.",
-  "Do it even when you don’t feel like it.",
-  "Comfort is the enemy of growth.",
-  "Every mock makes you sharper.",
-  "Stay patient. Stay consistent.",
-  "Results follow discipline.",
-  "Future you is watching."
-];
+if (!window.quotes) {
+  window.quotes = [
+    "Be the person your future self will thank.",
+    "Discipline beats motivation.",
+    "Small progress is still progress.",
+    "Consistency creates confidence.",
+    "Your competition is your past self.",
+    "Focus on the process, not the outcome.",
+    "Dreams don’t work unless you do.",
+    "Hard work compounds silently.",
+    "Success is built daily.",
+    "You are one habit away from change.",
+    "Work now, relax later.",
+    "Pressure makes diamonds.",
+    "No excuses. Just execution.",
+    "Train your mind to stay strong.",
+    "Do it even when you don’t feel like it.",
+    "Comfort is the enemy of growth.",
+    "Every mock makes you sharper.",
+    "Stay patient. Stay consistent.",
+    "Results follow discipline.",
+    "Future you is watching."
+  ];
+}
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
 let quoteTimer = null;
@@ -256,14 +258,40 @@ function renderTables() {
   });
 }
 
-function deleteTest(i) {
-  tests.splice(i, 1);
-  localStorage.setItem("tests", JSON.stringify(tests));
-  buildFilter();
-  renderTables();
+/* ================= ANALYSIS (RESTORED) ================= */
+function toggleDetails(row, index) {
+  const next = row.nextElementSibling;
+  if (next && next.classList.contains("analysisRow")) {
+    next.remove();
+    return;
+  }
+
+  document.querySelectorAll(".analysisRow").forEach(r => r.remove());
+
+  const t = tests[index];
+  let c=0,w=0,u=0;
+  t.sections.forEach(s => { c+=s.c; w+=s.w; u+=s.u; });
+
+  const negLoss = (w * (t.negative||0)).toFixed(2);
+  const need = Math.max(0, t.target - t.total).toFixed(2);
+
+  const tr = document.createElement("tr");
+  tr.className = "analysisRow";
+  tr.innerHTML = `
+    <td colspan="100%">
+      <div class="analysisBox">
+        ✔ Correct: ${c}<br>
+        ✖ Wrong: ${w}<br>
+        ⏸ Unattempted: ${u}<br>
+        ➖ Negative Lost: ${negLoss}<br>
+        🎯 Target: ${t.target}<br>
+        📉 Marks Needed: <b>${need}</b>
+      </div>
+    </td>`;
+  row.after(tr);
 }
 
-/* ================= GRAPH (FILTER AWARE) ================= */
+/* ================= GRAPH ================= */
 function showGraph() {
   $("graphPage").style.display = "block";
   renderGraph();
