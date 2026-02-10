@@ -149,15 +149,15 @@ function saveTest() {
   });
 
   const test = {
-    exam: $("examName").value,
-    test: $("testName").value,
-    date: $("testDate").value,
-    platform: $("platformName").value,
-    negative: +$("negativeMark").value || 0,
-    target: +$("targetInput").value || 0,
-    total,
-    sections
-  };
+  exam: $("examName").value,
+  test: $("testName").value,   // <-- this IS your test number
+  date: $("testDate").value,
+  platform: $("platformName").value,
+  negative: +$("negativeMark").value || 0,
+  target: +$("targetInput").value || 0,
+  total,
+  sections
+};
 
   editIndex === null ? tests.push(test) : tests[editIndex] = test;
   editIndex = null;
@@ -259,7 +259,8 @@ function renderTables() {
 
       table.innerHTML += `
         <tr onclick="toggleDetails(this, ${idx})">
-          <td>${idx + 1}</td>
+          <td>${t.test}</td>
+
           <td>${formatDate(t.date)}</td>
           <td>${t.platform}</td>
           <td class="${cls}">${t.total}</td>
